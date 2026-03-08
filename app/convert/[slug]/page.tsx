@@ -133,8 +133,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { slug, inputUpper, outputUpper } = parsed;
 
-  const title = `${inputUpper} to ${outputUpper} Converter | Converto`;
-  const description = `Convert ${inputUpper} to ${outputUpper} online with Converto. Fast, simple, browser-based conversion for quick tasks.`;
+  const title = `${inputUpper} to ${outputUpper} Converter Online Free | Converto`;
+  const description = `Convert ${inputUpper} to ${outputUpper} online for free with Converto. Fast browser-based tool, simple workflow, and quick file conversion for everyday use.`;
 
   return {
     title,

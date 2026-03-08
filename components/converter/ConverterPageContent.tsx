@@ -69,6 +69,24 @@ function isImageFmt(fmt: string | null | undefined) {
   return fmt === "GIF";
 }
 
+function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
+  const fmt = normalizeFmtLabel(inputFmt);
+
+  if (isAudioFmt(fmt)) {
+    return ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC"];
+  }
+
+  if (isVideoFmt(fmt)) {
+    return ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"];
+  }
+
+  if (isImageFmt(fmt)) {
+    return ["MP4", "WEBM", "MOV"];
+  }
+
+  return ALL_TARGET_OPTIONS;
+}
+
 function formatToSlug(value?: string | null) {
   return value ? value.toLowerCase() : "";
 }
@@ -88,7 +106,7 @@ function buildRelatedConversions(input?: string | null, output?: string | null) 
   } else if (isImageFmt(from)) {
     pool = ["MP4", "WEBM", "MOV"];
   } else {
-    pool = ALL_TARGET_OPTIONS;
+    pool = ALL_TARGET_OPTIONS.map((fmt) => fmt);
   }
 
   return pool
@@ -104,17 +122,44 @@ function buildSeoContent(input?: string | null, output?: string | null) {
   const from = normalizeFmtLabel(input) ?? "FILE";
   const to = normalizeFmtLabel(output) ?? "FILE";
 
+  const inputIsAudio = isAudioFmt(from);
+  const inputIsVideo = isVideoFmt(from);
+  const inputIsImage = isImageFmt(from);
+  const outputIsImage = isImageFmt(to);
+
+  let intro = `Convert ${from} to ${to} directly in your browser with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`;
+
+  let whyText = `Converting ${from} to ${to} can help with playback compatibility, sharing, compression, editing workflows, or extracting audio from video files.`;
+
+  let useText = `This page is optimized around ${from} to ${to}, but it does not lock your workflow. You can still upload another supported file type and switch the output format inside the converter.`;
+
+  if (inputIsAudio && isAudioFmt(to)) {
+    intro = `Convert ${from} to ${to} online with a simple browser-based workflow. This is useful when you need better compatibility, different compression, or a format that works better across devices and apps.`;
+    whyText = `${from} to ${to} conversion is often used for playback support, reducing file size, improving compatibility, or preparing files for editing and sharing.`;
+  } else if (inputIsVideo && isAudioFmt(to)) {
+    intro = `Convert ${from} to ${to} online to extract audio from video files in your browser. This is useful for music clips, voice tracks, podcasts, lectures, and simple audio-only exports.`;
+    whyText = `${from} to ${to} conversion is commonly used to extract audio from video, keep only the soundtrack, or create smaller files for listening and sharing.`;
+  } else if (inputIsVideo && isVideoFmt(to)) {
+    intro = `Convert ${from} to ${to} online for better compatibility, easier sharing, and cleaner playback across browsers, devices, and editing tools.`;
+    whyText = `${from} to ${to} conversion is useful when a file needs to be more widely supported, easier to upload, or better suited for editing and playback.`;
+  } else if (inputIsImage && isVideoFmt(to)) {
+    intro = `Convert ${from} to ${to} online to turn animated image content into a more flexible video format. This can help with sharing, editing, and playback on more platforms.`;
+    whyText = `${from} to ${to} conversion can help when you want better control over playback, easier uploads, or broader compatibility than an animated image format provides.`;
+  } else if (outputIsImage) {
+    whyText = `${from} to ${to} conversion is useful for lightweight motion previews, simple animations, and quick visual sharing.`;
+  }
+
   return {
     heading: `${from} to ${to} converter`,
-    intro: `Convert ${from} to ${to} directly in your browser with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`,
+    intro,
     steps: [
       `Upload your ${from} file.`,
       `Use ${to} as the suggested output format or choose a different target.`,
       `Start the conversion and wait for processing to complete.`,
       `Download the converted file when it is ready.`,
     ],
-    whyText: `Converting ${from} to ${to} can help with playback compatibility, sharing, compression, editing workflows, or extracting audio from video files.`,
-    useText: `This page is optimized around ${from} to ${to}, but it does not lock your workflow. You can still upload another supported file type and switch the output format inside the converter.`,
+    whyText,
+    useText,
     browserText: `Smaller files are best for browser-based conversion. Larger files may be better suited to a future server mode.`,
   };
 }
@@ -746,6 +791,10 @@ export default function ConverterPageContent({
     [target, suggestedOutput, rawOutputLabel]
   );
 
+  const availableTargets = useMemo(() => {
+    return getAvailableTargets(fromFmt ?? suggestedInput ?? rawInputLabel);
+  }, [fromFmt, suggestedInput, rawInputLabel]);
+
   const siteUrl =
     typeof window !== "undefined"
       ? window.location.origin
@@ -1079,7 +1128,7 @@ export default function ConverterPageContent({
                         className="absolute left-1/2 z-30 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
                       >
                         <div ref={targetListRef} className="max-h-64 overflow-auto">
-                          {ALL_TARGET_OPTIONS.map((fmt) => (
+                          {availableTargets.map((fmt) => (
                             <button
                               key={fmt}
                               type="button"
