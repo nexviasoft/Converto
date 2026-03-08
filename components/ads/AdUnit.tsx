@@ -2,7 +2,13 @@
 
 import React, { useEffect, useRef } from "react";
 import { cx } from "@/components/ui";
-import { ADSENSE_CLIENT, ADSENSE_ENABLED } from "./AdSenseScript";
+import { ADSENSE_CLIENT, ADSENSE_ENABLED } from "./AdsenseScript";
+
+export const AD_SLOTS = {
+  LEFT_RAIL: "3456789012",
+  RIGHT_RAIL: "4567890123",
+  IN_CONTENT: "2345678901",
+} as const;
 
 export default function AdUnit({
   slot,
