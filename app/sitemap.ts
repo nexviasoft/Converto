@@ -1,4 +1,3 @@
-// app/sitemap.ts
 import type { MetadataRoute } from "next";
 
 const AUDIO_FORMATS = ["mp3", "wav", "aac", "m4a", "ogg", "opus", "flac"] as const;
@@ -32,29 +31,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const now = new Date();
 
-  const staticRoutes = ["/", "/privacy", "/terms", "/converter"];
+  const staticRoutes = ["/", "/privacy", "/terms", "/converter", "/formats"];
 
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: `${siteUrl}${path}`,
     lastModified: now,
-    changeFrequency: path === "/" ? "daily" : "monthly",
-    priority: path === "/" ? 1 : 0.7,
+    changeFrequency: path === "/" ? "daily" : path === "/formats" ? "weekly" : "monthly",
+    priority: path === "/" ? 1 : path === "/formats" ? 0.85 : 0.7,
   }));
 
   const converterSlugs = unique([
-    // audio -> audio
     ...buildPairSlugs(AUDIO_FORMATS, AUDIO_FORMATS),
-
-    // video -> audio
     ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
-
-    // video -> video
     ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
-
-    // video -> image
     ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-
-    // image -> video
     ...buildPairSlugs(IMAGE_FORMATS, VIDEO_FORMATS),
   ]);
 

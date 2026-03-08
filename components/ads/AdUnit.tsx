@@ -25,7 +25,6 @@ export default function AdUnit({
   const triesRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const tRef = useRef<number | null>(null);
-
   const insRef = useRef<HTMLModElement | null>(null);
 
   const instanceIdRef = useRef<string>(Math.random().toString(36).slice(2));
@@ -57,7 +56,6 @@ export default function AdUnit({
     const ads = (window as any).adsbygoogle;
     if (!ads || typeof ads.push !== "function") return false;
 
-    if (pushedRef.current) return true;
     return true;
   };
 
@@ -102,7 +100,6 @@ export default function AdUnit({
       tRef.current = null;
       rafRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slot]);
 
   if (!ADSENSE_ENABLED) return null;
@@ -121,11 +118,20 @@ export default function AdUnit({
 
       <div className={cx("relative", compact ? "p-3" : "p-4")}>
         <div className={cx("flex items-center justify-between", compact ? "mb-2" : "mb-3")}>
-          <span className={cx("font-semibold tracking-widest text-white/55", compact ? "text-[10px]" : "text-[11px]")}>
+          <span
+            className={cx(
+              "font-semibold tracking-widest text-white/55",
+              compact ? "text-[10px]" : "text-[11px]"
+            )}
+          >
             SPONSORED
           </span>
 
-          <span className={cx(compact ? "text-[10px] text-white/40" : "text-[11px] text-white/45")}>
+          <span
+            className={cx(
+              compact ? "text-[10px] text-white/40" : "text-[11px] text-white/45"
+            )}
+          >
             Ads keep Converto free
           </span>
         </div>

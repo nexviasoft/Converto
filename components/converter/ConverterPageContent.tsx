@@ -44,6 +44,15 @@ const ALL_TARGET_OPTIONS: TargetFmt[] = [
   "GIF",
 ];
 
+const homepagePopularConversions = [
+  { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
+  { href: "/convert/webm-to-mp3", label: "WEBM to MP3" },
+  { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
+  { href: "/convert/mp4-to-wav", label: "MP4 to WAV" },
+  { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
+  { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
+];
+
 function normalizeFmtLabel(value?: string | null): string | null {
   if (!value) return null;
   return value.toString().trim().toUpperCase();
@@ -355,6 +364,46 @@ function RelatedConversionsSection({
               {item.label}
             </Link>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PopularEntrySection() {
+  return (
+    <section className="mx-auto mt-6 max-w-[1100px]">
+      <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+          Popular conversions
+        </div>
+
+        <h3 className="mt-3 text-lg font-semibold text-white">
+          Start with common file conversion routes
+        </h3>
+
+        <p className="mt-2 max-w-[70ch] text-sm leading-6 text-white/60">
+          These are some of the most common converter paths on Converto. They also help strengthen
+          internal linking across the site and make it easier to discover related pages.
+        </p>
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          {homepagePopularConversions.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          <Link
+            href="/formats"
+            className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+          >
+            Browse format directory
+          </Link>
         </div>
       </div>
     </section>
@@ -865,6 +914,9 @@ export default function ConverterPageContent({
           </Link>
 
           <div className="flex items-center gap-4">
+            <Link href="/formats" className="text-sm text-white/70 transition hover:text-white">
+              Formats
+            </Link>
             <Link href="/terms" className="text-sm text-white/70 transition hover:text-white">
               Terms
             </Link>
@@ -1353,7 +1405,7 @@ export default function ConverterPageContent({
         </section>
 
         <SeoInfoSection input={activeInputLabel} output={activeOutputLabel} />
-
+        <PopularEntrySection />
         <RelatedConversionsSection input={activeInputLabel} output={activeOutputLabel} />
       </main>
 
@@ -1372,6 +1424,9 @@ export default function ConverterPageContent({
           <div className="flex flex-wrap gap-3 text-sm text-white/60">
             <Link className="transition hover:text-white" href="/">
               Home
+            </Link>
+            <Link className="transition hover:text-white" href="/formats">
+              Formats
             </Link>
             <Link className="transition hover:text-white" href="/privacy">
               Privacy

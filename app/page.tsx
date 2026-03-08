@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
 
 import Header from "@/components/landing/Header";
@@ -11,20 +12,23 @@ import InterstitialAd from "@/components/landing/InterstitialAd";
 import HeroSection from "@/components/landing/sections/HeroSection";
 import FeaturesSection from "@/components/landing/sections/FeaturesSection";
 import HowSection from "@/components/landing/sections/HowSection";
-// ✅ Landing’te converter tool’u göstermiyoruz artık
-// import OnlineConverterSection from "@/components/landing/sections/OnlineConverterSection";
-
 import PricingSection from "@/components/landing/sections/PricingSection";
 import TrustWaitlistSection from "@/components/landing/sections/TrustWaitlistSection";
 import FaqSection from "@/components/landing/sections/FaqSection";
 
+const popularConversions = [
+  { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
+  { href: "/convert/mp4-to-wav", label: "MP4 to WAV" },
+  { href: "/convert/webm-to-mp3", label: "WEBM to MP3" },
+  { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
+  { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
+  { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
+];
+
 export default function LandingPage() {
   const googlePlayUrl = "#";
-
-  // ✅ Try online artık direkt converter page
   const onlineUrl = "/converter";
 
-  // ✅ Landing nav: sadece landing sectionlar (converter scroll yok)
   const sections = useMemo(
     () => [
       { id: "features", label: "Features" },
@@ -39,17 +43,14 @@ export default function LandingPage() {
   const [activeId, setActiveId] = useState<string>("features");
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // waitlist
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [joined, setJoined] = useState(false);
 
-  // toast
   const [toastOpen, setToastOpen] = useState(false);
   const [toastTitle, setToastTitle] = useState("Done!");
   const [toastDesc, setToastDesc] = useState<string | undefined>(undefined);
 
-  // interstitial
   const [interstitialOpen, setInterstitialOpen] = useState(false);
   const pendingUrlRef = useRef<string | null>(null);
 
@@ -93,7 +94,6 @@ export default function LandingPage() {
     } catch {}
   }, []);
 
-  // ✅ active nav highlight (landing sectionlar)
   useEffect(() => {
     const ids = sections.map((s) => s.id);
     const els = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
@@ -141,7 +141,6 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
       <AdSenseScript />
 
-      {/* background */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.22),transparent_60%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_55%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_45%)]" />
         <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:72px_72px]" />
@@ -152,21 +151,23 @@ export default function LandingPage() {
         activeId={activeId}
         isScrolled={isScrolled}
         googlePlayUrl={googlePlayUrl}
-        onlineUrl={onlineUrl} // ✅ artık /converter
+        onlineUrl={onlineUrl}
         onOpenInterstitial={openInterstitialFor}
       />
 
       <main>
-        <HeroSection googlePlayUrl={googlePlayUrl} onlineUrl={onlineUrl} onOpenInterstitial={openInterstitialFor} />
+        <HeroSection
+          googlePlayUrl={googlePlayUrl}
+          onlineUrl={onlineUrl}
+          onOpenInterstitial={openInterstitialFor}
+        />
 
         <FeaturesSection />
         <HowSection />
 
-        {/* ✅ landing’te converter tool yok artık */}
-
         <PricingSection
           googlePlayUrl={googlePlayUrl}
-          onlineUrl={onlineUrl} // ✅ pricing içindeki “Try online” da /converter’a gider
+          onlineUrl={onlineUrl}
           onOpenInterstitial={openInterstitialFor}
           showToast={showToast}
         />
@@ -180,6 +181,67 @@ export default function LandingPage() {
         />
 
         <FaqSection />
+
+        <section className="mx-auto mt-16 max-w-5xl px-4 pb-8">
+          <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              Popular conversion paths
+            </div>
+
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+              Start with the most common format conversions
+            </h2>
+
+            <p className="mt-3 max-w-[70ch] text-sm leading-6 text-white/65">
+              Converto helps with common audio and video conversion tasks such as MP4 to MP3,
+              WEBM to MP3, FLAC to MP3, MOV to MP4, and other everyday browser-based workflows.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {popularConversions.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              <Link
+                href="/formats"
+                className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                Explore all format guides
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-4 pb-16">
+          <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              About Converto
+            </div>
+
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+              Free online file converter for audio, video, and image formats
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-white/65">
+              Converto is a browser-based file converter built for quick everyday tasks. You can
+              convert common audio, video, and lightweight animated image files without installing
+              extra software. The goal is a clean workflow, simple format selection, and direct
+              downloads for fast results.
+            </p>
+
+            <p className="mt-4 text-sm leading-6 text-white/65">
+              Popular use cases include extracting audio from video, changing playback formats,
+              converting video for compatibility, and turning animated GIF content into more
+              flexible video outputs. Converto is designed to be simple, fast, and focused.
+            </p>
+          </div>
+        </section>
 
         <style>{`
           @keyframes shine {
@@ -198,8 +260,17 @@ export default function LandingPage() {
         onToastSupport={() => showToast("Support", "Email: support@converto.tools")}
       />
 
-      <Toast open={toastOpen} title={toastTitle} desc={toastDesc} onClose={() => setToastOpen(false)} />
-      <InterstitialAd open={interstitialOpen} onClose={closeInterstitial} onContinue={continueAfterInterstitial} />
+      <Toast
+        open={toastOpen}
+        title={toastTitle}
+        desc={toastDesc}
+        onClose={() => setToastOpen(false)}
+      />
+      <InterstitialAd
+        open={interstitialOpen}
+        onClose={closeInterstitial}
+        onContinue={continueAfterInterstitial}
+      />
     </div>
   );
 }

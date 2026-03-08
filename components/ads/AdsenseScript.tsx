@@ -5,7 +5,7 @@ import Script from "next/script";
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "";
 const ADSENSE_ENABLED = ADSENSE_CLIENT.startsWith("ca-pub-");
 
-export default function AdSenseScript() {
+export default function AdsenseScript() {
   if (!ADSENSE_ENABLED) return null;
 
   return (
