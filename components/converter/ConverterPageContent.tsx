@@ -19,8 +19,8 @@ type TargetFmt =
 type ConverterPageContentProps = {
   seoTitle?: string;
   seoDescription?: string;
-  forcedInput?: TargetFmt | null;
-  forcedOutput?: TargetFmt | null;
+  suggestedInput?: TargetFmt | null;
+  suggestedOutput?: TargetFmt | null;
   rawInputLabel?: string;
   rawOutputLabel?: string;
 };
@@ -319,8 +319,8 @@ function RelatedConversionsSection({
 export default function ConverterPageContent({
   seoTitle,
   seoDescription,
-  forcedInput = null,
-  forcedOutput = null,
+  suggestedInput = null,
+  suggestedOutput = null,
   rawInputLabel,
   rawOutputLabel,
 }: ConverterPageContentProps) {
@@ -329,7 +329,7 @@ export default function ConverterPageContent({
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<ConvertStatus>("idle");
-  const [target, setTarget] = useState<TargetFmt>(forcedOutput ?? "MP3");
+  const [target, setTarget] = useState<TargetFmt>(suggestedOutput ?? "MP3");
   const [targetOpen, setTargetOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -347,8 +347,8 @@ export default function ConverterPageContent({
   const targetListRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setTarget(forcedOutput ?? "MP3");
-  }, [forcedOutput]);
+    setTarget(suggestedOutput ?? "MP3");
+  }, [suggestedOutput]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -471,7 +471,7 @@ export default function ConverterPageContent({
     setResultUrl(null);
     setStatus("idle");
     setErrorMsg(null);
-    setTarget(forcedOutput ?? "MP3");
+    setTarget(suggestedOutput ?? "MP3");
     setProgress(0);
     setTargetOpen(false);
   };
@@ -581,14 +581,14 @@ export default function ConverterPageContent({
     setResultUrl(null);
 
     const smartDefault = (() => {
-      if (forcedOutput) return forcedOutput;
+      if (suggestedOutput) return suggestedOutput;
       if (!detected) return "MP3" as TargetFmt;
       if (isAudioFmt(detected)) return "MP3" as TargetFmt;
       if (detected === "GIF") return "MP4" as TargetFmt;
       return "MP3" as TargetFmt;
     })();
 
-    const nextTarget = forcedOutput ?? smartDefault;
+    const nextTarget = suggestedOutput ?? smartDefault;
     setTarget(nextTarget);
 
     if (detected) {
@@ -737,13 +737,13 @@ export default function ConverterPageContent({
   const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : null;
 
   const activeInputLabel = useMemo(
-    () => normalizeFmtLabel(fromFmt ?? forcedInput ?? rawInputLabel ?? "file"),
-    [fromFmt, forcedInput, rawInputLabel]
+    () => normalizeFmtLabel(fromFmt ?? suggestedInput ?? rawInputLabel ?? "file"),
+    [fromFmt, suggestedInput, rawInputLabel]
   );
 
   const activeOutputLabel = useMemo(
-    () => normalizeFmtLabel(target ?? forcedOutput ?? rawOutputLabel ?? "file"),
-    [target, forcedOutput, rawOutputLabel]
+    () => normalizeFmtLabel(target ?? suggestedOutput ?? rawOutputLabel ?? "file"),
+    [target, suggestedOutput, rawOutputLabel]
   );
 
   const siteUrl =
@@ -882,10 +882,10 @@ export default function ConverterPageContent({
                         Detected input: {fromFmt}
                       </span>
                     </div>
-                  ) : forcedInput || forcedOutput ? (
+                  ) : suggestedInput || suggestedOutput ? (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
-                        Suggested: {(forcedInput ?? "INPUT")} → {target}
+                        Suggested: {(suggestedInput ?? "INPUT")} → {target}
                       </span>
                     </div>
                   ) : null}
@@ -1015,7 +1015,7 @@ export default function ConverterPageContent({
                   </div>
                 ) : null}
 
-                {(forcedOutput || fromFmt || target) ? (
+                {(suggestedOutput || fromFmt || target) ? (
                   <p className="mt-6 text-xs leading-6 text-white/55">
                     {fromFmt ? (
                       <>
@@ -1027,9 +1027,9 @@ export default function ConverterPageContent({
                     ) : (
                       <>
                         This page suggests converting{" "}
-                        <span className="font-semibold text-white/75">{forcedInput ?? "input"}</span>{" "}
+                        <span className="font-semibold text-white/75">{suggestedInput ?? "input"}</span>{" "}
                         files to{" "}
-                        <span className="font-semibold text-white/75">{forcedOutput ?? target}</span>.
+                        <span className="font-semibold text-white/75">{suggestedOutput ?? target}</span>.
                         You can still upload a different supported file type, and the route will
                         adapt automatically.
                       </>
@@ -1087,7 +1087,7 @@ export default function ConverterPageContent({
                                 setTarget(fmt);
                                 setTargetOpen(false);
 
-                                const nextInputForRoute = fromFmt ?? forcedInput;
+                                const nextInputForRoute = fromFmt ?? suggestedInput;
                                 if (nextInputForRoute) {
                                   syncSeoRoute(nextInputForRoute, fmt);
                                 }

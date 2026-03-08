@@ -83,29 +83,22 @@ function mapSlugPartToFmt(value: string): TargetFmt | null {
 }
 
 function parseSlug(slug?: string | null) {
-  if (!slug || typeof slug !== "string") {
-    return null;
-  }
+  if (!slug || typeof slug !== "string") return null;
 
   const [input, output] = slug.split("-to-");
+  if (!input || !output) return null;
 
-  if (!input || !output) {
-    return null;
-  }
+  const suggestedInput = mapSlugPartToFmt(input);
+  const suggestedOutput = mapSlugPartToFmt(output);
 
-  const forcedInput = mapSlugPartToFmt(input);
-  const forcedOutput = mapSlugPartToFmt(output);
-
-  if (!forcedInput || !forcedOutput) {
-    return null;
-  }
+  if (!suggestedInput || !suggestedOutput) return null;
 
   return {
     slug,
     input,
     output,
-    forcedInput,
-    forcedOutput,
+    suggestedInput,
+    suggestedOutput,
     inputUpper: input.toUpperCase(),
     outputUpper: output.toUpperCase(),
   };
@@ -168,18 +161,23 @@ export default async function ConvertSlugPage({ params }: PageProps) {
   const resolvedParams = await params;
   const parsed = parseSlug(resolvedParams?.slug);
 
-  if (!parsed) {
-    notFound();
-  }
+  if (!parsed) notFound();
 
-  const { input, output, forcedInput, forcedOutput, inputUpper, outputUpper } = parsed;
+  const {
+    input,
+    output,
+    suggestedInput,
+    suggestedOutput,
+    inputUpper,
+    outputUpper,
+  } = parsed;
 
   return (
     <ConverterPageContent
       seoTitle={`Convert ${inputUpper} to ${outputUpper} online`}
       seoDescription={`Free online ${inputUpper} to ${outputUpper} converter. Fast, simple, and browser-based.`}
-      forcedInput={forcedInput}
-      forcedOutput={forcedOutput}
+      suggestedInput={suggestedInput}
+      suggestedOutput={suggestedOutput}
       rawInputLabel={input}
       rawOutputLabel={output}
     />
