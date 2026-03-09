@@ -1,127 +1,63 @@
 import type { Metadata } from "next";
-import "./globals.css";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://converto.tools";
+import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "Converto — Free Online File Converter",
-    template: "%s | Converto",
-  },
+  title: "Supported File Formats",
   description:
-    "Convert audio, video, and image files online for free with Converto. Fast browser-based file converter for MP3, WAV, AAC, FLAC, MP4, WEBM, MOV, GIF and more.",
-  applicationName: "Converto",
-  keywords: [
-    "file converter",
-    "online converter",
-    "mp4 to mp3",
-    "audio converter",
-    "video converter",
-    "free file converter",
-    "browser converter",
-    "converto",
-  ],
-  authors: [{ name: "NexviaSoft" }],
-  creator: "NexviaSoft",
-  publisher: "NexviaSoft",
-  category: "Technology",
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    url: siteUrl,
-    title: "Converto — Free Online File Converter",
-    description:
-      "Convert audio, video, and image files online for free with Converto. Fast browser-based conversion for common formats.",
-    siteName: "Converto",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Converto",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Converto — Free Online File Converter",
-    description:
-      "Free online converter for audio, video, and image files. Fast browser-based workflow.",
-    images: ["/og.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
+    "List of supported audio, video and image formats you can convert with Converto.",
 };
 
-const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "NexviaSoft",
-  url: siteUrl,
-  logo: `${siteUrl}/brand/converto-logo.svg`,
-};
-
-const webSiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Converto",
-  url: siteUrl,
-  publisher: {
-    "@type": "Organization",
-    name: "NexviaSoft",
-  },
-};
-
-const softwareSchema = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Converto",
-  applicationCategory: "MultimediaApplication",
-  operatingSystem: "Any",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  url: siteUrl,
-  description:
-    "Free online file converter for audio, video, and image formats.",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function FormatsPage() {
   return (
-    <html lang="en">
-      <body>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
-        />
-        {children}
-      </body>
-    </html>
+    <main className="min-h-screen bg-[#151233] text-white px-6 py-16">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold mb-6">Supported Formats</h1>
+
+        <p className="text-white/70 mb-10">
+          Converto supports a wide range of audio, video and image formats.
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Audio</h2>
+            <ul className="space-y-2 text-white/70">
+              <li>MP3</li>
+              <li>WAV</li>
+              <li>AAC</li>
+              <li>FLAC</li>
+              <li>M4A</li>
+              <li>OGG</li>
+              <li>OPUS</li>
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Video</h2>
+            <ul className="space-y-2 text-white/70">
+              <li>MP4</li>
+              <li>WEBM</li>
+              <li>MOV</li>
+              <li>GIF</li>
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Quick Links</h2>
+            <ul className="space-y-2 text-white/70">
+              <li>
+                <Link href="/convert/mp4-to-mp3">MP4 to MP3</Link>
+              </li>
+              <li>
+                <Link href="/convert/mp3-to-wav">MP3 to WAV</Link>
+              </li>
+              <li>
+                <Link href="/convert/mp4-to-gif">MP4 to GIF</Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
