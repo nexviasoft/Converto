@@ -200,6 +200,114 @@ export default function LandingPageClient() {
         <FaqSection />
 
         <section className="mx-auto mt-16 max-w-5xl px-4 pb-8">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                Format guides
+              </div>
+
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+                Learn the formats before you convert
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                Explore the most important audio and video formats, understand when they
+                are used, and jump into the right conversion path with more confidence.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/formats/mp4"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  MP4 guide
+                </Link>
+
+                <Link
+                  href="/formats/mp3"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  MP3 guide
+                </Link>
+
+                <Link
+                  href="/formats/wav"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  WAV guide
+                </Link>
+
+                <Link
+                  href="/formats/webm"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  WEBM guide
+                </Link>
+
+                <Link
+                  href="/formats"
+                  className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                >
+                  Open formats hub
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                Compare formats
+              </div>
+
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+                Compare formats before choosing an output
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                Not sure which file type makes more sense? Compare popular audio and
+                video formats by quality, file size, compatibility, and use case.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/compare/mp3-vs-wav"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  MP3 vs WAV
+                </Link>
+
+                <Link
+                  href="/compare/flac-vs-mp3"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  FLAC vs MP3
+                </Link>
+
+                <Link
+                  href="/compare/mp4-vs-webm"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  MP4 vs WEBM
+                </Link>
+
+                <Link
+                  href="/compare/mp4-vs-mov"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  MP4 vs MOV
+                </Link>
+
+                <Link
+                  href="/compare"
+                  className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                >
+                  Open compare hub
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto mt-16 max-w-5xl px-4 pb-8">
           <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
               Popular conversion paths
@@ -230,6 +338,13 @@ export default function LandingPageClient() {
                 className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
               >
                 Explore all format guides
+              </Link>
+
+              <Link
+                href="/compare"
+                className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+              >
+                Compare formats
               </Link>
             </div>
           </div>

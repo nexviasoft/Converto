@@ -104,7 +104,9 @@ const Chip = ({
   </button>
 );
 
-const GlowDivider = () => <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />;
+const GlowDivider = () => (
+  <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+);
 
 export default function ConverterPage() {
   const PRO_FEATURES_ENABLED = false;
@@ -198,8 +200,9 @@ export default function ConverterPage() {
       n.endsWith(".ts") ||
       n.endsWith(".mts") ||
       n.endsWith(".m2ts")
-    )
+    ) {
       return "MP4";
+    }
     return null;
   };
 
@@ -472,23 +475,6 @@ export default function ConverterPage() {
       if (effectivePreset === "SMALL") return { fps: 8, width: 320 };
       if (effectivePreset === "HIGH") return { fps: 15, width: 640 };
       return { fps: 12, width: 480 };
-    };
-
-    const friendlyError = (raw: any) => {
-      const msg = String(raw?.message ?? raw ?? "").toLowerCase();
-      if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
-        return "This format isn’t available in the browser demo build. Try MP4/MP3 or use the server beta.";
-      }
-      if (msg.includes("memory") || msg.includes("out of bounds") || msg.includes("abort")) {
-        return "This file is too heavy for in-browser conversion. Try a smaller file or use the server beta.";
-      }
-      if (msg.includes("invalid data") || msg.includes("could not find codec parameters") || msg.includes("moov atom not found")) {
-        return "File looks corrupted or incomplete. Try re-downloading the original file.";
-      }
-      if (msg.includes("gif output requires")) {
-        return "GIF needs a video input. You selected an audio-only file.";
-      }
-      return raw?.message ?? "Conversion failed. Please try again.";
     };
 
     try {
@@ -841,6 +827,12 @@ export default function ConverterPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link href="/formats" className="hidden text-sm text-white/70 transition hover:text-white sm:inline-flex">
+              Formats
+            </Link>
+            <Link href="/compare" className="hidden text-sm text-white/70 transition hover:text-white sm:inline-flex">
+              Compare
+            </Link>
             <Link href="/terms" className="hidden text-sm text-white/70 transition hover:text-white sm:inline-flex">
               Terms
             </Link>
@@ -1142,7 +1134,8 @@ export default function ConverterPage() {
                         </div>
 
                         <p className="mt-3 text-left text-xs text-white/55">
-                          Format: <span className="font-semibold text-white/70">mm:ss</span> or <span className="font-semibold text-white/70">hh:mm:ss</span>.
+                          Format: <span className="font-semibold text-white/70">mm:ss</span> or{" "}
+                          <span className="font-semibold text-white/70">hh:mm:ss</span>.
                           {isProLocked ? " Available later in Pro." : " Example: 00:03 → 00:08"}
                         </p>
                       </div>
@@ -1391,6 +1384,62 @@ export default function ConverterPage() {
                   </div>
                 </div>
               </div>
+
+              <section className="mx-auto mt-6 max-w-[860px]">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-[24px] bg-white/8 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      Format guides
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-white">
+                      Learn formats before choosing an output
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-white/60">
+                      Explore the most important audio and video file types and understand which format fits your workflow best.
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <Link href="/formats/mp4" className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white">
+                        MP4 guide
+                      </Link>
+                      <Link href="/formats/mp3" className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white">
+                        MP3 guide
+                      </Link>
+                      <Link href="/formats/wav" className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white">
+                        WAV guide
+                      </Link>
+                      <Link href="/formats" className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90">
+                        Open formats hub
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[24px] bg-white/8 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      Compare formats
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-white">
+                      Compare before you convert
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-white/60">
+                      Not sure which format makes more sense? Compare quality, size, compatibility, and common use cases first.
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <Link href="/compare/mp3-vs-wav" className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white">
+                        MP3 vs WAV
+                      </Link>
+                      <Link href="/compare/flac-vs-mp3" className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white">
+                        FLAC vs MP3
+                      </Link>
+                      <Link href="/compare/mp4-vs-webm" className="inline-flex rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white">
+                        MP4 vs WEBM
+                      </Link>
+                      <Link href="/compare" className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90">
+                        Open compare hub
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </section>
 
@@ -1472,6 +1521,12 @@ export default function ConverterPage() {
           <div className="flex flex-wrap gap-3 text-sm text-white/60">
             <Link className="transition hover:text-white" href="/">
               Home
+            </Link>
+            <Link className="transition hover:text-white" href="/formats">
+              Formats
+            </Link>
+            <Link className="transition hover:text-white" href="/compare">
+              Compare
             </Link>
             <Link className="transition hover:text-white" href="/privacy">
               Privacy
