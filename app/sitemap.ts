@@ -18,6 +18,15 @@ const FORMAT_GUIDES = [
   "gif",
 ] as const;
 
+const COMPARE_PAGES = [
+  "mp3-vs-wav",
+  "flac-vs-mp3",
+  "mp4-vs-webm",
+  "mp4-vs-mov",
+  "aac-vs-mp3",
+  "m4a-vs-mp3",
+] as const;
+
 function buildPairSlugs(
   fromFormats: readonly string[],
   toFormats: readonly string[]
@@ -45,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const now = new Date();
 
-  const staticRoutes = ["/", "/privacy", "/terms", "/converter", "/formats"];
+  const staticRoutes = ["/", "/privacy", "/terms", "/converter", "/formats", "/compare"];
 
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: `${siteUrl}${path}`,
@@ -71,6 +80,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.75,
   }));
 
+  const compareEntries: MetadataRoute.Sitemap = COMPARE_PAGES.map((slug) => ({
+    url: `${siteUrl}/compare/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
   const converterSlugs = unique([
     ...buildPairSlugs(AUDIO_FORMATS, AUDIO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
@@ -86,5 +102,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticEntries, ...formatGuideEntries, ...converterEntries];
+  return [
+    ...staticEntries,
+    ...formatGuideEntries,
+    ...compareEntries,
+    ...converterEntries,
+  ];
 }
