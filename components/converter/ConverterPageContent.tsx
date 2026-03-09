@@ -507,6 +507,7 @@ export default function ConverterPageContent({
 
   const MAX_FREE_MB = 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
+  const SERVER_ONLY_THRESHOLD_MB = 15;
 
   const ffmpegRef = useRef<any>(null);
   const ffmpegLoadingRef = useRef<Promise<void> | null>(null);
@@ -676,6 +677,36 @@ export default function ConverterPageContent({
     GIF: "image/gif",
   };
 
+  const API_URL =
+    process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
+
+  const convertViaServer = async (inputFile: File, targetFormat: TargetFmt) => {
+    if (!API_URL) {
+      throw new Error("Server conversion is not configured.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", inputFile);
+    formData.append("target", targetFormat);
+
+    const res = await fetch(`${API_URL}/convert`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      let message = "Server conversion failed.";
+      try {
+        const data = await res.json();
+        if (data?.error) message = data.error;
+      } catch {}
+      throw new Error(message);
+    }
+
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  };
+
   const ensureFfmpeg = async () => {
     if (ffmpegReady && ffmpegRef.current) return;
     if (ffmpegLoadingRef.current) return ffmpegLoadingRef.current;
@@ -768,6 +799,20 @@ export default function ConverterPageContent({
 
     try {
       setErrorMsg(null);
+
+      if (file.size > SERVER_ONLY_THRESHOLD_MB * 1024 * 1024) {
+        setStatus("processing");
+        setProgress(15);
+        setTargetOpen(false);
+
+        const serverUrl = await convertViaServer(file, target);
+
+        if (resultUrl) URL.revokeObjectURL(resultUrl);
+        setResultUrl(serverUrl);
+        setStatus("done");
+        setProgress(100);
+        return;
+      }
 
       await ensureFfmpeg();
 
@@ -888,6 +933,34 @@ export default function ConverterPageContent({
       const msg =
         err?.message ??
         "Conversion failed. This format may not be available in the browser demo.";
+
+      const lowered = String(msg).toLowerCase();
+
+      if (
+        file &&
+        (lowered.includes("memory") ||
+          lowered.includes("out of bounds") ||
+          lowered.includes("abort"))
+      ) {
+        try {
+          setErrorMsg(null);
+          setStatus("processing");
+          setProgress(20);
+
+          const serverUrl = await convertViaServer(file, target);
+
+          if (resultUrl) URL.revokeObjectURL(resultUrl);
+          setResultUrl(serverUrl);
+          setStatus("done");
+          setProgress(100);
+          return;
+        } catch (serverErr: any) {
+          setErrorMsg(serverErr?.message ?? "Server conversion failed.");
+          setStatus("error");
+          return;
+        }
+      }
+
       setErrorMsg(msg);
       setStatus("error");
     }
@@ -1438,7 +1511,7 @@ export default function ConverterPageContent({
                           Multiple popular output formats supported.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Heavier files can be handled later with server beta.
+                          Heavier conversions can automatically fall back to the server.
                         </div>
                       </div>
                     </div>
