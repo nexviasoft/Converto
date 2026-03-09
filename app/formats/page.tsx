@@ -8,18 +8,18 @@ const siteUrl =
 const audioFormats = [
   { label: "MP3", href: "/formats/mp3" },
   { label: "WAV", href: "/formats/wav" },
-  { label: "AAC", href: "/convert/aac-to-mp3" },
+  { label: "AAC", href: "/formats/aac" },
   { label: "FLAC", href: "/formats/flac" },
-  { label: "M4A", href: "/convert/m4a-to-mp3" },
-  { label: "OGG", href: "/convert/ogg-to-mp3" },
-  { label: "OPUS", href: "/convert/opus-to-mp3" },
+  { label: "M4A", href: "/formats/m4a" },
+  { label: "OGG", href: "/formats/ogg" },
+  { label: "OPUS", href: "/formats/opus" },
 ];
 
 const videoFormats = [
   { label: "MP4", href: "/formats/mp4" },
   { label: "WEBM", href: "/formats/webm" },
-  { label: "MOV", href: "/convert/mov-to-mp4" },
-  { label: "GIF", href: "/convert/mp4-to-gif" },
+  { label: "MOV", href: "/formats/mov" },
+  { label: "GIF", href: "/formats/gif" },
 ];
 
 const formatGuides = [
@@ -47,6 +47,44 @@ const formatGuides = [
     href: "/formats/flac",
     label: "FLAC format guide",
     desc: "Discover FLAC as a lossless audio format and where FLAC conversions make sense.",
+  },
+  {
+    href: "/formats/mov",
+    label: "MOV format guide",
+    desc: "Understand MOV for Apple and editing workflows, plus when to convert it to MP4.",
+  },
+];
+
+const compareGuides = [
+  {
+    href: "/compare/mp3-vs-wav",
+    label: "MP3 vs WAV",
+    desc: "Compare compressed portability vs uncompressed quality for everyday listening and editing.",
+  },
+  {
+    href: "/compare/flac-vs-mp3",
+    label: "FLAC vs MP3",
+    desc: "See the difference between lossless audio quality and smaller portable audio files.",
+  },
+  {
+    href: "/compare/mp4-vs-webm",
+    label: "MP4 vs WEBM",
+    desc: "Compare universal playback with web-focused video delivery.",
+  },
+  {
+    href: "/compare/mp4-vs-mov",
+    label: "MP4 vs MOV",
+    desc: "Understand the difference between universal sharing and Apple-oriented editing workflows.",
+  },
+  {
+    href: "/compare/aac-vs-mp3",
+    label: "AAC vs MP3",
+    desc: "Compare two compressed audio formats for quality, size, and compatibility.",
+  },
+  {
+    href: "/compare/m4a-vs-mp3",
+    label: "M4A vs MP3",
+    desc: "See how Apple-friendly audio compares with the most universal music format.",
   },
 ];
 
@@ -140,6 +178,13 @@ export default function FormatsPage() {
             </Link>
 
             <Link
+              href="/compare"
+              className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+            >
+              Browse comparisons
+            </Link>
+
+            <Link
               href="/"
               className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
             >
@@ -229,6 +274,48 @@ export default function FormatsPage() {
 
         <section className="mt-10 rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            Format comparisons
+          </div>
+
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            Compare similar formats before you convert
+          </h2>
+
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
+            Some formats look similar on the surface but behave very differently in
+            file size, compatibility, playback, streaming, and editing workflows.
+            These comparison pages help you decide which format fits your use case best.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {compareGuides.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group rounded-2xl bg-white/8 p-4 ring-1 ring-white/10 transition hover:bg-white/12"
+              >
+                <div className="text-base font-semibold text-white">
+                  {item.label}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-white/65">
+                  {item.desc}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Link
+              href="/compare"
+              className="inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+            >
+              Open compare hub
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-10 rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
             Popular conversions
           </div>
 
@@ -278,8 +365,8 @@ export default function FormatsPage() {
           <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
             <h2 className="text-2xl font-semibold tracking-tight">Start converting</h2>
             <p className="mt-3 text-sm leading-6 text-white/65">
-              You can jump directly into the converter, or start from one of the popular
-              paths above if you already know the output format you want.
+              You can jump directly into the converter, start from a format guide,
+              or compare two formats first if you are unsure which output makes more sense.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -288,6 +375,13 @@ export default function FormatsPage() {
                 className="inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
               >
                 Go to Converter
+              </Link>
+
+              <Link
+                href="/compare"
+                className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+              >
+                Compare formats
               </Link>
 
               <Link
