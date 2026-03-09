@@ -260,22 +260,35 @@ export default function ConverterSection() {
       return { q: "3", ab: "128k" };
     };
 
-    const friendlyError = (raw: any) => {
-      const msg = String(raw?.message ?? raw ?? "").toLowerCase();
-      if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
-        return "This format isn’t available in the browser demo build. Try MP4/MP3 or use the server beta.";
-      }
-      if (msg.includes("memory") || msg.includes("out of bounds") || msg.includes("abort")) {
-        return "This file is too heavy for in-browser conversion. Try a smaller file or use the server beta.";
-      }
-      if (msg.includes("invalid data") || msg.includes("could not find codec parameters") || msg.includes("moov atom not found")) {
-        return "File looks corrupted or incomplete. Try re-downloading the original file.";
-      }
-      if (msg.includes("gif output requires")) {
-        return "GIF needs a video input. You selected an audio-only file.";
-      }
-      return raw?.message ?? "Conversion failed. Please try again.";
-    };
+  const friendlyError = (raw: any) => {
+  const msg = String(raw?.message ?? raw ?? "").toLowerCase();
+
+  if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
+    return "This format isn’t available in the browser demo build. Try MP3 or MP4, or use the server beta.";
+  }
+
+  if (msg.includes("memory") || msg.includes("out of bounds")) {
+    return "Browser memory limit reached. Try a smaller file or use the server beta.";
+  }
+
+  if (msg.includes("abort")) {
+    return "Browser conversion failed for this file or format. Try MP3/MP4, another source file, or use the server beta.";
+  }
+
+  if (
+    msg.includes("invalid data") ||
+    msg.includes("could not find codec parameters") ||
+    msg.includes("moov atom not found")
+  ) {
+    return "File looks corrupted or incomplete. Try re-downloading the original file.";
+  }
+
+  if (msg.includes("gif output requires")) {
+    return "GIF needs a video input. You selected an audio-only file.";
+  }
+
+  return raw?.message ?? "Conversion failed. Please try again.";
+};
 
     try {
       setTargetOpen(false);

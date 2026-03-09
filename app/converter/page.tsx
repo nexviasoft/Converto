@@ -104,7 +104,9 @@ const Chip = ({
   </button>
 );
 
-const GlowDivider = () => <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />;
+const GlowDivider = () => (
+  <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+);
 
 export default function ConverterPage() {
   const PRO_FEATURES_ENABLED = false;
@@ -198,8 +200,9 @@ export default function ConverterPage() {
       n.endsWith(".ts") ||
       n.endsWith(".mts") ||
       n.endsWith(".m2ts")
-    )
+    ) {
       return "MP4";
+    }
     return null;
   };
 
@@ -277,6 +280,36 @@ export default function ConverterPage() {
 
   const resolveAudioBitrate = (fallback: string, effectiveAudioBitrate: AudioBitrate) => {
     return effectiveAudioBitrate === "AUTO" ? fallback : effectiveAudioBitrate;
+  };
+
+  const friendlyError = (raw: any) => {
+    const msg = String(raw?.message ?? raw ?? "").toLowerCase();
+
+    if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
+      return "This format isn’t available in the browser demo build. Try MP3 or MP4, or use the server beta.";
+    }
+
+    if (msg.includes("memory") || msg.includes("out of bounds")) {
+      return "Browser memory limit reached. Try a smaller file or use the server beta.";
+    }
+
+    if (msg.includes("abort")) {
+      return "Browser conversion failed for this file or format. Try MP3/MP4, another source file, or use the server beta.";
+    }
+
+    if (
+      msg.includes("invalid data") ||
+      msg.includes("could not find codec parameters") ||
+      msg.includes("moov atom not found")
+    ) {
+      return "File looks corrupted or incomplete. Try re-downloading the original file.";
+    }
+
+    if (msg.includes("gif output requires")) {
+      return "GIF needs a video input. You selected an audio-only file.";
+    }
+
+    return raw?.message ?? "Conversion failed. Please try again.";
   };
 
   const pickFile = (f: File) => {
@@ -400,7 +433,8 @@ export default function ConverterPage() {
   };
 
   const availableTargets = useMemo(() => {
-    if (!fromFmt) return ["MP3", "AAC", "M4A", "WAV", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"] as TargetFmt[];
+    if (!fromFmt)
+      return ["MP3", "AAC", "M4A", "WAV", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"] as TargetFmt[];
 
     if (isAudioFmt(fromFmt)) {
       return ["MP3", "AAC", "M4A", "WAV", "OGG", "OPUS", "FLAC", "MP4"] as TargetFmt[];
@@ -474,23 +508,6 @@ export default function ConverterPage() {
       return { fps: 12, width: 480 };
     };
 
-    const friendlyError = (raw: any) => {
-      const msg = String(raw?.message ?? raw ?? "").toLowerCase();
-      if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
-        return "This format isn’t available in the browser demo build. Try MP4/MP3 or use the server beta.";
-      }
-      if (msg.includes("memory") || msg.includes("out of bounds") || msg.includes("abort")) {
-        return "This file is too heavy for in-browser conversion. Try a smaller file or use the server beta.";
-      }
-      if (msg.includes("invalid data") || msg.includes("could not find codec parameters") || msg.includes("moov atom not found")) {
-        return "File looks corrupted or incomplete. Try re-downloading the original file.";
-      }
-      if (msg.includes("gif output requires")) {
-        return "GIF needs a video input. You selected an audio-only file.";
-      }
-      return raw?.message ?? "Conversion failed. Please try again.";
-    };
-
     try {
       setTargetOpen(false);
       setErrorMsg(null);
@@ -532,13 +549,47 @@ export default function ConverterPage() {
         const a = audioPresetArgs();
         const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libmp3lame", ...(effectiveAudioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]), outName],
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", ...(effectiveAudioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]), outName],
+          [
+            ...trimArgs,
+            "-i",
+            inName,
+            "-map_metadata",
+            "-1",
+            "-vn",
+            "-c:a",
+            "libmp3lame",
+            ...(effectiveAudioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]),
+            outName,
+          ],
+          [
+            ...trimArgs,
+            "-i",
+            inName,
+            "-map_metadata",
+            "-1",
+            "-vn",
+            ...(effectiveAudioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]),
+            outName,
+          ],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
         ]);
       } else if (target === "WAV") {
         await tryMany([
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "2", outName],
+          [
+            ...trimArgs,
+            "-i",
+            inName,
+            "-map_metadata",
+            "-1",
+            "-vn",
+            "-c:a",
+            "pcm_s16le",
+            "-ar",
+            "44100",
+            "-ac",
+            "2",
+            outName,
+          ],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
         ]);
       } else if (target === "M4A") {
@@ -562,7 +613,19 @@ export default function ConverterPage() {
         const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libopus", "-b:a", bitrate, outName],
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libvorbis", "-q:a", effectivePreset === "HIGH" ? "6" : effectivePreset === "SMALL" ? "4" : "5", outName],
+          [
+            ...trimArgs,
+            "-i",
+            inName,
+            "-map_metadata",
+            "-1",
+            "-vn",
+            "-c:a",
+            "libvorbis",
+            "-q:a",
+            effectivePreset === "HIGH" ? "6" : effectivePreset === "SMALL" ? "4" : "5",
+            outName,
+          ],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
         ]);
       } else if (target === "OPUS") {
@@ -594,18 +657,60 @@ export default function ConverterPage() {
             const bitrate = resolveAudioBitrate(v.ab, effectiveAudioBitrate);
             await tryMany([
               [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libopus", "-b:a", bitrate, outName],
-              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libvorbis", "-q:a", effectivePreset === "HIGH" ? "6" : effectivePreset === "SMALL" ? "4" : "5", outName],
+              [
+                ...trimArgs,
+                "-i",
+                inName,
+                "-map_metadata",
+                "-1",
+                "-vn",
+                "-c:a",
+                "libvorbis",
+                "-q:a",
+                effectivePreset === "HIGH" ? "6" : effectivePreset === "SMALL" ? "4" : "5",
+                outName,
+              ],
               [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
             ]);
           } else {
             await tryMany([
-              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-c:v", "libvpx", "-crf", v.crf, "-b:v", "0", ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]), outName],
-              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-c:v", "libvpx-vp9", "-crf", String(Number(v.crf) + 2), "-b:v", "0", ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]), outName],
+              [
+                ...trimArgs,
+                "-i",
+                inName,
+                "-map_metadata",
+                "-1",
+                "-c:v",
+                "libvpx",
+                "-crf",
+                v.crf,
+                "-b:v",
+                "0",
+                ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]),
+                outName,
+              ],
+              [
+                ...trimArgs,
+                "-i",
+                inName,
+                "-map_metadata",
+                "-1",
+                "-c:v",
+                "libvpx-vp9",
+                "-crf",
+                String(Number(v.crf) + 2),
+                "-b:v",
+                "0",
+                ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]),
+                outName,
+              ],
             ]);
           }
         }
       } else if (target === "GIF") {
-        if (isAudioFmt(fromFmt)) throw new Error("GIF output requires a video/image input (audio-only file selected).");
+        if (isAudioFmt(fromFmt)) {
+          throw new Error("GIF output requires a video/image input (audio-only file selected).");
+        }
 
         const g = gifPresetArgs();
         const vf = `fps=${g.fps},scale=${g.width}:-1:flags=lanczos`;
@@ -626,7 +731,21 @@ export default function ConverterPage() {
         if (isAudioFmt(fromFmt)) {
           const bitrate = resolveAudioBitrate(v.ab, effectiveAudioBitrate);
           await tryMany([
-            [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "aac", "-b:a", bitrate, "-movflags", "+faststart", outName],
+            [
+              ...trimArgs,
+              "-i",
+              inName,
+              "-map_metadata",
+              "-1",
+              "-vn",
+              "-c:a",
+              "aac",
+              "-b:a",
+              bitrate,
+              "-movflags",
+              "+faststart",
+              outName,
+            ],
             [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-b:a", bitrate, "-movflags", "+faststart", outName],
             [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-movflags", "+faststart", outName],
           ]);
@@ -738,23 +857,6 @@ export default function ConverterPage() {
       setStage("idle");
       showToast("Converted", `${target} is ready to download.`);
     } catch (err: any) {
-      const friendlyError = (raw: any) => {
-        const msg = String(raw?.message ?? raw ?? "").toLowerCase();
-        if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
-          return "This format isn’t available in the browser demo build. Try MP4/MP3 or use the server beta.";
-        }
-        if (msg.includes("memory") || msg.includes("out of bounds") || msg.includes("abort")) {
-          return "This file is too heavy for in-browser conversion. Try a smaller file or use the server beta.";
-        }
-        if (msg.includes("invalid data") || msg.includes("could not find codec parameters") || msg.includes("moov atom not found")) {
-          return "File looks corrupted or incomplete. Try re-downloading the original file.";
-        }
-        if (msg.includes("gif output requires")) {
-          return "GIF needs a video input. You selected an audio-only file.";
-        }
-        return raw?.message ?? "Conversion failed. Please try again.";
-      };
-
       const msg = friendlyError(err);
       setErrorMsg(msg);
       setStatus("error");
@@ -806,7 +908,9 @@ export default function ConverterPage() {
       : "";
 
   const selectedMeta = file
-    ? `${(file.size / (1024 * 1024)).toFixed(1)}MB • ${fromFmt ?? "Unknown"} → ${target}${muteVideo && isVideoLike(fromFmt) && target !== "GIF" ? " • muted" : ""}${trimEnabled ? ` • trim ${trimStart}-${trimEnd}` : ""}${bitrateMeta}`
+    ? `${(file.size / (1024 * 1024)).toFixed(1)}MB • ${fromFmt ?? "Unknown"} → ${target}${
+        muteVideo && isVideoLike(fromFmt) && target !== "GIF" ? " • muted" : ""
+      }${trimEnabled ? ` • trim ${trimStart}-${trimEnd}` : ""}${bitrateMeta}`
     : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF";
 
   return (
@@ -822,13 +926,7 @@ export default function ConverterPage() {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05040F]/80 backdrop-blur">
         <div className={cx("mx-auto flex items-center justify-between px-4 py-3 sm:px-5 xl:px-6", SHELL_MAX)}>
           <Link href="/" className="group inline-flex items-center gap-3">
-            <Image
-              src="/logo.ico"
-              alt="Converto logo"
-              width={40}
-              height={40}
-              className="h-10 w-10 object-contain"
-            />
+            <Image src="/logo.ico" alt="Converto logo" width={40} height={40} className="h-10 w-10 object-contain" />
 
             <span className="leading-tight">
               <span className="block text-[15px] font-semibold tracking-tight text-white">Converto</span>
@@ -1142,7 +1240,8 @@ export default function ConverterPage() {
                         </div>
 
                         <p className="mt-3 text-left text-xs text-white/55">
-                          Format: <span className="font-semibold text-white/70">mm:ss</span> or <span className="font-semibold text-white/70">hh:mm:ss</span>.
+                          Format: <span className="font-semibold text-white/70">mm:ss</span> or{" "}
+                          <span className="font-semibold text-white/70">hh:mm:ss</span>.
                           {isProLocked ? " Available later in Pro." : " Example: 00:03 → 00:08"}
                         </p>
                       </div>
@@ -1402,9 +1501,7 @@ export default function ConverterPage() {
         <section className="mx-auto mt-10 max-w-[1100px]">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-[24px] bg-white/8 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Fast workflow
-              </div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Fast workflow</div>
               <h3 className="mt-3 text-base font-semibold text-white">Convert in a few clicks</h3>
               <p className="mt-2 text-sm leading-6 text-white/60">
                 Upload your file, choose the target format, and download the result.
@@ -1412,9 +1509,7 @@ export default function ConverterPage() {
             </div>
 
             <div className="rounded-[24px] bg-white/8 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Popular formats
-              </div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Popular formats</div>
               <h3 className="mt-3 text-base font-semibold text-white">Audio and video essentials</h3>
               <p className="mt-2 text-sm leading-6 text-white/60">
                 Convert between MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF with a simple workflow.
@@ -1422,9 +1517,7 @@ export default function ConverterPage() {
             </div>
 
             <div className="rounded-[24px] bg-white/8 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Browser demo
-              </div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Browser demo</div>
               <h3 className="mt-3 text-base font-semibold text-white">Great for quick tasks</h3>
               <p className="mt-2 text-sm leading-6 text-white/60">
                 Smaller files work best in-browser. Larger or heavier files may be better suited for the upcoming server beta.
@@ -1435,9 +1528,7 @@ export default function ConverterPage() {
           <div className="mt-4 rounded-[28px] bg-white/8 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
             <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                  Why use Converto
-                </div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Why use Converto</div>
                 <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">
                   Clean, simple, and built for everyday conversion
                 </h3>
