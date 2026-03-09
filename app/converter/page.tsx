@@ -7,6 +7,7 @@ import Toast from "@/components/landing/Toast";
 import Image from "next/image";
 
 const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(" ");
+const disabledUi = "opacity-55 grayscale-[0.15] cursor-not-allowed pointer-events-auto";
 
 /** Ad slots */
 const AD_SLOTS = {
@@ -103,11 +104,11 @@ const Chip = ({
   </button>
 );
 
-const GlowDivider = () => (
-  <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-);
+const GlowDivider = () => <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />;
 
 export default function ConverterPage() {
+  const PRO_FEATURES_ENABLED = false;
+
   const [toastOpen, setToastOpen] = useState(false);
   const [toastTitle, setToastTitle] = useState("Done!");
   const [toastDesc, setToastDesc] = useState<string | undefined>(undefined);
@@ -116,6 +117,12 @@ export default function ConverterPage() {
     setToastTitle(t);
     setToastDesc(d);
     setToastOpen(true);
+  };
+
+  const isProLocked = !PRO_FEATURES_ENABLED;
+
+  const proLockedToast = () => {
+    showToast("Pro feature", "This feature is temporarily unavailable in the free beta.");
   };
 
   type ConvertStatus = "idle" | "ready" | "loading" | "processing" | "done" | "error";
@@ -261,15 +268,15 @@ export default function ConverterPage() {
     });
   };
 
-  const buildTrimArgs = () => {
-    if (!trimEnabled) return [] as string[];
+  const buildTrimArgs = (effectiveTrimEnabled: boolean) => {
+    if (!effectiveTrimEnabled) return [] as string[];
     if (!trimStart.trim() || !trimEnd.trim()) return [] as string[];
     if (!isValidTimeString(trimStart) || !isValidTimeString(trimEnd)) return [] as string[];
     return ["-ss", trimStart.trim(), "-to", trimEnd.trim()];
   };
 
-  const resolveAudioBitrate = (fallback: string) => {
-    return audioBitrate === "AUTO" ? fallback : audioBitrate;
+  const resolveAudioBitrate = (fallback: string, effectiveAudioBitrate: AudioBitrate) => {
+    return effectiveAudioBitrate === "AUTO" ? fallback : effectiveAudioBitrate;
   };
 
   const pickFile = (f: File) => {
@@ -333,6 +340,7 @@ export default function ConverterPage() {
     setTrimStart("00:00");
     setTrimEnd("00:05");
     setAudioBitrate("AUTO");
+    setPreset("BALANCED");
   };
 
   useEffect(() => {
@@ -415,7 +423,12 @@ export default function ConverterPage() {
   const startConvert = async () => {
     if (!file) return;
 
-    if (trimEnabled) {
+    const effectivePreset: Preset = PRO_FEATURES_ENABLED ? preset : "BALANCED";
+    const effectiveTrimEnabled = PRO_FEATURES_ENABLED ? trimEnabled : false;
+    const effectiveAudioBitrate: AudioBitrate = PRO_FEATURES_ENABLED ? audioBitrate : "AUTO";
+    const effectiveMuteVideo = PRO_FEATURES_ENABLED ? muteVideo : false;
+
+    if (effectiveTrimEnabled) {
       if (!isValidTimeString(trimStart) || !isValidTimeString(trimEnd)) {
         const msg = "Trim time format is invalid. Use mm:ss or hh:mm:ss.";
         setErrorMsg(msg);
@@ -444,20 +457,20 @@ export default function ConverterPage() {
     };
 
     const videoPresetArgs = () => {
-      if (preset === "SMALL") return { crf: "32", encodePreset: "veryfast", ab: "96k" };
-      if (preset === "HIGH") return { crf: "22", encodePreset: "fast", ab: "160k" };
+      if (effectivePreset === "SMALL") return { crf: "32", encodePreset: "veryfast", ab: "96k" };
+      if (effectivePreset === "HIGH") return { crf: "22", encodePreset: "fast", ab: "160k" };
       return { crf: "28", encodePreset: "veryfast", ab: "128k" };
     };
 
     const audioPresetArgs = () => {
-      if (preset === "SMALL") return { q: "5", ab: "96k" };
-      if (preset === "HIGH") return { q: "2", ab: "192k" };
+      if (effectivePreset === "SMALL") return { q: "5", ab: "96k" };
+      if (effectivePreset === "HIGH") return { q: "2", ab: "192k" };
       return { q: "3", ab: "128k" };
     };
 
     const gifPresetArgs = () => {
-      if (preset === "SMALL") return { fps: 8, width: 320 };
-      if (preset === "HIGH") return { fps: 15, width: 640 };
+      if (effectivePreset === "SMALL") return { fps: 8, width: 320 };
+      if (effectivePreset === "HIGH") return { fps: 15, width: 640 };
       return { fps: 12, width: 480 };
     };
 
@@ -492,7 +505,7 @@ export default function ConverterPage() {
       setProgress(0);
       setStage("converting");
 
-      const trimArgs = buildTrimArgs();
+      const trimArgs = buildTrimArgs(effectiveTrimEnabled);
 
       const inExt = (file.name.split(".").pop() || "mp4").toLowerCase();
       const inName = `input_${Date.now()}.${inExt}`;
@@ -517,10 +530,10 @@ export default function ConverterPage() {
 
       if (target === "MP3") {
         const a = audioPresetArgs();
-        const bitrate = resolveAudioBitrate(a.ab);
+        const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libmp3lame", ...(audioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]), outName],
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", ...(audioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]), outName],
+          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libmp3lame", ...(effectiveAudioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]), outName],
+          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", ...(effectiveAudioBitrate === "AUTO" ? ["-q:a", a.q] : ["-b:a", bitrate]), outName],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
         ]);
       } else if (target === "WAV") {
@@ -530,7 +543,7 @@ export default function ConverterPage() {
         ]);
       } else if (target === "M4A") {
         const a = audioPresetArgs();
-        const bitrate = resolveAudioBitrate(a.ab);
+        const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "aac", "-b:a", bitrate, outName],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-b:a", bitrate, outName],
@@ -538,7 +551,7 @@ export default function ConverterPage() {
         ]);
       } else if (target === "AAC") {
         const a = audioPresetArgs();
-        const bitrate = resolveAudioBitrate(a.ab);
+        const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "aac", "-b:a", bitrate, outName],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-b:a", bitrate, outName],
@@ -546,15 +559,15 @@ export default function ConverterPage() {
         ]);
       } else if (target === "OGG") {
         const a = audioPresetArgs();
-        const bitrate = resolveAudioBitrate(a.ab);
+        const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libopus", "-b:a", bitrate, outName],
-          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libvorbis", "-q:a", preset === "HIGH" ? "6" : preset === "SMALL" ? "4" : "5", outName],
+          [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libvorbis", "-q:a", effectivePreset === "HIGH" ? "6" : effectivePreset === "SMALL" ? "4" : "5", outName],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
         ]);
       } else if (target === "OPUS") {
         const a = audioPresetArgs();
-        const bitrate = resolveAudioBitrate(a.ab);
+        const bitrate = resolveAudioBitrate(a.ab, effectiveAudioBitrate);
         await tryMany([
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libopus", "-b:a", bitrate, outName],
           [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-b:a", bitrate, outName],
@@ -569,7 +582,7 @@ export default function ConverterPage() {
         const v = videoPresetArgs();
 
         let copied = false;
-        if (fromFmt === "WEBM" && !muteVideo && trimArgs.length === 0) {
+        if (fromFmt === "WEBM" && !effectiveMuteVideo && trimArgs.length === 0) {
           try {
             await tryExec(["-i", inName, "-c", "copy", outName]);
             copied = true;
@@ -578,16 +591,16 @@ export default function ConverterPage() {
 
         if (!copied) {
           if (isAudioFmt(fromFmt)) {
-            const bitrate = resolveAudioBitrate(v.ab);
+            const bitrate = resolveAudioBitrate(v.ab, effectiveAudioBitrate);
             await tryMany([
               [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libopus", "-b:a", bitrate, outName],
-              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libvorbis", "-q:a", preset === "HIGH" ? "6" : preset === "SMALL" ? "4" : "5", outName],
+              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "libvorbis", "-q:a", effectivePreset === "HIGH" ? "6" : effectivePreset === "SMALL" ? "4" : "5", outName],
               [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", outName],
             ]);
           } else {
             await tryMany([
-              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-c:v", "libvpx", "-crf", v.crf, "-b:v", "0", ...(muteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]), outName],
-              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-c:v", "libvpx-vp9", "-crf", String(Number(v.crf) + 2), "-b:v", "0", ...(muteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]), outName],
+              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-c:v", "libvpx", "-crf", v.crf, "-b:v", "0", ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]), outName],
+              [...trimArgs, "-i", inName, "-map_metadata", "-1", "-c:v", "libvpx-vp9", "-crf", String(Number(v.crf) + 2), "-b:v", "0", ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "libopus", "-b:a", v.ab]), outName],
             ]);
           }
         }
@@ -611,7 +624,7 @@ export default function ConverterPage() {
         const v = videoPresetArgs();
 
         if (isAudioFmt(fromFmt)) {
-          const bitrate = resolveAudioBitrate(v.ab);
+          const bitrate = resolveAudioBitrate(v.ab, effectiveAudioBitrate);
           await tryMany([
             [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "aac", "-b:a", bitrate, "-movflags", "+faststart", outName],
             [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-b:a", bitrate, "-movflags", "+faststart", outName],
@@ -620,7 +633,7 @@ export default function ConverterPage() {
         } else {
           let copied = false;
 
-          if (fromFmt === "MP4" && !muteVideo && trimArgs.length === 0) {
+          if (fromFmt === "MP4" && !effectiveMuteVideo && trimArgs.length === 0) {
             try {
               await tryExec(["-i", inName, "-c", "copy", "-movflags", "+faststart", outName]);
               copied = true;
@@ -641,7 +654,7 @@ export default function ConverterPage() {
                 v.encodePreset,
                 "-crf",
                 v.crf,
-                ...(muteVideo ? ["-an"] : ["-c:a", "aac", "-b:a", v.ab]),
+                ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "aac", "-b:a", v.ab]),
                 "-movflags",
                 "+faststart",
                 outName,
@@ -654,7 +667,7 @@ export default function ConverterPage() {
         const v = videoPresetArgs();
 
         if (isAudioFmt(fromFmt)) {
-          const bitrate = resolveAudioBitrate(v.ab);
+          const bitrate = resolveAudioBitrate(v.ab, effectiveAudioBitrate);
           await tryMany([
             [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-c:a", "aac", "-b:a", bitrate, outName],
             [...trimArgs, "-i", inName, "-map_metadata", "-1", "-vn", "-b:a", bitrate, outName],
@@ -663,7 +676,7 @@ export default function ConverterPage() {
         } else {
           let copied = false;
 
-          if (fromFmt === "MOV" && !muteVideo && trimArgs.length === 0) {
+          if (fromFmt === "MOV" && !effectiveMuteVideo && trimArgs.length === 0) {
             try {
               await tryExec(["-i", inName, "-c", "copy", outName]);
               copied = true;
@@ -684,7 +697,7 @@ export default function ConverterPage() {
                 v.encodePreset,
                 "-crf",
                 v.crf,
-                ...(muteVideo ? ["-an"] : ["-c:a", "aac", "-b:a", v.ab]),
+                ...(effectiveMuteVideo ? ["-an"] : ["-c:a", "aac", "-b:a", v.ab]),
                 outName,
               ],
               [...trimArgs, "-i", inName, outName],
@@ -725,6 +738,23 @@ export default function ConverterPage() {
       setStage("idle");
       showToast("Converted", `${target} is ready to download.`);
     } catch (err: any) {
+      const friendlyError = (raw: any) => {
+        const msg = String(raw?.message ?? raw ?? "").toLowerCase();
+        if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
+          return "This format isn’t available in the browser demo build. Try MP4/MP3 or use the server beta.";
+        }
+        if (msg.includes("memory") || msg.includes("out of bounds") || msg.includes("abort")) {
+          return "This file is too heavy for in-browser conversion. Try a smaller file or use the server beta.";
+        }
+        if (msg.includes("invalid data") || msg.includes("could not find codec parameters") || msg.includes("moov atom not found")) {
+          return "File looks corrupted or incomplete. Try re-downloading the original file.";
+        }
+        if (msg.includes("gif output requires")) {
+          return "GIF needs a video input. You selected an audio-only file.";
+        }
+        return raw?.message ?? "Conversion failed. Please try again.";
+      };
+
       const msg = friendlyError(err);
       setErrorMsg(msg);
       setStatus("error");
@@ -984,12 +1014,20 @@ export default function ConverterPage() {
                     ) : null}
 
                     {file && !isAudioFmt(fromFmt) ? (
-                      <div className="mt-6">
-                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Quick actions</div>
+                      <div className={cx("mt-6", isProLocked && disabledUi)}>
+                        <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                          <span>Quick actions</span>
+                          {isProLocked ? (
+                            <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] text-amber-200 ring-1 ring-amber-300/20">
+                              Pro
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="flex flex-wrap items-center justify-center gap-2">
                           <Chip
                             active={target === "MP3" && !muteVideo}
                             onClick={() => {
+                              if (isProLocked) return proLockedToast();
                               setTarget("MP3");
                               setMuteVideo(false);
                               showToast("Quick action", "Extract audio → MP3");
@@ -1001,6 +1039,7 @@ export default function ConverterPage() {
                           <Chip
                             active={target === "GIF"}
                             onClick={() => {
+                              if (isProLocked) return proLockedToast();
                               setTarget("GIF");
                               setPreset("BALANCED");
                               setMuteVideo(false);
@@ -1016,6 +1055,7 @@ export default function ConverterPage() {
                           <Chip
                             active={target === "MP4" && preset === "SMALL" && !muteVideo}
                             onClick={() => {
+                              if (isProLocked) return proLockedToast();
                               setTarget("MP4");
                               setPreset("SMALL");
                               setMuteVideo(false);
@@ -1029,6 +1069,7 @@ export default function ConverterPage() {
                             <Chip
                               active={muteVideo}
                               onClick={() => {
+                                if (isProLocked) return proLockedToast();
                                 setTarget("MP4");
                                 setMuteVideo((v) => !v);
                                 showToast("Quick action", !muteVideo ? "Muted video enabled" : "Muted video disabled");
@@ -1042,13 +1083,23 @@ export default function ConverterPage() {
                     ) : null}
 
                     {file && !isAudioFmt(fromFmt) ? (
-                      <div className="mt-6 rounded-[22px] bg-black/25 p-4 ring-1 ring-white/10">
+                      <div className={cx("mt-6 rounded-[22px] bg-black/25 p-4 ring-1 ring-white/10", isProLocked && disabledUi)}>
                         <div className="mb-3 flex items-center justify-between gap-3">
-                          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Trim</div>
+                          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                            <span>Trim</span>
+                            {isProLocked ? (
+                              <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] text-amber-200 ring-1 ring-amber-300/20">
+                                Pro
+                              </span>
+                            ) : null}
+                          </div>
 
                           <button
                             type="button"
-                            onClick={() => setTrimEnabled((v) => !v)}
+                            onClick={() => {
+                              if (isProLocked) return proLockedToast();
+                              setTrimEnabled((v) => !v);
+                            }}
                             className={cx(
                               "rounded-full px-3 py-1 text-xs font-semibold ring-1 transition",
                               trimEnabled
@@ -1065,9 +1116,13 @@ export default function ConverterPage() {
                             <div className="mb-2 text-xs text-white/60">Start</div>
                             <input
                               value={trimStart}
-                              onChange={(e) => setTrimStart(e.target.value)}
+                              onChange={(e) => {
+                                if (isProLocked) return;
+                                setTrimStart(e.target.value);
+                              }}
+                              disabled={isProLocked}
                               placeholder="00:00"
-                              className="h-11 w-full rounded-2xl bg-white/10 px-4 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/30"
+                              className="h-11 w-full rounded-2xl bg-white/10 px-4 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/30 disabled:cursor-not-allowed"
                             />
                           </label>
 
@@ -1075,28 +1130,42 @@ export default function ConverterPage() {
                             <div className="mb-2 text-xs text-white/60">End</div>
                             <input
                               value={trimEnd}
-                              onChange={(e) => setTrimEnd(e.target.value)}
+                              onChange={(e) => {
+                                if (isProLocked) return;
+                                setTrimEnd(e.target.value);
+                              }}
+                              disabled={isProLocked}
                               placeholder="00:05"
-                              className="h-11 w-full rounded-2xl bg-white/10 px-4 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/30"
+                              className="h-11 w-full rounded-2xl bg-white/10 px-4 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/30 disabled:cursor-not-allowed"
                             />
                           </label>
                         </div>
 
                         <p className="mt-3 text-left text-xs text-white/55">
-                          Format: <span className="font-semibold text-white/70">mm:ss</span> or <span className="font-semibold text-white/70">hh:mm:ss</span>. Example: 00:03 → 00:08
+                          Format: <span className="font-semibold text-white/70">mm:ss</span> or <span className="font-semibold text-white/70">hh:mm:ss</span>.
+                          {isProLocked ? " Available later in Pro." : " Example: 00:03 → 00:08"}
                         </p>
                       </div>
                     ) : null}
 
                     {file && isCompressedAudioTarget(target) ? (
-                      <div className="mt-6">
-                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Audio bitrate</div>
+                      <div className={cx("mt-6", isProLocked && disabledUi)}>
+                        <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                          <span>Audio bitrate</span>
+                          {isProLocked ? (
+                            <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] text-amber-200 ring-1 ring-amber-300/20">
+                              Pro
+                            </span>
+                          ) : null}
+                        </div>
+
                         <div className="flex flex-wrap items-center justify-center gap-2">
                           {(["AUTO", "64k", "128k", "192k", "320k"] as const).map((b) => (
                             <Chip
                               key={b}
                               active={audioBitrate === b}
                               onClick={() => {
+                                if (isProLocked) return proLockedToast();
                                 setAudioBitrate(b);
                                 showToast("Bitrate updated", b === "AUTO" ? "Automatic bitrate selected" : `Bitrate: ${b}`);
                               }}
@@ -1109,8 +1178,15 @@ export default function ConverterPage() {
                     ) : null}
 
                     {file ? (
-                      <div className="mt-6">
-                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Quality preset</div>
+                      <div className={cx("mt-6", isProLocked && disabledUi)}>
+                        <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                          <span>Quality preset</span>
+                          {isProLocked ? (
+                            <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] text-amber-200 ring-1 ring-amber-300/20">
+                              Pro
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
                           {([
                             { k: "SMALL", label: "Small file", desc: "Faster sharing" },
@@ -1121,6 +1197,7 @@ export default function ConverterPage() {
                               key={p.k}
                               type="button"
                               onClick={() => {
+                                if (isProLocked) return proLockedToast();
                                 setPreset(p.k);
                                 showToast("Preset updated", `${p.label} • ${p.desc}`);
                               }}
@@ -1330,7 +1407,7 @@ export default function ConverterPage() {
               </div>
               <h3 className="mt-3 text-base font-semibold text-white">Convert in a few clicks</h3>
               <p className="mt-2 text-sm leading-6 text-white/60">
-                Upload your file, choose the target format, adjust bitrate or trim if needed, and download the result.
+                Upload your file, choose the target format, and download the result.
               </p>
             </div>
 
@@ -1340,7 +1417,7 @@ export default function ConverterPage() {
               </div>
               <h3 className="mt-3 text-base font-semibold text-white">Audio and video essentials</h3>
               <p className="mt-2 text-sm leading-6 text-white/60">
-                Convert between MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF with simple quality controls.
+                Convert between MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF with a simple workflow.
               </p>
             </div>
 
@@ -1365,17 +1442,17 @@ export default function ConverterPage() {
                   Clean, simple, and built for everyday conversion
                 </h3>
                 <p className="mt-3 max-w-[60ch] text-sm leading-6 text-white/60">
-                  Converto focuses on the formats people actually use. Quick actions, trim support, audio bitrate selection,
-                  and lightweight browser conversion make it easy to get results without a complicated workflow.
+                  Converto focuses on the formats people actually use. The free beta keeps the workflow simple and fast,
+                  while advanced controls can come later as Pro features.
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
                 <div className="rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
-                  Quick actions for common use cases
+                  Simple conversion flow
                 </div>
                 <div className="rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
-                  Trim and bitrate controls
+                  Pro controls coming later
                 </div>
                 <div className="rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
                   Popular formats only, less clutter
