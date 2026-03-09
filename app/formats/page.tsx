@@ -5,16 +5,82 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://converto.tools";
 
-const audioFormats = ["MP3", "WAV", "AAC", "FLAC", "M4A", "OGG", "OPUS"];
-const videoFormats = ["MP4", "WEBM", "MOV", "GIF"];
+const audioFormats = [
+  { label: "MP3", href: "/formats/mp3" },
+  { label: "WAV", href: "/formats/wav" },
+  { label: "AAC", href: "/convert/aac-to-mp3" },
+  { label: "FLAC", href: "/formats/flac" },
+  { label: "M4A", href: "/convert/m4a-to-mp3" },
+  { label: "OGG", href: "/convert/ogg-to-mp3" },
+  { label: "OPUS", href: "/convert/opus-to-mp3" },
+];
+
+const videoFormats = [
+  { label: "MP4", href: "/formats/mp4" },
+  { label: "WEBM", href: "/formats/webm" },
+  { label: "MOV", href: "/convert/mov-to-mp4" },
+  { label: "GIF", href: "/convert/mp4-to-gif" },
+];
+
+const formatGuides = [
+  {
+    href: "/formats/mp4",
+    label: "MP4 format guide",
+    desc: "Learn what MP4 is, why it is widely supported, and common MP4 conversion paths.",
+  },
+  {
+    href: "/formats/mp3",
+    label: "MP3 format guide",
+    desc: "Understand the MP3 format, why it is popular, and when to convert MP3 files.",
+  },
+  {
+    href: "/formats/wav",
+    label: "WAV format guide",
+    desc: "Explore WAV as a lossless audio format used for editing, mastering, and archiving.",
+  },
+  {
+    href: "/formats/webm",
+    label: "WEBM format guide",
+    desc: "See how WEBM works for modern web video and common WEBM conversion needs.",
+  },
+  {
+    href: "/formats/flac",
+    label: "FLAC format guide",
+    desc: "Discover FLAC as a lossless audio format and where FLAC conversions make sense.",
+  },
+];
 
 const popularConversions = [
-  { href: "/convert/mp4-to-mp3", label: "MP4 to MP3", desc: "Extract audio from MP4 video files." },
-  { href: "/convert/mp3-to-wav", label: "MP3 to WAV", desc: "Convert compressed audio into WAV format." },
-  { href: "/convert/flac-to-mp3", label: "FLAC to MP3", desc: "Make lossless audio more portable and lightweight." },
-  { href: "/convert/webm-to-mp3", label: "WEBM to MP3", desc: "Turn WEBM video audio into MP3." },
-  { href: "/convert/mov-to-mp4", label: "MOV to MP4", desc: "Improve compatibility for sharing and playback." },
-  { href: "/convert/mp4-to-gif", label: "MP4 to GIF", desc: "Create lightweight animated clips from video." },
+  {
+    href: "/convert/mp4-to-mp3",
+    label: "MP4 to MP3",
+    desc: "Extract audio from MP4 video files.",
+  },
+  {
+    href: "/convert/mp3-to-wav",
+    label: "MP3 to WAV",
+    desc: "Convert compressed audio into WAV format.",
+  },
+  {
+    href: "/convert/flac-to-mp3",
+    label: "FLAC to MP3",
+    desc: "Make lossless audio more portable and lightweight.",
+  },
+  {
+    href: "/convert/webm-to-mp3",
+    label: "WEBM to MP3",
+    desc: "Turn WEBM video audio into MP3.",
+  },
+  {
+    href: "/convert/mov-to-mp4",
+    label: "MOV to MP4",
+    desc: "Improve compatibility for sharing and playback.",
+  },
+  {
+    href: "/convert/mp4-to-gif",
+    label: "MP4 to GIF",
+    desc: "Create lightweight animated clips from video.",
+  },
 ];
 
 export const metadata: Metadata = {
@@ -91,36 +157,73 @@ export default function FormatsPage() {
               support common everyday listening and sharing formats.
             </p>
 
-            <ul className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               {audioFormats.map((format) => (
-                <li
-                  key={format}
-                  className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10"
+                <Link
+                  key={format.label}
+                  href={format.href}
+                  className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
                 >
-                  {format}
-                </li>
+                  {format.label}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
 
           <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-            <h2 className="text-2xl font-semibold tracking-tight">Video and animation formats</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Video and animation formats
+            </h2>
             <p className="mt-3 text-sm leading-6 text-white/65">
               Video conversion helps improve device compatibility, reduce friction in
               sharing, and prepare files for different social, browser, and playback
               use cases. Lightweight animation support is especially useful for short clips.
             </p>
 
-            <ul className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               {videoFormats.map((format) => (
-                <li
-                  key={format}
-                  className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10"
+                <Link
+                  key={format.label}
+                  href={format.href}
+                  className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
                 >
-                  {format}
-                </li>
+                  {format.label}
+                </Link>
               ))}
-            </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-10 rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            Format guides
+          </div>
+
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            Explore detailed guides for the most important media formats
+          </h2>
+
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
+            These format pages help explain what each format is, when people use it,
+            and which conversion paths are the most practical. They also make it easier
+            to jump into the right converter flow from a format-specific starting point.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {formatGuides.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group rounded-2xl bg-white/8 p-4 ring-1 ring-white/10 transition hover:bg-white/12"
+              >
+                <div className="text-base font-semibold text-white">
+                  {item.label}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-white/65">
+                  {item.desc}
+                </p>
+              </Link>
+            ))}
           </div>
         </section>
 
@@ -158,7 +261,9 @@ export default function FormatsPage() {
 
         <section className="mt-10 grid gap-6 lg:grid-cols-2">
           <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-            <h2 className="text-2xl font-semibold tracking-tight">Why format support matters</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Why format support matters
+            </h2>
             <p className="mt-3 text-sm leading-6 text-white/65">
               Different devices, browsers, apps, and sharing workflows work better with
               different file formats. A flexible converter helps you move between those
