@@ -1,17 +1,19 @@
 "use client";
 
 import React from "react";
-import { Badge, GooglePlayBadge, Pill, cx } from "@/components/ui";
+import { Badge, GooglePlayBadge, Pill } from "@/components/ui";
 import PhoneMock from "../PhoneMock";
 
 export default function HeroSection({
   googlePlayUrl,
   onlineUrl,
   onOpenInterstitial,
+  onAndroidAppClick,
 }: {
-  googlePlayUrl: string;
+  googlePlayUrl: string | null;
   onlineUrl: string;
   onOpenInterstitial: (url: string) => void;
+  onAndroidAppClick: () => void;
 }) {
   return (
     <section className="mx-auto max-w-6xl px-4 pb-10 pt-12 sm:pt-16">
@@ -27,8 +29,8 @@ export default function HeroSection({
           </h1>
 
           <p className="mt-4 max-w-xl text-base leading-7 text-white/70">
-            Converto helps you convert images, documents, and (soon) videos with a simple, modern experience. Start on
-            mobile today — and use the online converter when it drops.
+            Converto helps you convert images, documents, and (soon) videos with a simple, modern
+            experience. Start on mobile today — and use the online converter when it drops.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -46,20 +48,31 @@ export default function HeroSection({
               <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-300/40 via-fuchsia-300/30 to-sky-300/40 blur-lg opacity-0 transition hover:opacity-100" />
             </a>
 
-            <a
-              href={googlePlayUrl}
-              onClick={(e) => {
-                e.preventDefault();
-                onOpenInterstitial(googlePlayUrl);
-              }}
-              className="inline-flex"
-            >
-              <GooglePlayBadge />
-            </a>
+            {googlePlayUrl ? (
+              <a
+                href={googlePlayUrl}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenInterstitial(googlePlayUrl);
+                }}
+                className="inline-flex"
+              >
+                <GooglePlayBadge />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={onAndroidAppClick}
+                className="inline-flex h-12 items-center justify-center rounded-2xl bg-white/10 px-5 text-sm font-medium text-white/70 ring-1 ring-white/10 transition cursor-not-allowed"
+              >
+                Android App — Coming Soon
+              </button>
+            )}
           </div>
 
           <p className="mt-3 text-xs text-white/60">
-            Privacy-first: files are processed locally in the app (online conversion will use strict limits and auto-deletion).
+            Privacy-first: files are processed locally in the app (online conversion will use
+            strict limits and auto-deletion).
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
