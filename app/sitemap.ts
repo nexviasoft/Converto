@@ -4,6 +4,20 @@ const AUDIO_FORMATS = ["mp3", "wav", "aac", "m4a", "ogg", "opus", "flac"] as con
 const VIDEO_FORMATS = ["mp4", "webm", "mov"] as const;
 const IMAGE_FORMATS = ["gif"] as const;
 
+const FORMAT_GUIDES = [
+  "mp3",
+  "wav",
+  "flac",
+  "mp4",
+  "webm",
+  "aac",
+  "m4a",
+  "ogg",
+  "opus",
+  "mov",
+  "gif",
+] as const;
+
 function buildPairSlugs(
   fromFormats: readonly string[],
   toFormats: readonly string[]
@@ -36,8 +50,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: `${siteUrl}${path}`,
     lastModified: now,
-    changeFrequency: path === "/" ? "daily" : path === "/formats" ? "weekly" : "monthly",
-    priority: path === "/" ? 1 : path === "/formats" ? 0.85 : 0.7,
+    changeFrequency:
+      path === "/"
+        ? "daily"
+        : path === "/formats"
+        ? "weekly"
+        : "monthly",
+    priority:
+      path === "/"
+        ? 1
+        : path === "/formats"
+        ? 0.85
+        : 0.7,
+  }));
+
+  const formatGuideEntries: MetadataRoute.Sitemap = FORMAT_GUIDES.map((format) => ({
+    url: `${siteUrl}/formats/${format}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.75,
   }));
 
   const converterSlugs = unique([
@@ -55,5 +86,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticEntries, ...converterEntries];
+  return [...staticEntries, ...formatGuideEntries, ...converterEntries];
 }
