@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AdSenseScript from "@/components/ads/AdsenseScript";
 
 type TargetFmt =
@@ -489,6 +490,8 @@ export default function ConverterPageContent({
   rawInputLabel,
   rawOutputLabel,
 }: ConverterPageContentProps) {
+  const router = useRouter();
+
   const SHELL_MAX = "max-w-[1700px]";
   const CENTER_MAX = "max-w-[1100px]";
   const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
@@ -580,7 +583,7 @@ export default function ConverterPageContent({
     const nextPath = `/convert/${fmtToSlug(nextInput)}-to-${fmtToSlug(nextOutput)}`;
 
     if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
-      window.history.replaceState(null, "", nextPath);
+      router.replace(nextPath, { scroll: false });
     }
   };
 
@@ -624,19 +627,29 @@ export default function ConverterPageContent({
     return null;
   };
 
+  const revokeUrl = (url: string | null) => {
+    if (url) URL.revokeObjectURL(url);
+  };
+
   const revokePreview = () => {
     setPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
+      revokeUrl(prev);
+      return null;
+    });
+  };
+
+  const revokeResult = () => {
+    setResultUrl((prev) => {
+      revokeUrl(prev);
       return null;
     });
   };
 
   const resetConverter = () => {
-    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    revokeResult();
     revokePreview();
     setFile(null);
     setFromFmt(null);
-    setResultUrl(null);
     setStatus("idle");
     setErrorMsg(null);
     setTarget(suggestedOutput ?? "MP3");
@@ -760,12 +773,16 @@ export default function ConverterPageContent({
       setFile(null);
       setFromFmt(null);
       revokePreview();
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      setResultUrl(null);
+      revokeResult();
       return;
     }
 
     const detected = detectFmt(f.name);
+    const availableForDetected = getAvailableTargets(detected);
+    const desiredTarget = suggestedOutput ?? target ?? "MP3";
+    const nextTarget = availableForDetected.includes(desiredTarget)
+      ? desiredTarget
+      : availableForDetected[0];
 
     setFromFmt(detected);
     setFile(f);
@@ -775,18 +792,8 @@ export default function ConverterPageContent({
     revokePreview();
     setPreviewUrl(URL.createObjectURL(f));
 
-    if (resultUrl) URL.revokeObjectURL(resultUrl);
-    setResultUrl(null);
+    revokeResult();
 
-    const smartDefault = (() => {
-      if (suggestedOutput) return suggestedOutput;
-      if (!detected) return "MP3" as TargetFmt;
-      if (isAudioFmt(detected)) return "MP3" as TargetFmt;
-      if (detected === "GIF") return "MP4" as TargetFmt;
-      return "MP3" as TargetFmt;
-    })();
-
-    const nextTarget = suggestedOutput ?? smartDefault;
     setTarget(nextTarget);
 
     if (detected) {
@@ -807,7 +814,7 @@ export default function ConverterPageContent({
 
         const serverUrl = await convertViaServer(file, target);
 
-        if (resultUrl) URL.revokeObjectURL(resultUrl);
+        revokeResult();
         setResultUrl(serverUrl);
         setStatus("done");
         setProgress(100);
@@ -836,7 +843,9 @@ export default function ConverterPageContent({
         await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "pcm_s16le", outName]);
       } else if (target === "M4A" || target === "AAC") {
         await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-      } else if (target === "OGG" || target === "OPUS") {
+      } else if (target === "OGG") {
+        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libvorbis", "-q:a", "4", outName]);
+      } else if (target === "OPUS") {
         await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libopus", "-b:a", "128k", outName]);
       } else if (target === "FLAC") {
         await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "flac", outName]);
@@ -923,7 +932,7 @@ export default function ConverterPageContent({
 
       const blob = new Blob([outData], { type: mimeMap[target] });
 
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      revokeResult();
       const url = URL.createObjectURL(blob);
 
       setResultUrl(url);
@@ -935,13 +944,19 @@ export default function ConverterPageContent({
         "Conversion failed. This format may not be available in the browser demo.";
 
       const lowered = String(msg).toLowerCase();
-
-      if (
+      const shouldTryServer =
         file &&
-        (lowered.includes("memory") ||
+        (
+          lowered.includes("memory") ||
           lowered.includes("out of bounds") ||
-          lowered.includes("abort"))
-      ) {
+          lowered.includes("abort") ||
+          lowered.includes("encoder") ||
+          lowered.includes("libopus") ||
+          lowered.includes("unsupported") ||
+          target === "OPUS"
+        );
+
+      if (shouldTryServer) {
         try {
           setErrorMsg(null);
           setStatus("processing");
@@ -949,7 +964,7 @@ export default function ConverterPageContent({
 
           const serverUrl = await convertViaServer(file, target);
 
-          if (resultUrl) URL.revokeObjectURL(resultUrl);
+          revokeResult();
           setResultUrl(serverUrl);
           setStatus("done");
           setProgress(100);
@@ -968,10 +983,30 @@ export default function ConverterPageContent({
 
   useEffect(() => {
     return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      revokeUrl(resultUrl);
+      revokeUrl(previewUrl);
     };
   }, [resultUrl, previewUrl]);
+
+  const activeInputForTargets = fromFmt ?? suggestedInput ?? rawInputLabel;
+  const availableTargets = useMemo(() => {
+    return getAvailableTargets(activeInputForTargets);
+  }, [activeInputForTargets]);
+
+  useEffect(() => {
+    if (!availableTargets.includes(target)) {
+      const fallback = suggestedOutput && availableTargets.includes(suggestedOutput)
+        ? suggestedOutput
+        : availableTargets[0];
+
+      setTarget(fallback);
+
+      const nextInputForRoute = fromFmt ?? suggestedInput ?? null;
+      if (nextInputForRoute) {
+        syncSeoRoute(nextInputForRoute, fallback);
+      }
+    }
+  }, [availableTargets, target, suggestedOutput, fromFmt, suggestedInput]);
 
   const sameFormatSelected = !!fromFmt && fromFmt === target;
   const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : null;
@@ -985,10 +1020,6 @@ export default function ConverterPageContent({
     () => normalizeFmtLabel(target ?? suggestedOutput ?? rawOutputLabel ?? "file"),
     [target, suggestedOutput, rawOutputLabel]
   );
-
-  const availableTargets = useMemo(() => {
-    return getAvailableTargets(fromFmt ?? suggestedInput ?? rawInputLabel);
-  }, [fromFmt, suggestedInput, rawInputLabel]);
 
   const siteUrl =
     typeof window !== "undefined"
