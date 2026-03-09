@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import AdSenseScript from "@/components/ads/AdsenseScript";
 
 type TargetFmt =
   | "MP3"
@@ -29,6 +30,76 @@ type ConvertStatus = "idle" | "ready" | "loading" | "processing" | "done" | "err
 
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
+
+/** Ad slots */
+const AD_SLOTS = {
+  LEFT_RAIL: "3456789012",
+  RIGHT_RAIL: "4567890123",
+} as const;
+
+const ADS_ENABLED = true;
+
+function AdUnit({
+  slot,
+  className = "",
+  title = "Sponsored",
+  sticky = false,
+}: {
+  slot: string;
+  className?: string;
+  title?: string;
+  sticky?: boolean;
+}) {
+  const pushedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      if (!ADS_ENABLED) return;
+      if (pushedRef.current) return;
+      // @ts-ignore
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      pushedRef.current = true;
+    } catch {}
+  }, []);
+
+  if (!ADS_ENABLED) return null;
+
+  return (
+    <div
+      className={cx(
+        "relative overflow-hidden rounded-[24px] bg-white/8 ring-1 ring-white/10 shadow-[0_22px_65px_rgba(0,0,0,0.34)]",
+        sticky ? "sticky top-[92px]" : "",
+        className
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.14),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.10),transparent_55%)]" />
+      <div className="relative p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-[11px] font-semibold tracking-wide text-white/55">{title}</div>
+          <div className="text-[11px] text-white/35">Ads keep Converto free</div>
+        </div>
+
+        <div className="rounded-2xl bg-black/25 p-3 ring-1 ring-white/10">
+          <div className="mb-3 space-y-2">
+            <div className="h-2.5 w-24 rounded-full bg-white/10" />
+            <div className="h-2.5 w-16 rounded-full bg-white/5" />
+          </div>
+
+          <ins
+            className="adsbygoogle block"
+            style={{
+              display: "block",
+              minHeight: 320,
+            }}
+            data-ad-slot={slot}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const ALL_TARGET_OPTIONS: TargetFmt[] = [
   "MP3",
@@ -419,6 +490,8 @@ export default function ConverterPageContent({
   rawOutputLabel,
 }: ConverterPageContentProps) {
   const SHELL_MAX = "max-w-[1700px]";
+  const CENTER_MAX = "max-w-[1100px]";
+  const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
 
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -875,6 +948,8 @@ export default function ConverterPageContent({
 
   return (
     <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
+      <AdSenseScript />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
@@ -956,457 +1031,471 @@ export default function ConverterPageContent({
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1100px]">
-          <div className="relative rounded-[30px] bg-white/10 ring-1 ring-white/10 shadow-[0_35px_95px_rgba(0,0,0,0.42)]">
-            <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-violet-500/16 via-fuchsia-500/8 to-sky-500/16" />
+        <div className={cx("grid items-start gap-6 xl:gap-8", GRID)}>
+          <aside className="hidden xl:block">
+            <AdUnit slot={AD_SLOTS.LEFT_RAIL} sticky className="w-full" />
+          </aside>
 
-            <div className="relative p-5 sm:p-6 md:p-7">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                    Converter
-                  </div>
-                  <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-                    Upload & convert
-                  </h2>
-                  <p className="mt-1 text-sm text-white/60">
-                    Choose a file, select a format, and prepare the conversion.
-                  </p>
+          <section className="min-w-0">
+            <div className={cx("mx-auto w-full", CENTER_MAX)}>
+              <section className="mx-auto max-w-[1100px]">
+                <div className="relative rounded-[30px] bg-white/10 ring-1 ring-white/10 shadow-[0_35px_95px_rgba(0,0,0,0.42)]">
+                  <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-violet-500/16 via-fuchsia-500/8 to-sky-500/16" />
 
-                  {formatFlowText ? (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/10">
-                        {formatFlowText}
-                      </span>
+                  <div className="relative p-5 sm:p-6 md:p-7">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                          Converter
+                        </div>
+                        <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+                          Upload & convert
+                        </h2>
+                        <p className="mt-1 text-sm text-white/60">
+                          Choose a file, select a format, and prepare the conversion.
+                        </p>
 
-                      <span className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/20">
-                        Detected input: {fromFmt}
-                      </span>
-                    </div>
-                  ) : suggestedInput || suggestedOutput ? (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
-                        Suggested: {(suggestedInput ?? "INPUT")} → {target}
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
+                        {formatFlowText ? (
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/10">
+                              {formatFlowText}
+                            </span>
 
-                <span
-                  className={cx(
-                    "inline-flex items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-semibold ring-1",
-                    status === "ready" || status === "done"
-                      ? "bg-emerald-400/15 text-emerald-200 ring-emerald-300/20"
-                      : status === "loading" || status === "processing"
-                        ? "bg-white/10 text-white/80 ring-white/10"
-                        : "bg-white/8 text-white/70 ring-white/10"
-                  )}
-                >
-                  <span
-                    className={cx(
-                      "h-2 w-2 rounded-full",
-                      status === "ready" || status === "done"
-                        ? "bg-emerald-300"
-                        : status === "loading" || status === "processing"
-                          ? "bg-white/70"
-                          : "bg-white/40"
-                    )}
-                  />
-                  {status === "loading"
-                    ? "Loading engine"
-                    : status === "processing"
-                      ? `Converting • ${progress}%`
-                      : status === "done"
-                        ? "Done"
-                        : status === "ready"
+                            <span className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/20">
+                              Detected input: {fromFmt}
+                            </span>
+                          </div>
+                        ) : suggestedInput || suggestedOutput ? (
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
+                              Suggested: {(suggestedInput ?? "INPUT")} → {target}
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <span
+                        className={cx(
+                          "inline-flex items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-semibold ring-1",
+                          status === "ready" || status === "done"
+                            ? "bg-emerald-400/15 text-emerald-200 ring-emerald-300/20"
+                            : status === "loading" || status === "processing"
+                            ? "bg-white/10 text-white/80 ring-white/10"
+                            : "bg-white/8 text-white/70 ring-white/10"
+                        )}
+                      >
+                        <span
+                          className={cx(
+                            "h-2 w-2 rounded-full",
+                            status === "ready" || status === "done"
+                              ? "bg-emerald-300"
+                              : status === "loading" || status === "processing"
+                              ? "bg-white/70"
+                              : "bg-white/40"
+                          )}
+                        />
+                        {status === "loading"
+                          ? "Loading engine"
+                          : status === "processing"
+                          ? `Converting • ${progress}%`
+                          : status === "done"
+                          ? "Done"
+                          : status === "ready"
                           ? "File ready"
                           : ffmpegReady
-                            ? "Engine ready"
-                            : "Waiting for file"}
-                </span>
-              </div>
+                          ? "Engine ready"
+                          : "Waiting for file"}
+                      </span>
+                    </div>
 
-              <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                    <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
-              <div
-                className={cx(
-                  "relative rounded-[26px] border border-dashed p-7 text-center transition sm:p-9",
-                  dragOver
-                    ? "border-white/45 bg-white/6"
-                    : "border-white/20 bg-black/20 hover:bg-white/6"
-                )}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(true);
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(false);
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(false);
-                  const f = e.dataTransfer.files?.[0];
-                  if (f) pickFile(f);
-                }}
-              >
-                <input
-                  id="fileInput"
-                  type="file"
-                  className="hidden"
-                  accept={getAcceptForInput()}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) pickFile(f);
-                  }}
-                />
-
-                <div className="mx-auto grid h-[72px] w-[72px] place-items-center rounded-[24px] bg-white/10 ring-1 ring-white/10">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M7 9L12 4L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M4 20H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </div>
-
-                <p className="mt-5 text-lg font-semibold">
-                  <span className="mx-auto block max-w-[56ch] truncate">
-                    {file ? file.name : "Drop a file here"}
-                  </span>
-                </p>
-
-                <p className="mt-2 text-sm text-white/60">
-                  {file
-                    ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
-                    : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF"}
-                </p>
-
-                {file && previewUrl ? (
-                  <div className="mt-6 overflow-hidden rounded-[22px] bg-black/30 p-3 ring-1 ring-white/10">
-                    {isAudioFmt(fromFmt) ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-center rounded-[18px] bg-white/5 px-4 py-6 text-sm text-white/70">
-                          Audio preview
-                        </div>
-                        <audio controls src={previewUrl} className="w-full" />
-                      </div>
-                    ) : fromFmt === "GIF" ? (
-                      <div className="flex justify-center">
-                        <img
-                          src={previewUrl}
-                          alt="GIF preview"
-                          className="max-h-[260px] rounded-[18px] object-contain ring-1 ring-white/10"
-                        />
-                      </div>
-                    ) : (
-                      <video
-                        controls
-                        src={previewUrl}
-                        className="mx-auto max-h-[320px] w-full rounded-[18px] bg-black object-contain ring-1 ring-white/10"
-                      />
-                    )}
-                  </div>
-                ) : null}
-
-                {(suggestedOutput || fromFmt || target) ? (
-                  <p className="mt-6 text-xs leading-6 text-white/55">
-                    {fromFmt ? (
-                      <>
-                        You are converting{" "}
-                        <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
-                        <span className="font-semibold text-white/75">{target}</span>. The route
-                        updates automatically when the detected input or selected output changes.
-                      </>
-                    ) : (
-                      <>
-                        This page suggests converting{" "}
-                        <span className="font-semibold text-white/75">{suggestedInput ?? "input"}</span>{" "}
-                        files to{" "}
-                        <span className="font-semibold text-white/75">{suggestedOutput ?? target}</span>.
-                        You can still upload a different supported file type, and the route will
-                        adapt automatically.
-                      </>
-                    )}
-                  </p>
-                ) : null}
-
-                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById("fileInput")?.click()}
-                    className="h-11 rounded-2xl bg-white/10 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
-                  >
-                    Choose file
-                  </button>
-
-                  <div ref={targetWrapRef} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setTargetOpen((v) => !v)}
-                      className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
-                      aria-haspopup="listbox"
-                      aria-expanded={targetOpen}
+                    <div
+                      className={cx(
+                        "relative rounded-[26px] border border-dashed p-7 text-center transition sm:p-9",
+                        dragOver
+                          ? "border-white/45 bg-white/6"
+                          : "border-white/20 bg-black/20 hover:bg-white/6"
+                      )}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOver(true);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOver(true);
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOver(false);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragOver(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) pickFile(f);
+                      }}
                     >
-                      <span className="text-xs font-medium text-white/60">Convert to</span>
-                      <span>{target}</span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className={cx("transition", targetOpen ? "rotate-180" : "")}
-                      >
-                        <path
-                          d="M6 9l6 6 6-6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                      <input
+                        id="fileInput"
+                        type="file"
+                        className="hidden"
+                        accept={getAcceptForInput()}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) pickFile(f);
+                        }}
+                      />
 
-                    {targetOpen ? (
-                      <div
-                        role="listbox"
-                        className="absolute left-1/2 z-30 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
-                      >
-                        <div ref={targetListRef} className="max-h-64 overflow-auto">
-                          {availableTargets.map((fmt) => (
-                            <button
-                              key={fmt}
-                              type="button"
-                              onClick={() => {
-                                setTarget(fmt);
-                                setTargetOpen(false);
+                      <div className="mx-auto grid h-[72px] w-[72px] place-items-center rounded-[24px] bg-white/10 ring-1 ring-white/10">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M7 9L12 4L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M4 20H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      </div>
 
-                                const nextInputForRoute = fromFmt ?? suggestedInput;
-                                if (nextInputForRoute) {
-                                  syncSeoRoute(nextInputForRoute, fmt);
-                                }
-                              }}
-                              className={cx(
-                                "flex w-full items-center justify-between px-4 py-3 text-sm transition",
-                                fmt === target
-                                  ? "bg-white/10 text-white"
-                                  : "text-white/80 hover:bg-white/10"
-                              )}
+                      <p className="mt-5 text-lg font-semibold">
+                        <span className="mx-auto block max-w-[56ch] truncate">
+                          {file ? file.name : "Drop a file here"}
+                        </span>
+                      </p>
+
+                      <p className="mt-2 text-sm text-white/60">
+                        {file
+                          ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
+                          : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF"}
+                      </p>
+
+                      {file && previewUrl ? (
+                        <div className="mt-6 overflow-hidden rounded-[22px] bg-black/30 p-3 ring-1 ring-white/10">
+                          {isAudioFmt(fromFmt) ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-center rounded-[18px] bg-white/5 px-4 py-6 text-sm text-white/70">
+                                Audio preview
+                              </div>
+                              <audio controls src={previewUrl} className="w-full" />
+                            </div>
+                          ) : fromFmt === "GIF" ? (
+                            <div className="flex justify-center">
+                              <img
+                                src={previewUrl}
+                                alt="GIF preview"
+                                className="max-h-[260px] rounded-[18px] object-contain ring-1 ring-white/10"
+                              />
+                            </div>
+                          ) : (
+                            <video
+                              controls
+                              src={previewUrl}
+                              className="mx-auto max-h-[320px] w-full rounded-[18px] bg-black object-contain ring-1 ring-white/10"
+                            />
+                          )}
+                        </div>
+                      ) : null}
+
+                      {(suggestedOutput || fromFmt || target) ? (
+                        <p className="mt-6 text-xs leading-6 text-white/55">
+                          {fromFmt ? (
+                            <>
+                              You are converting{" "}
+                              <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
+                              <span className="font-semibold text-white/75">{target}</span>. The route
+                              updates automatically when the detected input or selected output changes.
+                            </>
+                          ) : (
+                            <>
+                              This page suggests converting{" "}
+                              <span className="font-semibold text-white/75">{suggestedInput ?? "input"}</span>{" "}
+                              files to{" "}
+                              <span className="font-semibold text-white/75">{suggestedOutput ?? target}</span>.
+                              You can still upload a different supported file type, and the route will
+                              adapt automatically.
+                            </>
+                          )}
+                        </p>
+                      ) : null}
+
+                      <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById("fileInput")?.click()}
+                          className="h-11 rounded-2xl bg-white/10 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                        >
+                          Choose file
+                        </button>
+
+                        <div ref={targetWrapRef} className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setTargetOpen((v) => !v)}
+                            className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                            aria-haspopup="listbox"
+                            aria-expanded={targetOpen}
+                          >
+                            <span className="text-xs font-medium text-white/60">Convert to</span>
+                            <span>{target}</span>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              className={cx("transition", targetOpen ? "rotate-180" : "")}
                             >
-                              <span className="font-semibold">{fmt}</span>
-                              {fmt === target ? (
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path
+                                d="M6 9l6 6 6-6"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+
+                          {targetOpen ? (
+                            <div
+                              role="listbox"
+                              className="absolute left-1/2 z-30 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                            >
+                              <div ref={targetListRef} className="max-h-64 overflow-auto">
+                                {availableTargets.map((fmt) => (
+                                  <button
+                                    key={fmt}
+                                    type="button"
+                                    onClick={() => {
+                                      setTarget(fmt);
+                                      setTargetOpen(false);
+
+                                      const nextInputForRoute = fromFmt ?? suggestedInput;
+                                      if (nextInputForRoute) {
+                                        syncSeoRoute(nextInputForRoute, fmt);
+                                      }
+                                    }}
+                                    className={cx(
+                                      "flex w-full items-center justify-between px-4 py-3 text-sm transition",
+                                      fmt === target
+                                        ? "bg-white/10 text-white"
+                                        : "text-white/80 hover:bg-white/10"
+                                    )}
+                                  >
+                                    <span className="font-semibold">{fmt}</span>
+                                    {fmt === target ? (
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                        <path
+                                          d="M20 6L9 17l-5-5"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                    ) : (
+                                      <span className="w-4" />
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  targetListRef.current?.scrollBy({ top: 140, behavior: "smooth" })
+                                }
+                                className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-white/5 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
+                                aria-label="Scroll options"
+                              >
+                                <span>Scroll</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                   <path
-                                    d="M20 6L9 17l-5-5"
+                                    d="M6 9l6 6 6-6"
                                     stroke="currentColor"
                                     strokeWidth="2"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                   />
                                 </svg>
-                              ) : (
-                                <span className="w-4" />
-                              )}
-                            </button>
-                          ))}
+                              </button>
+                            </div>
+                          ) : null}
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            targetListRef.current?.scrollBy({ top: 140, behavior: "smooth" })
-                          }
-                          className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-white/5 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
-                          aria-label="Scroll options"
-                        >
-                          <span>Scroll</span>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <path
-                              d="M6 9l6 6 6-6"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
+                        {file ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={sameFormatSelected || status === "loading" || status === "processing"}
+                              onClick={() => {
+                                if (
+                                  sameFormatSelected ||
+                                  status === "loading" ||
+                                  status === "processing"
+                                ) {
+                                  return;
+                                }
+                                startConvert();
+                              }}
+                              className={cx(
+                                "h-11 rounded-2xl px-6 text-sm font-semibold transition",
+                                sameFormatSelected || status === "loading" || status === "processing"
+                                  ? "cursor-not-allowed bg-white/15 text-white/70 ring-1 ring-white/10"
+                                  : "bg-white text-black hover:bg-white/90"
+                              )}
+                            >
+                              {status === "loading"
+                                ? "Loading engine…"
+                                : status === "processing"
+                                ? `Converting… ${progress}%`
+                                : sameFormatSelected
+                                ? "Same format selected"
+                                : "Convert"}
+                            </button>
+
+                            {sameFormatSelected ? (
+                              <p className="text-xs text-amber-200/90">
+                                Choose a different output format to start conversion.
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
+
+                        {file ? (
+                          <button
+                            type="button"
+                            onClick={resetConverter}
+                            className="h-11 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                          >
+                            Reset
+                          </button>
+                        ) : null}
                       </div>
-                    ) : null}
-                  </div>
 
-                  {file ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <button
-                        type="button"
-                        disabled={sameFormatSelected || status === "loading" || status === "processing"}
-                        onClick={() => {
-                          if (
-                            sameFormatSelected ||
-                            status === "loading" ||
-                            status === "processing"
-                          ) {
-                            return;
-                          }
-                          startConvert();
-                        }}
-                        className={cx(
-                          "h-11 rounded-2xl px-6 text-sm font-semibold transition",
-                          sameFormatSelected || status === "loading" || status === "processing"
-                            ? "cursor-not-allowed bg-white/15 text-white/70 ring-1 ring-white/10"
-                            : "bg-white text-black hover:bg-white/90"
-                        )}
-                      >
-                        {status === "loading"
-                          ? "Loading engine…"
-                          : status === "processing"
-                            ? `Converting… ${progress}%`
-                            : sameFormatSelected
-                              ? "Same format selected"
-                              : "Convert"}
-                      </button>
+                      {status === "loading" || status === "processing" ? (
+                        <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                          <div
+                            className="h-full bg-white/40 transition-[width] duration-200"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      ) : null}
 
-                      {sameFormatSelected ? (
-                        <p className="text-xs text-amber-200/90">
-                          Choose a different output format to start conversion.
-                        </p>
+                      {status === "done" && resultUrl && file ? (
+                        <div className="mt-6 flex flex-col items-center gap-3">
+                          <a
+                            href={resultUrl}
+                            download={buildOutputName(file.name, outputExtMap[target])}
+                            className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90"
+                          >
+                            Download result
+                          </a>
+
+                          <div className="text-xs text-white/50">
+                            {buildOutputName(file.name, outputExtMap[target])}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {status === "error" && errorMsg ? (
+                        <p className="mt-4 text-sm text-rose-200">{errorMsg}</p>
                       ) : null}
                     </div>
-                  ) : null}
 
-                  {file ? (
-                    <button
-                      type="button"
-                      onClick={resetConverter}
-                      className="h-11 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
-                    >
-                      Reset
-                    </button>
-                  ) : null}
-                </div>
+                    <div className="relative mt-7 rounded-[22px] bg-black/25 p-4 ring-1 ring-white/10">
+                      <div className="flex items-center justify-between text-xs text-white/60">
+                        <span>Free limit</span>
+                        <span>
+                          {file
+                            ? `${(file.size / (1024 * 1024)).toFixed(1)}MB / ${MAX_FREE_MB}MB`
+                            : `0MB / ${MAX_FREE_MB}MB`}
+                        </span>
+                      </div>
 
-                {status === "loading" || status === "processing" ? (
-                  <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
-                    <div
-                      className="h-full bg-white/40 transition-[width] duration-200"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                ) : null}
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                        <div
+                          className={cx(
+                            "h-full transition-[width] duration-300",
+                            file && file.size > MAX_BYTES ? "bg-rose-400" : "bg-white/40"
+                          )}
+                          style={{
+                            width: file
+                              ? `${Math.min(100, ((file.size / (1024 * 1024)) / MAX_FREE_MB) * 100)}%`
+                              : "0%",
+                          }}
+                        />
+                      </div>
 
-                {status === "done" && resultUrl && file ? (
-                  <div className="mt-6 flex flex-col items-center gap-3">
-                    <a
-                      href={resultUrl}
-                      download={buildOutputName(file.name, outputExtMap[target])}
-                      className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90"
-                    >
-                      Download result
-                    </a>
-
-                    <div className="text-xs text-white/50">
-                      {buildOutputName(file.name, outputExtMap[target])}
+                      <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
+                        <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                          Browser-based conversion for quick tasks.
+                        </div>
+                        <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                          50MB free limit for the demo.
+                        </div>
+                        <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                          Multiple popular output formats supported.
+                        </div>
+                        <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                          Heavier files can be handled later with server beta.
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ) : null}
-
-                {status === "error" && errorMsg ? (
-                  <p className="mt-4 text-sm text-rose-200">{errorMsg}</p>
-                ) : null}
-              </div>
-
-              <div className="relative mt-7 rounded-[22px] bg-black/25 p-4 ring-1 ring-white/10">
-                <div className="flex items-center justify-between text-xs text-white/60">
-                  <span>Free limit</span>
-                  <span>
-                    {file
-                      ? `${(file.size / (1024 * 1024)).toFixed(1)}MB / ${MAX_FREE_MB}MB`
-                      : `0MB / ${MAX_FREE_MB}MB`}
-                  </span>
                 </div>
+              </section>
 
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
-                  <div
-                    className={cx(
-                      "h-full transition-[width] duration-300",
-                      file && file.size > MAX_BYTES ? "bg-rose-400" : "bg-white/40"
-                    )}
-                    style={{
-                      width: file
-                        ? `${Math.min(100, ((file.size / (1024 * 1024)) / MAX_FREE_MB) * 100)}%`
-                        : "0%",
-                    }}
-                  />
-                </div>
+              <section className="mx-auto mt-10 max-w-[1100px]">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      Fast workflow
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold text-white">
+                      Convert in a few clicks
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-white/60">
+                      Upload your file, choose the target format, and download the result.
+                    </p>
+                  </div>
 
-                <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                    Browser-based conversion for quick tasks.
+                  <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      Popular formats
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold text-white">
+                      Audio and video essentials
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-white/60">
+                      MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF.
+                    </p>
                   </div>
-                  <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                    50MB free limit for the demo.
-                  </div>
-                  <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                    Multiple popular output formats supported.
-                  </div>
-                  <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                    Heavier files can be handled later with server beta.
+
+                  <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      Browser demo
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold text-white">
+                      Great for quick tasks
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-white/60">
+                      Smaller files work best in-browser. Larger files can come later with server beta.
+                    </p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
+              </section>
 
-        <section className="mx-auto mt-10 max-w-[1100px]">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Fast workflow
-              </div>
-              <h3 className="mt-3 text-base font-semibold text-white">
-                Convert in a few clicks
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                Upload your file, choose the target format, and download the result.
-              </p>
+              <SeoInfoSection input={activeInputLabel} output={activeOutputLabel} />
+              <PopularEntrySection />
+              <RelatedConversionsSection input={activeInputLabel} output={activeOutputLabel} />
             </div>
+          </section>
 
-            <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Popular formats
-              </div>
-              <h3 className="mt-3 text-base font-semibold text-white">
-                Audio and video essentials
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF.
-              </p>
-            </div>
-
-            <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Browser demo
-              </div>
-              <h3 className="mt-3 text-base font-semibold text-white">
-                Great for quick tasks
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                Smaller files work best in-browser. Larger files can come later with server beta.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <SeoInfoSection input={activeInputLabel} output={activeOutputLabel} />
-        <PopularEntrySection />
-        <RelatedConversionsSection input={activeInputLabel} output={activeOutputLabel} />
+          <aside className="hidden xl:block">
+            <AdUnit slot={AD_SLOTS.RIGHT_RAIL} sticky className="w-full" />
+          </aside>
+        </div>
       </main>
 
       <footer className="border-t border-white/10">
