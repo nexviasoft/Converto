@@ -210,17 +210,17 @@ function buildSeoContent(input?: string | null, output?: string | null) {
   const inputIsImage = isImageFmt(from);
   const outputIsImage = isImageFmt(to);
 
-  let intro = `Convert ${from} to ${to} directly in your browser with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`;
+  let intro = `Convert ${from} to ${to} online with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`;
 
   let whyText = `Converting ${from} to ${to} can help with playback compatibility, sharing, compression, editing workflows, or extracting audio from video files.`;
 
   let useText = `This page is optimized around ${from} to ${to}, but it does not lock your workflow. You can still upload another supported file type and switch the output format inside the converter.`;
 
   if (inputIsAudio && isAudioFmt(to)) {
-    intro = `Convert ${from} to ${to} online with a simple browser-based workflow. This is useful when you need better compatibility, different compression, or a format that works better across devices and apps.`;
+    intro = `Convert ${from} to ${to} online with a simple workflow. This is useful when you need better compatibility, different compression, or a format that works better across devices and apps.`;
     whyText = `${from} to ${to} conversion is often used for playback support, reducing file size, improving compatibility, or preparing files for editing and sharing.`;
   } else if (inputIsVideo && isAudioFmt(to)) {
-    intro = `Convert ${from} to ${to} online to extract audio from video files in your browser. This is useful for music clips, voice tracks, podcasts, lectures, and simple audio-only exports.`;
+    intro = `Convert ${from} to ${to} online to extract audio from video files. This is useful for music clips, voice tracks, podcasts, lectures, and simple audio-only exports.`;
     whyText = `${from} to ${to} conversion is commonly used to extract audio from video, keep only the soundtrack, or create smaller files for listening and sharing.`;
   } else if (inputIsVideo && isVideoFmt(to)) {
     intro = `Convert ${from} to ${to} online for better compatibility, easier sharing, and cleaner playback across browsers, devices, and editing tools.`;
@@ -243,7 +243,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     ],
     whyText,
     useText,
-    browserText: `Smaller files are best for browser-based conversion. Larger files may be better suited to a future server mode.`,
+    browserText: `Converto currently uses a server-assisted conversion flow for better stability.`,
   };
 }
 
@@ -276,7 +276,7 @@ function buildFaqSchema(input?: string | null, output?: string | null) {
         name: `Is ${from} to ${to} conversion free?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes. The browser demo is available for free with a 50MB file limit for quick conversions.`,
+          text: `Yes. The current demo is free for quick everyday conversions with a 50MB file limit.`,
         },
       },
       {
@@ -284,7 +284,7 @@ function buildFaqSchema(input?: string | null, output?: string | null) {
         name: `Does ${from} to ${to} conversion happen in the browser?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes. This demo is designed for browser-based conversion, which works best for smaller files and quick tasks.`,
+          text: `Converto currently uses a server-assisted conversion flow for better compatibility and stability.`,
         },
       },
     ],
@@ -392,7 +392,7 @@ function SeoInfoSection({
           </div>
 
           <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-            <h3 className="text-sm font-semibold text-white">Browser-based workflow</h3>
+            <h3 className="text-sm font-semibold text-white">Current workflow</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">{seo.browserText}</p>
           </div>
         </div>
@@ -508,14 +508,10 @@ export default function ConverterPageContent({
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
   const [progress, setProgress] = useState(0);
-  const [ffmpegReady, setFfmpegReady] = useState(false);
 
   const MAX_FREE_MB = 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
-  const SERVER_ONLY_THRESHOLD_MB = 15;
 
-  const ffmpegRef = useRef<any>(null);
-  const ffmpegLoadingRef = useRef<Promise<void> | null>(null);
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
 
@@ -678,20 +674,6 @@ export default function ConverterPageContent({
     GIF: "gif",
   };
 
-  const mimeMap: Record<TargetFmt, string> = {
-    MP3: "audio/mpeg",
-    WAV: "audio/wav",
-    M4A: "audio/mp4",
-    AAC: "audio/aac",
-    OGG: "audio/ogg",
-    OPUS: "audio/ogg",
-    FLAC: "audio/flac",
-    MP4: "video/mp4",
-    WEBM: "video/webm",
-    MOV: "video/quicktime",
-    GIF: "image/gif",
-  };
-
   const API_URL =
     process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
 
@@ -703,6 +685,12 @@ export default function ConverterPageContent({
     const formData = new FormData();
     formData.append("file", inputFile);
     formData.append("target", targetFormat);
+
+    console.log("Sending file to server:", `${API_URL}/convert`, {
+      name: inputFile.name,
+      size: inputFile.size,
+      target: targetFormat,
+    });
 
     const res = await fetch(`${API_URL}/convert`, {
       method: "POST",
@@ -720,50 +708,6 @@ export default function ConverterPageContent({
 
     const blob = await res.blob();
     return URL.createObjectURL(blob);
-  };
-
-  const ensureFfmpeg = async () => {
-    if (ffmpegReady && ffmpegRef.current) return;
-    if (ffmpegLoadingRef.current) return ffmpegLoadingRef.current;
-
-    ffmpegLoadingRef.current = (async () => {
-      try {
-        setStatus("loading");
-        setProgress(0);
-        setErrorMsg(null);
-
-        const { FFmpeg } = await import("@ffmpeg/ffmpeg");
-        const { toBlobURL } = await import("@ffmpeg/util");
-
-        if (!ffmpegRef.current) ffmpegRef.current = new FFmpeg();
-        const ffmpeg = ffmpegRef.current;
-
-        ffmpeg.on("progress", ({ progress }: { progress: number }) => {
-          const p = Math.max(0, Math.min(1, progress || 0));
-          setProgress(Math.round(p * 100));
-        });
-
-        const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
-        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript");
-        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm");
-        const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript");
-
-        await ffmpeg.load({ coreURL, wasmURL, workerURL });
-
-        setFfmpegReady(true);
-        setStatus(file ? "ready" : "idle");
-        setProgress(0);
-      } catch (err: any) {
-        const msg = err?.message ?? "Engine load failed.";
-        setErrorMsg(msg);
-        setStatus("error");
-        setFfmpegReady(false);
-      } finally {
-        ffmpegLoadingRef.current = null;
-      }
-    })();
-
-    return ffmpegLoadingRef.current;
   };
 
   const pickFile = (f: File) => {
@@ -793,7 +737,6 @@ export default function ConverterPageContent({
 
     revokePreview();
     setPreviewUrl(URL.createObjectURL(f));
-
     revokeResult();
 
     setTarget(nextTarget);
@@ -808,177 +751,18 @@ export default function ConverterPageContent({
 
     try {
       setErrorMsg(null);
-
-      if (file.size > SERVER_ONLY_THRESHOLD_MB * 1024 * 1024) {
-        setStatus("processing");
-        setProgress(15);
-        setTargetOpen(false);
-
-        const serverUrl = await convertViaServer(file, target);
-
-        revokeResult();
-        setResultUrl(serverUrl);
-        setStatus("done");
-        setProgress(100);
-        return;
-      }
-
-      await ensureFfmpeg();
-
-      const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg) throw new Error("FFmpeg not initialized.");
-
       setStatus("processing");
-      setProgress(0);
+      setProgress(20);
       setTargetOpen(false);
 
-      const inExt = (file.name.split(".").pop() || "mp4").toLowerCase();
-      const inName = `input_${Date.now()}.${inExt}`;
-      const outName = `output_${Date.now()}.${outputExtMap[target]}`;
-
-      const data = new Uint8Array(await file.arrayBuffer());
-      await ffmpeg.writeFile(inName, data);
-
-      if (target === "MP3") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libmp3lame", "-q:a", "3", outName]);
-      } else if (target === "WAV") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "pcm_s16le", outName]);
-      } else if (target === "M4A" || target === "AAC") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-      } else if (target === "OGG") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libvorbis", "-q:a", "4", outName]);
-      } else if (target === "OPUS") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libopus", "-b:a", "128k", outName]);
-      } else if (target === "FLAC") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "flac", outName]);
-      } else if (target === "MP4") {
-        if (isAudioFmt(fromFmt)) {
-          await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-        } else {
-          await ffmpeg.exec([
-            "-i",
-            inName,
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "28",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
-            "-movflags",
-            "+faststart",
-            outName,
-          ]);
-        }
-      } else if (target === "WEBM") {
-        if (isAudioFmt(fromFmt)) {
-          await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libopus", "-b:a", "128k", outName]);
-        } else {
-          await ffmpeg.exec([
-            "-i",
-            inName,
-            "-c:v",
-            "libvpx",
-            "-crf",
-            "30",
-            "-b:v",
-            "0",
-            "-c:a",
-            "libopus",
-            "-b:a",
-            "128k",
-            outName,
-          ]);
-        }
-      } else if (target === "MOV") {
-        if (isAudioFmt(fromFmt)) {
-          await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-        } else {
-          await ffmpeg.exec([
-            "-i",
-            inName,
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "28",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
-            outName,
-          ]);
-        }
-      } else if (target === "GIF") {
-        await ffmpeg.exec([
-          "-i",
-          inName,
-          "-vf",
-          "fps=10,scale=480:-1:flags=lanczos",
-          "-loop",
-          "0",
-          outName,
-        ]);
-      }
-
-      const outData = await ffmpeg.readFile(outName);
-
-      try {
-        await ffmpeg.deleteFile(inName);
-        await ffmpeg.deleteFile(outName);
-      } catch {}
-
-      const blob = new Blob([outData], { type: mimeMap[target] });
+      const serverUrl = await convertViaServer(file, target);
 
       revokeResult();
-      const url = URL.createObjectURL(blob);
-
-      setResultUrl(url);
+      setResultUrl(serverUrl);
       setStatus("done");
       setProgress(100);
     } catch (err: any) {
-      const msg =
-        err?.message ??
-        "Conversion failed. This format may not be available in the browser demo.";
-
-      const lowered = String(msg).toLowerCase();
-      const shouldTryServer =
-        file &&
-        (
-          lowered.includes("memory") ||
-          lowered.includes("out of bounds") ||
-          lowered.includes("abort") ||
-          lowered.includes("encoder") ||
-          lowered.includes("libopus") ||
-          lowered.includes("unsupported") ||
-          target === "OPUS"
-        );
-
-      if (shouldTryServer) {
-        try {
-          setErrorMsg(null);
-          setStatus("processing");
-          setProgress(20);
-
-          const serverUrl = await convertViaServer(file, target);
-
-          revokeResult();
-          setResultUrl(serverUrl);
-          setStatus("done");
-          setProgress(100);
-          return;
-        } catch (serverErr: any) {
-          setErrorMsg(serverErr?.message ?? "Server conversion failed.");
-          setStatus("error");
-          return;
-        }
-      }
-
-      setErrorMsg(msg);
+      setErrorMsg(err?.message ?? "Server conversion failed.");
       setStatus("error");
     }
   };
@@ -997,9 +781,10 @@ export default function ConverterPageContent({
 
   useEffect(() => {
     if (!availableTargets.includes(target)) {
-      const fallback = suggestedOutput && availableTargets.includes(suggestedOutput)
-        ? suggestedOutput
-        : availableTargets[0];
+      const fallback =
+        suggestedOutput && availableTargets.includes(suggestedOutput)
+          ? suggestedOutput
+          : availableTargets[0];
 
       setTarget(fallback);
 
@@ -1024,16 +809,14 @@ export default function ConverterPageContent({
   );
 
   const siteUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL || "https://converto.tools";
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://converto.tools";
 
   const schemaTitle =
     seoTitle || `${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} Converter`;
 
   const schemaDescription =
     seoDescription ||
-    `Convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} online with Converto. Upload your file, choose your target format, and download the converted result in a simple browser-based workflow.`;
+    `Convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} online with Converto. Upload your file, choose your target format, and download the converted result in a simple workflow.`;
 
   const faqSchema = useMemo(
     () => buildFaqSchema(activeInputLabel, activeOutputLabel),
@@ -1056,119 +839,7 @@ export default function ConverterPageContent({
     return (
       <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
         <AdSenseScript />
-
-        <div className="pointer-events-none fixed inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.23),transparent_56%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_52%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.06),transparent_45%)]" />
-          <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:84px_84px]" />
-        </div>
-
-        <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05040F]/80 backdrop-blur">
-          <div className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-3 sm:px-5">
-            <Link href="/" className="group inline-flex items-center gap-3">
-              <img
-                src="/brand/converto-logo.svg"
-                alt="Converto logo"
-                className="h-10 w-10 object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
-              />
-
-              <span className="leading-tight">
-                <span className="block text-[15px] font-semibold tracking-tight text-white">
-                  Converto
-                </span>
-                <span className="block -mt-0.5 text-[11px] text-white/50">
-                  by NexviaSoft
-                </span>
-              </span>
-            </Link>
-
-            <div className="flex items-center gap-4">
-              <Link href="/formats" className="text-sm text-white/70 transition hover:text-white">
-                Formats
-              </Link>
-              <Link href="/terms" className="text-sm text-white/70 transition hover:text-white">
-                Terms
-              </Link>
-              <Link href="/privacy" className="text-sm text-white/70 transition hover:text-white">
-                Privacy
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        <main className="mx-auto flex min-h-[calc(100vh-160px)] max-w-[1100px] items-center justify-center px-4 py-10 sm:px-5">
-          <div className="w-full max-w-xl rounded-[30px] bg-white/10 p-8 text-center ring-1 ring-white/10 shadow-[0_35px_95px_rgba(0,0,0,0.42)]">
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-3 py-1 text-[11px] font-semibold text-amber-200 ring-1 ring-amber-300/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
-              Temporary maintenance
-            </div>
-
-            <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Converto is being updated
-            </h1>
-
-            <p className="mx-auto mt-3 max-w-[560px] text-sm leading-6 text-white/65 sm:text-[15px]">
-              We’re currently fixing the converter and bringing the service back online.
-              The site is still available, but file conversion is temporarily paused.
-            </p>
-
-            <div className="mt-6 grid gap-3 text-left sm:grid-cols-2">
-              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
-                Converter engine is being stabilized
-              </div>
-              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
-                Route pages and SEO remain live
-              </div>
-              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
-                Formats directory is still accessible
-              </div>
-              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
-                Service will return after backend checks
-              </div>
-            </div>
-
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/"
-                className="inline-flex rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
-              >
-                Go home
-              </Link>
-
-              <Link
-                href="/formats"
-                className="inline-flex rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
-              >
-                Browse formats
-              </Link>
-            </div>
-          </div>
-        </main>
-
-        <footer className="border-t border-white/10">
-          <div className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <div className="text-sm text-white/70">
-              <span className="font-semibold text-white">Converto</span>{" "}
-              <span className="text-white/50">•</span> by NexviaSoft
-            </div>
-
-            <div className="flex flex-wrap gap-3 text-sm text-white/60">
-              <Link className="transition hover:text-white" href="/">
-                Home
-              </Link>
-              <Link className="transition hover:text-white" href="/formats">
-                Formats
-              </Link>
-              <Link className="transition hover:text-white" href="/privacy">
-                Privacy
-              </Link>
-              <Link className="transition hover:text-white" href="/terms">
-                Terms
-              </Link>
-            </div>
-
-            <div className="text-xs text-white/40">© 2026 NexviaSoft</div>
-          </div>
-        </footer>
+        <div className="flex min-h-screen items-center justify-center">Maintenance</div>
       </div>
     );
   }
@@ -1233,7 +904,7 @@ export default function ConverterPageContent({
         <section className="mx-auto mb-8 max-w-[1100px] text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/8 px-3 py-1 text-[11px] text-white/70 ring-1 ring-white/10">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-            Browser demo • runs locally
+            Server-assisted conversion
           </div>
 
           <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -1242,7 +913,7 @@ export default function ConverterPageContent({
 
           <p className="mx-auto mt-3 max-w-[720px] text-sm leading-6 text-white/65 sm:text-[15px]">
             {seoDescription ||
-              "Fast, clean, and premium-feeling conversion right in the browser. Great for quick tasks."}
+              "Fast, clean, and stable online conversion for quick everyday file tasks."}
           </p>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -1250,7 +921,7 @@ export default function ConverterPageContent({
               Free: 50MB
             </span>
             <span className="rounded-full bg-white/8 px-3 py-2 text-[11px] text-white/72 ring-1 ring-white/10">
-              Browser based
+              Stable server flow
             </span>
             <span className="rounded-full bg-white/8 px-3 py-2 text-[11px] text-white/72 ring-1 ring-white/10">
               Quick conversions
@@ -1279,7 +950,7 @@ export default function ConverterPageContent({
                           Upload & convert
                         </h2>
                         <p className="mt-1 text-sm text-white/60">
-                          Choose a file, select a format, and prepare the conversion.
+                          Choose a file, select a format, and send it for conversion.
                         </p>
 
                         {formatFlowText ? (
@@ -1321,16 +992,12 @@ export default function ConverterPageContent({
                               : "bg-white/40"
                           )}
                         />
-                        {status === "loading"
-                          ? "Loading engine"
-                          : status === "processing"
+                        {status === "processing"
                           ? `Converting • ${progress}%`
                           : status === "done"
                           ? "Done"
                           : status === "ready"
                           ? "File ready"
-                          : ffmpegReady
-                          ? "Engine ready"
                           : "Waiting for file"}
                       </span>
                     </div>
@@ -1554,27 +1221,19 @@ export default function ConverterPageContent({
                           <div className="flex flex-col items-center gap-2">
                             <button
                               type="button"
-                              disabled={sameFormatSelected || status === "loading" || status === "processing"}
+                              disabled={sameFormatSelected || status === "processing"}
                               onClick={() => {
-                                if (
-                                  sameFormatSelected ||
-                                  status === "loading" ||
-                                  status === "processing"
-                                ) {
-                                  return;
-                                }
+                                if (sameFormatSelected || status === "processing") return;
                                 startConvert();
                               }}
                               className={cx(
                                 "h-11 rounded-2xl px-6 text-sm font-semibold transition",
-                                sameFormatSelected || status === "loading" || status === "processing"
+                                sameFormatSelected || status === "processing"
                                   ? "cursor-not-allowed bg-white/15 text-white/70 ring-1 ring-white/10"
                                   : "bg-white text-black hover:bg-white/90"
                               )}
                             >
-                              {status === "loading"
-                                ? "Loading engine…"
-                                : status === "processing"
+                              {status === "processing"
                                 ? `Converting… ${progress}%`
                                 : sameFormatSelected
                                 ? "Same format selected"
@@ -1600,7 +1259,7 @@ export default function ConverterPageContent({
                         ) : null}
                       </div>
 
-                      {status === "loading" || status === "processing" ? (
+                      {status === "processing" ? (
                         <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
                           <div
                             className="h-full bg-white/40 transition-[width] duration-200"
@@ -1656,7 +1315,7 @@ export default function ConverterPageContent({
 
                       <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Browser-based conversion for quick tasks.
+                          Stable server-assisted conversion flow.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
                           50MB free limit for the demo.
@@ -1665,7 +1324,7 @@ export default function ConverterPageContent({
                           Multiple popular output formats supported.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Heavier conversions can automatically fall back to the server.
+                          Good for quick everyday conversions.
                         </div>
                       </div>
                     </div>
@@ -1701,13 +1360,13 @@ export default function ConverterPageContent({
 
                   <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                      Browser demo
+                      Stable mode
                     </div>
                     <h3 className="mt-3 text-base font-semibold text-white">
-                      Great for quick tasks
+                      Better conversion reliability
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      Smaller files work best in-browser. Larger files can come later with server beta.
+                      This version uses a server-assisted path to reduce browser-side conversion failures.
                     </p>
                   </div>
                 </div>
