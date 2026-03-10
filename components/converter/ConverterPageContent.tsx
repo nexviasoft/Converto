@@ -4,7 +4,6 @@ const MAINTENANCE_MODE = false;
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import AdSenseScript from "@/components/ads/AdsenseScript";
 
 type TargetFmt =
@@ -492,8 +491,6 @@ export default function ConverterPageContent({
   rawInputLabel,
   rawOutputLabel,
 }: ConverterPageContentProps) {
-  const router = useRouter();
-
   const SHELL_MAX = "max-w-[1700px]";
   const CENTER_MAX = "max-w-[1100px]";
   const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
@@ -581,7 +578,7 @@ export default function ConverterPageContent({
     const nextPath = `/convert/${fmtToSlug(nextInput)}-to-${fmtToSlug(nextOutput)}`;
 
     if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
-      router.replace(nextPath, { scroll: false });
+      window.history.replaceState({}, "", nextPath);
     }
   };
 
@@ -749,21 +746,37 @@ export default function ConverterPageContent({
   const startConvert = async () => {
     if (!file) return;
 
+    let fakeTimer: ReturnType<typeof setInterval> | null = null;
+
     try {
       setErrorMsg(null);
       setStatus("processing");
-      setProgress(20);
+      setProgress(8);
       setTargetOpen(false);
+
+      fakeTimer = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 92) return prev;
+          if (prev < 30) return prev + 8;
+          if (prev < 60) return prev + 5;
+          if (prev < 80) return prev + 3;
+          return prev + 1;
+        });
+      }, 350);
 
       const serverUrl = await convertViaServer(file, target);
 
+      if (fakeTimer) clearInterval(fakeTimer);
+
+      setProgress(100);
       revokeResult();
       setResultUrl(serverUrl);
       setStatus("done");
-      setProgress(100);
     } catch (err: any) {
+      if (fakeTimer) clearInterval(fakeTimer);
       setErrorMsg(err?.message ?? "Server conversion failed.");
       setStatus("error");
+      setProgress(0);
     }
   };
 
