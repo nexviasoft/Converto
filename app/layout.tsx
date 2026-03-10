@@ -6,6 +6,8 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://converto.tools";
 
+const ADSENSE_CLIENT = "ca-pub-4933934041035226";
+
 const webAppSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -53,6 +55,9 @@ export const metadata: Metadata = {
     description:
       "Convert audio, video, and image files online for free with Converto. Fast browser-based file converter for MP3, WAV, MP4, WEBM, GIF, and more.",
   },
+  other: {
+    "google-adsense-account": ADSENSE_CLIENT,
+  },
 };
 
 export default function RootLayout({
@@ -62,14 +67,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+        />
+      </head>
       <body>
         {children}
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(webAppSchema),
           }}
         />
+
         <Analytics />
       </body>
     </html>

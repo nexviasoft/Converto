@@ -2,7 +2,37 @@ import type { MetadataRoute } from "next";
 
 const AUDIO_FORMATS = ["mp3", "wav", "aac", "m4a", "ogg", "opus", "flac"] as const;
 const VIDEO_FORMATS = ["mp4", "webm", "mov"] as const;
-const IMAGE_FORMATS = ["gif"] as const;
+const IMAGE_FORMATS = ["gif", "png", "jpg", "webp"] as const;
+
+const FORMAT_GUIDES = [
+  "mp3",
+  "wav",
+  "flac",
+  "mp4",
+  "webm",
+  "aac",
+  "m4a",
+  "ogg",
+  "opus",
+  "mov",
+  "gif",
+  "png",
+  "jpg",
+  "webp",
+] as const;
+
+const COMPARE_PAGES = [
+  "mp3-vs-wav",
+  "flac-vs-mp3",
+  "mp4-vs-webm",
+  "mp4-vs-mov",
+  "aac-vs-mp3",
+  "m4a-vs-mp3",
+  "png-vs-jpg",
+  "jpg-vs-webp",
+  "png-vs-webp",
+  "gif-vs-webp",
+] as const;
 
 function buildPairSlugs(
   fromFormats: readonly string[],
@@ -31,13 +61,37 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const now = new Date();
 
-  const staticRoutes = ["/", "/privacy", "/terms", "/converter", "/formats"];
+  const staticRoutes = ["/", "/privacy", "/terms", "/converter", "/formats", "/compare"];
 
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: `${siteUrl}${path}`,
     lastModified: now,
-    changeFrequency: path === "/" ? "daily" : path === "/formats" ? "weekly" : "monthly",
-    priority: path === "/" ? 1 : path === "/formats" ? 0.85 : 0.7,
+    changeFrequency:
+      path === "/"
+        ? "daily"
+        : path === "/formats"
+        ? "weekly"
+        : "monthly",
+    priority:
+      path === "/"
+        ? 1
+        : path === "/formats"
+        ? 0.85
+        : 0.7,
+  }));
+
+  const formatGuideEntries: MetadataRoute.Sitemap = FORMAT_GUIDES.map((format) => ({
+    url: `${siteUrl}/formats/${format}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.75,
+  }));
+
+  const compareEntries: MetadataRoute.Sitemap = COMPARE_PAGES.map((slug) => ({
+    url: `${siteUrl}/compare/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.8,
   }));
 
   const converterSlugs = unique([
@@ -46,6 +100,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
     ...buildPairSlugs(IMAGE_FORMATS, VIDEO_FORMATS),
+    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
   ]);
 
   const converterEntries: MetadataRoute.Sitemap = converterSlugs.map((slug) => ({
@@ -55,5 +110,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticEntries, ...converterEntries];
+  return [
+    ...staticEntries,
+    ...formatGuideEntries,
+    ...compareEntries,
+    ...converterEntries,
+  ];
 }

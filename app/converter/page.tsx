@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -1581,5 +1582,15 @@ export default function ConverterPage() {
 
       <Toast open={toastOpen} title={toastTitle} desc={toastDesc} onClose={() => setToastOpen(false)} />
     </div>
+=======
+import ConverterPageContent from "@/components/converter/ConverterPageContent";
+
+export default function ConverterPage() {
+  return (
+    <ConverterPageContent
+      seoTitle="Convert files online"
+      seoDescription="Free online file converter for audio, video, and everyday format changes."
+    />
+>>>>>>> main
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
+const MAINTENANCE_MODE = false;
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
+import type { UserEntitlement } from "@/types/billing";
 
 type TargetFmt =
   | "MP3"
@@ -15,7 +18,10 @@ type TargetFmt =
   | "MP4"
   | "WEBM"
   | "MOV"
-  | "GIF";
+  | "GIF"
+  | "PNG"
+  | "JPG"
+  | "WEBP";
 
 type ConverterPageContentProps = {
   seoTitle?: string;
@@ -113,6 +119,9 @@ const ALL_TARGET_OPTIONS: TargetFmt[] = [
   "WEBM",
   "MOV",
   "GIF",
+  "PNG",
+  "JPG",
+  "WEBP",
 ];
 
 const homepagePopularConversions = [
@@ -122,11 +131,19 @@ const homepagePopularConversions = [
   { href: "/convert/mp4-to-wav", label: "MP4 to WAV" },
   { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
   { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
+  { href: "/convert/png-to-jpg", label: "PNG to JPG" },
+  { href: "/convert/webp-to-png", label: "WEBP to PNG" },
 ];
 
 function normalizeFmtLabel(value?: string | null): string | null {
   if (!value) return null;
   return value.toString().trim().toUpperCase();
+}
+
+function toTargetFmt(value?: string | null): TargetFmt | null {
+  const v = normalizeFmtLabel(value);
+  if (!v) return null;
+  return ALL_TARGET_OPTIONS.includes(v as TargetFmt) ? (v as TargetFmt) : null;
 }
 
 function isAudioFmt(fmt: string | null | undefined) {
@@ -146,7 +163,12 @@ function isVideoFmt(fmt: string | null | undefined) {
 }
 
 function isImageFmt(fmt: string | null | undefined) {
-  return fmt === "GIF";
+  return (
+    fmt === "GIF" ||
+    fmt === "PNG" ||
+    fmt === "JPG" ||
+    fmt === "WEBP"
+  );
 }
 
 function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
@@ -161,7 +183,11 @@ function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
   }
 
   if (isImageFmt(fmt)) {
-    return ["MP4", "WEBM", "MOV"];
+    if (fmt === "GIF") {
+      return ["MP4", "WEBM", "MOV", "PNG", "JPG", "WEBP"];
+    }
+
+    return ["PNG", "JPG", "WEBP"];
   }
 
   return ALL_TARGET_OPTIONS;
@@ -184,7 +210,11 @@ function buildRelatedConversions(input?: string | null, output?: string | null) 
   } else if (isVideoFmt(from)) {
     pool = ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"];
   } else if (isImageFmt(from)) {
-    pool = ["MP4", "WEBM", "MOV"];
+    if (from === "GIF") {
+      pool = ["MP4", "WEBM", "MOV", "PNG", "JPG", "WEBP"];
+    } else {
+      pool = ["PNG", "JPG", "WEBP"];
+    }
   } else {
     pool = ALL_TARGET_OPTIONS.map((fmt) => fmt);
   }
@@ -207,26 +237,29 @@ function buildSeoContent(input?: string | null, output?: string | null) {
   const inputIsImage = isImageFmt(from);
   const outputIsImage = isImageFmt(to);
 
-  let intro = `Convert ${from} to ${to} directly in your browser with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`;
+  let intro = `Convert ${from} to ${to} online with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`;
 
   let whyText = `Converting ${from} to ${to} can help with playback compatibility, sharing, compression, editing workflows, or extracting audio from video files.`;
 
   let useText = `This page is optimized around ${from} to ${to}, but it does not lock your workflow. You can still upload another supported file type and switch the output format inside the converter.`;
 
   if (inputIsAudio && isAudioFmt(to)) {
-    intro = `Convert ${from} to ${to} online with a simple browser-based workflow. This is useful when you need better compatibility, different compression, or a format that works better across devices and apps.`;
+    intro = `Convert ${from} to ${to} online with a simple workflow. This is useful when you need better compatibility, different compression, or a format that works better across devices and apps.`;
     whyText = `${from} to ${to} conversion is often used for playback support, reducing file size, improving compatibility, or preparing files for editing and sharing.`;
   } else if (inputIsVideo && isAudioFmt(to)) {
-    intro = `Convert ${from} to ${to} online to extract audio from video files in your browser. This is useful for music clips, voice tracks, podcasts, lectures, and simple audio-only exports.`;
+    intro = `Convert ${from} to ${to} online to extract audio from video files. This is useful for music clips, voice tracks, podcasts, lectures, and simple audio-only exports.`;
     whyText = `${from} to ${to} conversion is commonly used to extract audio from video, keep only the soundtrack, or create smaller files for listening and sharing.`;
   } else if (inputIsVideo && isVideoFmt(to)) {
     intro = `Convert ${from} to ${to} online for better compatibility, easier sharing, and cleaner playback across browsers, devices, and editing tools.`;
     whyText = `${from} to ${to} conversion is useful when a file needs to be more widely supported, easier to upload, or better suited for editing and playback.`;
   } else if (inputIsImage && isVideoFmt(to)) {
-    intro = `Convert ${from} to ${to} online to turn animated image content into a more flexible video format. This can help with sharing, editing, and playback on more platforms.`;
-    whyText = `${from} to ${to} conversion can help when you want better control over playback, easier uploads, or broader compatibility than an animated image format provides.`;
+    intro = `Convert ${from} to ${to} online to turn image-based visual content into a more flexible video format. This can help with sharing, editing, and playback on more platforms.`;
+    whyText = `${from} to ${to} conversion can help when you want better control over playback, easier uploads, or broader compatibility across devices and apps.`;
+  } else if (inputIsImage && isImageFmt(to)) {
+    intro = `Convert ${from} to ${to} online for better compatibility, compression, editing, and sharing. This is useful when different apps, devices, or websites prefer a different image format.`;
+    whyText = `${from} to ${to} conversion is commonly used to reduce file size, improve transparency support, preserve compatibility, or prepare images for upload and editing.`;
   } else if (outputIsImage) {
-    whyText = `${from} to ${to} conversion is useful for lightweight motion previews, simple animations, and quick visual sharing.`;
+    whyText = `${from} to ${to} conversion is useful for visual sharing, simpler compatibility, and preparing files for web, apps, or quick previews.`;
   }
 
   return {
@@ -240,7 +273,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     ],
     whyText,
     useText,
-    browserText: `Smaller files are best for browser-based conversion. Larger files may be better suited to a future server mode.`,
+    browserText: `Converto currently uses a hybrid conversion flow: canvas for supported image conversions and server-assisted processing for other formats.`,
   };
 }
 
@@ -273,7 +306,7 @@ function buildFaqSchema(input?: string | null, output?: string | null) {
         name: `Is ${from} to ${to} conversion free?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes. The browser demo is available for free with a 50MB file limit for quick conversions.`,
+          text: `Yes. The current demo is free for quick everyday conversions with a 50MB file limit.`,
         },
       },
       {
@@ -281,7 +314,7 @@ function buildFaqSchema(input?: string | null, output?: string | null) {
         name: `Does ${from} to ${to} conversion happen in the browser?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes. This demo is designed for browser-based conversion, which works best for smaller files and quick tasks.`,
+          text: `Supported image conversions can run with canvas in the browser, while other conversions use a server-assisted flow for better compatibility and stability.`,
         },
       },
     ],
@@ -389,7 +422,7 @@ function SeoInfoSection({
           </div>
 
           <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-            <h3 className="text-sm font-semibold text-white">Browser-based workflow</h3>
+            <h3 className="text-sm font-semibold text-white">Current workflow</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">{seo.browserText}</p>
           </div>
         </div>
@@ -493,29 +526,29 @@ export default function ConverterPageContent({
   const CENTER_MAX = "max-w-[1100px]";
   const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
 
+  const initialSuggestedInput = toTargetFmt(suggestedInput ?? rawInputLabel ?? null);
+  const initialSuggestedOutput = toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3";
+
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<ConvertStatus>("idle");
-  const [target, setTarget] = useState<TargetFmt>(suggestedOutput ?? "MP3");
+  const [target, setTarget] = useState<TargetFmt>(initialSuggestedOutput);
   const [targetOpen, setTargetOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
   const [progress, setProgress] = useState(0);
-  const [ffmpegReady, setFfmpegReady] = useState(false);
+
+  /** Soft route state */
+  const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
+  const [routeOutput, setRouteOutput] = useState<TargetFmt>(initialSuggestedOutput);
 
   const MAX_FREE_MB = 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
 
-  const ffmpegRef = useRef<any>(null);
-  const ffmpegLoadingRef = useRef<Promise<void> | null>(null);
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setTarget(suggestedOutput ?? "MP3");
-  }, [suggestedOutput]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -537,6 +570,26 @@ export default function ConverterPageContent({
     };
   }, []);
 
+  /**
+   * Gerçek route navigation yok.
+   * Sadece URL bar + local screen state güncelleniyor.
+   * Böylece preview/file state korunuyor.
+   */
+  const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
+    if (!nextOutput) return;
+
+    setRouteInput(nextInput);
+    setRouteOutput(nextOutput);
+
+    if (!nextInput) return;
+
+    const nextPath = `/convert/${formatToSlug(nextInput)}-to-${formatToSlug(nextOutput)}`;
+
+    if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
+      window.history.replaceState(window.history.state, "", nextPath);
+    }
+  };
+
   const detectFmt = (name: string): TargetFmt | null => {
     const n = name.toLowerCase();
 
@@ -550,6 +603,9 @@ export default function ConverterPageContent({
     if (n.endsWith(".webm")) return "WEBM";
     if (n.endsWith(".mov")) return "MOV";
     if (n.endsWith(".gif")) return "GIF";
+    if (n.endsWith(".png")) return "PNG";
+    if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "JPG";
+    if (n.endsWith(".webp")) return "WEBP";
 
     if (
       n.endsWith(".mp4") ||
@@ -571,20 +627,8 @@ export default function ConverterPageContent({
     return null;
   };
 
-  const fmtToSlug = (fmt: TargetFmt) => fmt.toLowerCase();
-
-  const syncSeoRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
-    if (!nextInput || !nextOutput) return;
-
-    const nextPath = `/convert/${fmtToSlug(nextInput)}-to-${fmtToSlug(nextOutput)}`;
-
-    if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
-      window.history.replaceState(null, "", nextPath);
-    }
-  };
-
   const getAcceptForInput = () => {
-    return ".mp4,.mov,.mkv,.webm,.avi,.wmv,.flv,.mpg,.mpeg,.m4v,.3gp,.ts,.mts,.m2ts,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.gif,video/*,audio/*,image/gif";
+    return ".mp4,.mov,.mkv,.webm,.avi,.wmv,.flv,.mpg,.mpeg,.m4v,.3gp,.ts,.mts,.m2ts,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.gif,.png,.jpg,.jpeg,.webp,video/*,audio/*,image/gif,image/png,image/jpeg,image/webp";
   };
 
   const validateFile = (f: File) => {
@@ -614,6 +658,10 @@ export default function ConverterPageContent({
       ".opus",
       ".flac",
       ".gif",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".webp",
     ].some((x) => name.endsWith(x));
 
     if (!okExt) {
@@ -623,24 +671,45 @@ export default function ConverterPageContent({
     return null;
   };
 
+  const revokeUrl = (url: string | null) => {
+    if (url) URL.revokeObjectURL(url);
+  };
+
   const revokePreview = () => {
     setPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
+      revokeUrl(prev);
+      return null;
+    });
+  };
+
+  const revokeResult = () => {
+    setResultUrl((prev) => {
+      revokeUrl(prev);
       return null;
     });
   };
 
   const resetConverter = () => {
-    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    revokeResult();
     revokePreview();
     setFile(null);
     setFromFmt(null);
-    setResultUrl(null);
     setStatus("idle");
     setErrorMsg(null);
-    setTarget(suggestedOutput ?? "MP3");
+    setTarget(initialSuggestedOutput);
+    setRouteInput(initialSuggestedInput);
+    setRouteOutput(initialSuggestedOutput);
     setProgress(0);
     setTargetOpen(false);
+
+    if (typeof window !== "undefined" && initialSuggestedInput) {
+      const resetPath = `/convert/${formatToSlug(initialSuggestedInput)}-to-${formatToSlug(
+        initialSuggestedOutput
+      )}`;
+      if (window.location.pathname !== resetPath) {
+        window.history.replaceState(window.history.state, "", resetPath);
+      }
+    }
   };
 
   const buildOutputName = (original: string, ext: string) => {
@@ -660,64 +729,118 @@ export default function ConverterPageContent({
     WEBM: "webm",
     MOV: "mov",
     GIF: "gif",
+    PNG: "png",
+    JPG: "jpg",
+    WEBP: "webp",
   };
 
-  const mimeMap: Record<TargetFmt, string> = {
-    MP3: "audio/mpeg",
-    WAV: "audio/wav",
-    M4A: "audio/mp4",
-    AAC: "audio/aac",
-    OGG: "audio/ogg",
-    OPUS: "audio/ogg",
-    FLAC: "audio/flac",
-    MP4: "video/mp4",
-    WEBM: "video/webm",
-    MOV: "video/quicktime",
-    GIF: "image/gif",
+  const canvasMimeMap: Partial<Record<TargetFmt, string>> = {
+    PNG: "image/png",
+    JPG: "image/jpeg",
+    WEBP: "image/webp",
   };
 
-  const ensureFfmpeg = async () => {
-    if (ffmpegReady && ffmpegRef.current) return;
-    if (ffmpegLoadingRef.current) return ffmpegLoadingRef.current;
+  const canConvertViaCanvas = (inputFmt: TargetFmt | null, outputFmt: TargetFmt) => {
+    return (
+      !!inputFmt &&
+      inputFmt !== "GIF" &&
+      isImageFmt(inputFmt) &&
+      ["PNG", "JPG", "WEBP"].includes(outputFmt)
+    );
+  };
 
-    ffmpegLoadingRef.current = (async () => {
-      try {
-        setStatus("loading");
-        setProgress(0);
-        setErrorMsg(null);
+  const loadImageElement = (src: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Image preview could not be loaded."));
+      img.src = src;
+    });
 
-        const { FFmpeg } = await import("@ffmpeg/ffmpeg");
-        const { toBlobURL } = await import("@ffmpeg/util");
+  const canvasToBlob = (
+    canvas: HTMLCanvasElement,
+    type: string,
+    quality?: number
+  ) =>
+    new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Image conversion failed."));
+            return;
+          }
+          resolve(blob);
+        },
+        type,
+        quality
+      );
+    });
 
-        if (!ffmpegRef.current) ffmpegRef.current = new FFmpeg();
-        const ffmpeg = ffmpegRef.current;
+  const convertImageViaCanvas = async (
+    inputFile: File,
+    targetFormat: TargetFmt
+  ) => {
+    const objectUrl = URL.createObjectURL(inputFile);
 
-        ffmpeg.on("progress", ({ progress }: { progress: number }) => {
-          const p = Math.max(0, Math.min(1, progress || 0));
-          setProgress(Math.round(p * 100));
-        });
+    try {
+      const img = await loadImageElement(objectUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
 
-        const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
-        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript");
-        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm");
-        const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript");
-
-        await ffmpeg.load({ coreURL, wasmURL, workerURL });
-
-        setFfmpegReady(true);
-        setStatus(file ? "ready" : "idle");
-        setProgress(0);
-      } catch (err: any) {
-        const msg = err?.message ?? "Engine load failed.";
-        setErrorMsg(msg);
-        setStatus("error");
-        setFfmpegReady(false);
-      } finally {
-        ffmpegLoadingRef.current = null;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Canvas context could not be created.");
       }
-    })();
 
-    return ffmpegLoadingRef.current;
+      if (targetFormat === "JPG") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      ctx.drawImage(img, 0, 0);
+
+      const mimeType = canvasMimeMap[targetFormat];
+      if (!mimeType) {
+        throw new Error("Unsupported image output format.");
+      }
+
+      const quality = targetFormat === "JPG" || targetFormat === "WEBP" ? 0.92 : undefined;
+      const blob = await canvasToBlob(canvas, mimeType, quality);
+      return URL.createObjectURL(blob);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+
+  const API_URL =
+    process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
+
+  const convertViaServer = async (inputFile: File, targetFormat: TargetFmt) => {
+    if (!API_URL) {
+      throw new Error("Server conversion is not configured.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", inputFile);
+    formData.append("target", targetFormat);
+
+    const res = await fetch(`${API_URL}/convert`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      let message = "Server conversion failed.";
+      try {
+        const data = await res.json();
+        if (data?.error) message = data.error;
+      } catch {}
+      throw new Error(message);
+    }
+
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
   };
 
   const pickFile = (f: File) => {
@@ -729,12 +852,16 @@ export default function ConverterPageContent({
       setFile(null);
       setFromFmt(null);
       revokePreview();
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      setResultUrl(null);
+      revokeResult();
       return;
     }
 
     const detected = detectFmt(f.name);
+    const availableForDetected = getAvailableTargets(detected);
+    const desiredTarget = routeOutput ?? target ?? "MP3";
+    const nextTarget = availableForDetected.includes(desiredTarget)
+      ? desiredTarget
+      : availableForDetected[0];
 
     setFromFmt(detected);
     setFile(f);
@@ -743,191 +870,114 @@ export default function ConverterPageContent({
 
     revokePreview();
     setPreviewUrl(URL.createObjectURL(f));
+    revokeResult();
 
-    if (resultUrl) URL.revokeObjectURL(resultUrl);
-    setResultUrl(null);
-
-    const smartDefault = (() => {
-      if (suggestedOutput) return suggestedOutput;
-      if (!detected) return "MP3" as TargetFmt;
-      if (isAudioFmt(detected)) return "MP3" as TargetFmt;
-      if (detected === "GIF") return "MP4" as TargetFmt;
-      return "MP3" as TargetFmt;
-    })();
-
-    const nextTarget = suggestedOutput ?? smartDefault;
     setTarget(nextTarget);
+    setProgress(0);
 
-    if (detected) {
-      syncSeoRoute(detected, nextTarget);
-    }
+    softSyncRoute(detected, nextTarget);
   };
 
   const startConvert = async () => {
     if (!file) return;
 
+    let fakeTimer: ReturnType<typeof setInterval> | null = null;
+
     try {
       setErrorMsg(null);
-
-      await ensureFfmpeg();
-
-      const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg) throw new Error("FFmpeg not initialized.");
-
       setStatus("processing");
-      setProgress(0);
+      setProgress(6);
       setTargetOpen(false);
 
-      const inExt = (file.name.split(".").pop() || "mp4").toLowerCase();
-      const inName = `input_${Date.now()}.${inExt}`;
-      const outName = `output_${Date.now()}.${outputExtMap[target]}`;
+      fakeTimer = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) return prev;
+          if (prev < 25) return prev + 7;
+          if (prev < 45) return prev + 5;
+          if (prev < 65) return prev + 3;
+          if (prev < 80) return prev + 2;
+          return prev + 1;
+        });
+      }, 280);
 
-      const data = new Uint8Array(await file.arrayBuffer());
-      await ffmpeg.writeFile(inName, data);
+      let convertedUrl: string;
 
-      if (target === "MP3") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libmp3lame", "-q:a", "3", outName]);
-      } else if (target === "WAV") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "pcm_s16le", outName]);
-      } else if (target === "M4A" || target === "AAC") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-      } else if (target === "OGG" || target === "OPUS") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libopus", "-b:a", "128k", outName]);
-      } else if (target === "FLAC") {
-        await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "flac", outName]);
-      } else if (target === "MP4") {
-        if (isAudioFmt(fromFmt)) {
-          await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-        } else {
-          await ffmpeg.exec([
-            "-i",
-            inName,
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "28",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
-            "-movflags",
-            "+faststart",
-            outName,
-          ]);
-        }
-      } else if (target === "WEBM") {
-        if (isAudioFmt(fromFmt)) {
-          await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "libopus", "-b:a", "128k", outName]);
-        } else {
-          await ffmpeg.exec([
-            "-i",
-            inName,
-            "-c:v",
-            "libvpx",
-            "-crf",
-            "30",
-            "-b:v",
-            "0",
-            "-c:a",
-            "libopus",
-            "-b:a",
-            "128k",
-            outName,
-          ]);
-        }
-      } else if (target === "MOV") {
-        if (isAudioFmt(fromFmt)) {
-          await ffmpeg.exec(["-i", inName, "-vn", "-c:a", "aac", "-b:a", "128k", outName]);
-        } else {
-          await ffmpeg.exec([
-            "-i",
-            inName,
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "28",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
-            outName,
-          ]);
-        }
-      } else if (target === "GIF") {
-        await ffmpeg.exec([
-          "-i",
-          inName,
-          "-vf",
-          "fps=10,scale=480:-1:flags=lanczos",
-          "-loop",
-          "0",
-          outName,
-        ]);
+      if (canConvertViaCanvas(fromFmt, target)) {
+        convertedUrl = await convertImageViaCanvas(file, target);
+      } else {
+        convertedUrl = await convertViaServer(file, target);
       }
 
-      const outData = await ffmpeg.readFile(outName);
+      if (fakeTimer) clearInterval(fakeTimer);
 
-      try {
-        await ffmpeg.deleteFile(inName);
-        await ffmpeg.deleteFile(outName);
-      } catch {}
+      setProgress(95);
+      revokeResult();
+      setResultUrl(convertedUrl);
 
-      const blob = new Blob([outData], { type: mimeMap[target] });
-
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      const url = URL.createObjectURL(blob);
-
-      setResultUrl(url);
-      setStatus("done");
-      setProgress(100);
+      setTimeout(() => {
+        setProgress(100);
+        setStatus("done");
+      }, 220);
     } catch (err: any) {
-      const msg =
-        err?.message ??
-        "Conversion failed. This format may not be available in the browser demo.";
-      setErrorMsg(msg);
+      if (fakeTimer) clearInterval(fakeTimer);
+      setErrorMsg(err?.message ?? "Server conversion failed.");
       setStatus("error");
+      setProgress(0);
     }
   };
 
   useEffect(() => {
     return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      revokeUrl(resultUrl);
+      revokeUrl(previewUrl);
     };
   }, [resultUrl, previewUrl]);
 
+  const activeInputForTargets = fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel;
+  const availableTargets = useMemo(() => {
+    return getAvailableTargets(activeInputForTargets);
+  }, [activeInputForTargets]);
+
+  useEffect(() => {
+    if (!availableTargets.includes(target)) {
+      const fallback =
+        routeOutput && availableTargets.includes(routeOutput)
+          ? routeOutput
+          : availableTargets[0];
+
+      setTarget(fallback);
+
+      const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
+      if (nextInputForSoftRoute) {
+        softSyncRoute(nextInputForSoftRoute, fallback);
+      } else {
+        setRouteOutput(fallback);
+      }
+    }
+  }, [availableTargets, target]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const sameFormatSelected = !!fromFmt && fromFmt === target;
-  const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : null;
+  const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : `${routeInput ?? "INPUT"} → ${target}`;
 
   const activeInputLabel = useMemo(
-    () => normalizeFmtLabel(fromFmt ?? suggestedInput ?? rawInputLabel ?? "file"),
-    [fromFmt, suggestedInput, rawInputLabel]
+    () => normalizeFmtLabel(fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel ?? "file"),
+    [fromFmt, routeInput, suggestedInput, rawInputLabel]
   );
 
   const activeOutputLabel = useMemo(
-    () => normalizeFmtLabel(target ?? suggestedOutput ?? rawOutputLabel ?? "file"),
-    [target, suggestedOutput, rawOutputLabel]
+    () => normalizeFmtLabel(target ?? routeOutput ?? suggestedOutput ?? rawOutputLabel ?? "file"),
+    [target, routeOutput, suggestedOutput, rawOutputLabel]
   );
 
-  const availableTargets = useMemo(() => {
-    return getAvailableTargets(fromFmt ?? suggestedInput ?? rawInputLabel);
-  }, [fromFmt, suggestedInput, rawInputLabel]);
-
   const siteUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL || "https://converto.tools";
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://converto.tools";
 
   const schemaTitle =
     seoTitle || `${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} Converter`;
 
   const schemaDescription =
     seoDescription ||
-    `Convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} online with Converto. Upload your file, choose your target format, and download the converted result in a simple browser-based workflow.`;
+    `Convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} online with Converto. Upload your file, choose your target format, and download the converted result in a simple workflow.`;
 
   const faqSchema = useMemo(
     () => buildFaqSchema(activeInputLabel, activeOutputLabel),
@@ -945,6 +995,15 @@ export default function ConverterPageContent({
       }),
     [siteUrl, schemaTitle, schemaDescription, activeInputLabel, activeOutputLabel]
   );
+
+  if (MAINTENANCE_MODE) {
+    return (
+      <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
+        <AdSenseScript />
+        <div className="flex min-h-screen items-center justify-center">Maintenance</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
@@ -1006,7 +1065,7 @@ export default function ConverterPageContent({
         <section className="mx-auto mb-8 max-w-[1100px] text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/8 px-3 py-1 text-[11px] text-white/70 ring-1 ring-white/10">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-            Browser demo • runs locally
+            Hybrid conversion flow
           </div>
 
           <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -1015,7 +1074,7 @@ export default function ConverterPageContent({
 
           <p className="mx-auto mt-3 max-w-[720px] text-sm leading-6 text-white/65 sm:text-[15px]">
             {seoDescription ||
-              "Fast, clean, and premium-feeling conversion right in the browser. Great for quick tasks."}
+              "Fast, clean, and stable online conversion for quick everyday file tasks."}
           </p>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -1023,7 +1082,7 @@ export default function ConverterPageContent({
               Free: 50MB
             </span>
             <span className="rounded-full bg-white/8 px-3 py-2 text-[11px] text-white/72 ring-1 ring-white/10">
-              Browser based
+              Canvas + server flow
             </span>
             <span className="rounded-full bg-white/8 px-3 py-2 text-[11px] text-white/72 ring-1 ring-white/10">
               Quick conversions
@@ -1052,26 +1111,24 @@ export default function ConverterPageContent({
                           Upload & convert
                         </h2>
                         <p className="mt-1 text-sm text-white/60">
-                          Choose a file, select a format, and prepare the conversion.
+                          Choose a file, select a format, and send it for conversion.
                         </p>
 
-                        {formatFlowText ? (
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/10">
-                              {formatFlowText}
-                            </span>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/10">
+                            {formatFlowText}
+                          </span>
 
+                          {fromFmt ? (
                             <span className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/20">
                               Detected input: {fromFmt}
                             </span>
-                          </div>
-                        ) : suggestedInput || suggestedOutput ? (
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                          ) : routeInput || suggestedInput ? (
                             <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
-                              Suggested: {(suggestedInput ?? "INPUT")} → {target}
+                              Soft route: {(routeInput ?? suggestedInput ?? "INPUT")} → {routeOutput}
                             </span>
-                          </div>
-                        ) : null}
+                          ) : null}
+                        </div>
                       </div>
 
                       <span
@@ -1094,16 +1151,12 @@ export default function ConverterPageContent({
                               : "bg-white/40"
                           )}
                         />
-                        {status === "loading"
-                          ? "Loading engine"
-                          : status === "processing"
+                        {status === "processing"
                           ? `Converting • ${progress}%`
                           : status === "done"
                           ? "Done"
                           : status === "ready"
                           ? "File ready"
-                          : ffmpegReady
-                          ? "Engine ready"
                           : "Waiting for file"}
                       </span>
                     </div>
@@ -1168,7 +1221,7 @@ export default function ConverterPageContent({
                       <p className="mt-2 text-sm text-white/60">
                         {file
                           ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
-                          : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF"}
+                          : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF • PNG • JPG • WEBP"}
                       </p>
 
                       {file && previewUrl ? (
@@ -1180,12 +1233,12 @@ export default function ConverterPageContent({
                               </div>
                               <audio controls src={previewUrl} className="w-full" />
                             </div>
-                          ) : fromFmt === "GIF" ? (
+                          ) : isImageFmt(fromFmt) ? (
                             <div className="flex justify-center">
                               <img
                                 src={previewUrl}
-                                alt="GIF preview"
-                                className="max-h-[260px] rounded-[18px] object-contain ring-1 ring-white/10"
+                                alt={`${fromFmt ?? "Image"} preview`}
+                                className="max-h-[320px] rounded-[18px] object-contain ring-1 ring-white/10"
                               />
                             </div>
                           ) : (
@@ -1198,27 +1251,24 @@ export default function ConverterPageContent({
                         </div>
                       ) : null}
 
-                      {(suggestedOutput || fromFmt || target) ? (
-                        <p className="mt-6 text-xs leading-6 text-white/55">
-                          {fromFmt ? (
-                            <>
-                              You are converting{" "}
-                              <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
-                              <span className="font-semibold text-white/75">{target}</span>. The route
-                              updates automatically when the detected input or selected output changes.
-                            </>
-                          ) : (
-                            <>
-                              This page suggests converting{" "}
-                              <span className="font-semibold text-white/75">{suggestedInput ?? "input"}</span>{" "}
-                              files to{" "}
-                              <span className="font-semibold text-white/75">{suggestedOutput ?? target}</span>.
-                              You can still upload a different supported file type, and the route will
-                              adapt automatically.
-                            </>
-                          )}
-                        </p>
-                      ) : null}
+                      <p className="mt-6 text-xs leading-6 text-white/55">
+                        {fromFmt ? (
+                          <>
+                            You are converting{" "}
+                            <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
+                            <span className="font-semibold text-white/75">{target}</span>. URL updates
+                            softly without clearing the selected file.
+                          </>
+                        ) : (
+                          <>
+                            This page suggests converting{" "}
+                            <span className="font-semibold text-white/75">{routeInput ?? "input"}</span>{" "}
+                            files to{" "}
+                            <span className="font-semibold text-white/75">{routeOutput}</span>. You can
+                            still switch formats without losing the current file state.
+                          </>
+                        )}
+                      </p>
 
                       <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
                         <button
@@ -1270,9 +1320,11 @@ export default function ConverterPageContent({
                                       setTarget(fmt);
                                       setTargetOpen(false);
 
-                                      const nextInputForRoute = fromFmt ?? suggestedInput;
-                                      if (nextInputForRoute) {
-                                        syncSeoRoute(nextInputForRoute, fmt);
+                                      const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
+                                      if (nextInputForSoftRoute) {
+                                        softSyncRoute(nextInputForSoftRoute, fmt);
+                                      } else {
+                                        setRouteOutput(fmt);
                                       }
                                     }}
                                     className={cx(
@@ -1327,27 +1379,19 @@ export default function ConverterPageContent({
                           <div className="flex flex-col items-center gap-2">
                             <button
                               type="button"
-                              disabled={sameFormatSelected || status === "loading" || status === "processing"}
+                              disabled={sameFormatSelected || status === "processing"}
                               onClick={() => {
-                                if (
-                                  sameFormatSelected ||
-                                  status === "loading" ||
-                                  status === "processing"
-                                ) {
-                                  return;
-                                }
+                                if (sameFormatSelected || status === "processing") return;
                                 startConvert();
                               }}
                               className={cx(
                                 "h-11 rounded-2xl px-6 text-sm font-semibold transition",
-                                sameFormatSelected || status === "loading" || status === "processing"
+                                sameFormatSelected || status === "processing"
                                   ? "cursor-not-allowed bg-white/15 text-white/70 ring-1 ring-white/10"
                                   : "bg-white text-black hover:bg-white/90"
                               )}
                             >
-                              {status === "loading"
-                                ? "Loading engine…"
-                                : status === "processing"
+                              {status === "processing"
                                 ? `Converting… ${progress}%`
                                 : sameFormatSelected
                                 ? "Same format selected"
@@ -1373,7 +1417,7 @@ export default function ConverterPageContent({
                         ) : null}
                       </div>
 
-                      {status === "loading" || status === "processing" ? (
+                      {status === "processing" ? (
                         <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
                           <div
                             className="h-full bg-white/40 transition-[width] duration-200"
@@ -1429,16 +1473,16 @@ export default function ConverterPageContent({
 
                       <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Browser-based conversion for quick tasks.
+                          Hybrid conversion flow for better reliability.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
                           50MB free limit for the demo.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Multiple popular output formats supported.
+                          Audio, video, GIF, and image targets supported.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Heavier files can be handled later with server beta.
+                          Good for quick everyday conversions.
                         </div>
                       </div>
                     </div>
@@ -1465,22 +1509,22 @@ export default function ConverterPageContent({
                       Popular formats
                     </div>
                     <h3 className="mt-3 text-base font-semibold text-white">
-                      Audio and video essentials
+                      Audio, video, and image essentials
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF.
+                      MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, GIF, PNG, JPG, and WEBP.
                     </p>
                   </div>
 
                   <div className="rounded-[24px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                      Browser demo
+                      Stable mode
                     </div>
                     <h3 className="mt-3 text-base font-semibold text-white">
-                      Great for quick tasks
+                      Better conversion reliability
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      Smaller files work best in-browser. Larger files can come later with server beta.
+                      Images can use canvas in-browser, while other conversions use a server-assisted path.
                     </p>
                   </div>
                 </div>

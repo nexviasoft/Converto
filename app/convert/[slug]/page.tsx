@@ -13,7 +13,10 @@ type TargetFmt =
   | "MP4"
   | "WEBM"
   | "MOV"
-  | "GIF";
+  | "GIF"
+  | "PNG"
+  | "JPG"
+  | "WEBP";
 
 type PageProps = {
   params: Promise<{
@@ -26,7 +29,7 @@ const SITE_URL =
 
 const AUDIO_FORMATS = ["mp3", "wav", "m4a", "aac", "ogg", "opus", "flac"] as const;
 const VIDEO_FORMATS = ["mp4", "webm", "mov"] as const;
-const IMAGE_FORMATS = ["gif"] as const;
+const IMAGE_FORMATS = ["gif", "png", "jpg", "webp"] as const;
 
 function buildPairSlugs(
   fromFormats: readonly string[],
@@ -62,6 +65,9 @@ function mapSlugPartToFmt(value: string): TargetFmt | null {
   if (v === "webm") return "WEBM";
   if (v === "mov") return "MOV";
   if (v === "gif") return "GIF";
+  if (v === "png") return "PNG";
+  if (v === "jpg" || v === "jpeg") return "JPG";
+  if (v === "webp") return "WEBP";
 
   if (
     v === "mkv" ||
@@ -99,8 +105,8 @@ function parseSlug(slug?: string | null) {
     output,
     suggestedInput,
     suggestedOutput,
-    inputUpper: input.toUpperCase(),
-    outputUpper: output.toUpperCase(),
+    inputUpper: suggestedInput,
+    outputUpper: suggestedOutput,
   };
 }
 
@@ -111,6 +117,7 @@ export function generateStaticParams() {
     ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
     ...buildPairSlugs(IMAGE_FORMATS, VIDEO_FORMATS),
+    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
   ]);
 
   return slugs.map((slug) => ({ slug }));
@@ -134,7 +141,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug, inputUpper, outputUpper } = parsed;
 
   const title = `${inputUpper} to ${outputUpper} Converter Online Free | Converto`;
-  const description = `Convert ${inputUpper} to ${outputUpper} online for free with Converto. Fast browser-based file conversion for quick audio, video, and format compatibility tasks.`;
+  const description = `Convert ${inputUpper} to ${outputUpper} online for free with Converto. Fast file conversion for quick audio, video, image, and compatibility tasks.`;
 
   return {
     title,
@@ -179,7 +186,7 @@ export default async function ConvertSlugPage({ params }: PageProps) {
   return (
     <ConverterPageContent
       seoTitle={`Convert ${inputUpper} to ${outputUpper} online`}
-      seoDescription={`Free online ${inputUpper} to ${outputUpper} converter. Fast, simple, browser-based, and built for quick everyday file conversion tasks.`}
+      seoDescription={`Free online ${inputUpper} to ${outputUpper} converter. Fast, simple, and built for quick everyday file conversion tasks.`}
       suggestedInput={suggestedInput}
       suggestedOutput={suggestedOutput}
       rawInputLabel={input}
