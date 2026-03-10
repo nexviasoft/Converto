@@ -5,6 +5,7 @@ const MAINTENANCE_MODE = false;
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
+import type { UserEntitlement } from "@/types/billing";
 
 type TargetFmt =
   | "MP3"
@@ -17,7 +18,10 @@ type TargetFmt =
   | "MP4"
   | "WEBM"
   | "MOV"
-  | "GIF";
+  | "GIF"
+  | "PNG"
+  | "JPG"
+  | "WEBP";
 
 type ConverterPageContentProps = {
   seoTitle?: string;
@@ -115,6 +119,9 @@ const ALL_TARGET_OPTIONS: TargetFmt[] = [
   "WEBM",
   "MOV",
   "GIF",
+  "PNG",
+  "JPG",
+  "WEBP",
 ];
 
 const homepagePopularConversions = [
@@ -124,6 +131,8 @@ const homepagePopularConversions = [
   { href: "/convert/mp4-to-wav", label: "MP4 to WAV" },
   { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
   { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
+  { href: "/convert/png-to-jpg", label: "PNG to JPG" },
+  { href: "/convert/webp-to-png", label: "WEBP to PNG" },
 ];
 
 function normalizeFmtLabel(value?: string | null): string | null {
@@ -154,7 +163,12 @@ function isVideoFmt(fmt: string | null | undefined) {
 }
 
 function isImageFmt(fmt: string | null | undefined) {
-  return fmt === "GIF";
+  return (
+    fmt === "GIF" ||
+    fmt === "PNG" ||
+    fmt === "JPG" ||
+    fmt === "WEBP"
+  );
 }
 
 function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
@@ -169,7 +183,11 @@ function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
   }
 
   if (isImageFmt(fmt)) {
-    return ["MP4", "WEBM", "MOV"];
+    if (fmt === "GIF") {
+      return ["MP4", "WEBM", "MOV", "PNG", "JPG", "WEBP"];
+    }
+
+    return ["PNG", "JPG", "WEBP"];
   }
 
   return ALL_TARGET_OPTIONS;
@@ -192,7 +210,11 @@ function buildRelatedConversions(input?: string | null, output?: string | null) 
   } else if (isVideoFmt(from)) {
     pool = ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"];
   } else if (isImageFmt(from)) {
-    pool = ["MP4", "WEBM", "MOV"];
+    if (from === "GIF") {
+      pool = ["MP4", "WEBM", "MOV", "PNG", "JPG", "WEBP"];
+    } else {
+      pool = ["PNG", "JPG", "WEBP"];
+    }
   } else {
     pool = ALL_TARGET_OPTIONS.map((fmt) => fmt);
   }
@@ -231,10 +253,13 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     intro = `Convert ${from} to ${to} online for better compatibility, easier sharing, and cleaner playback across browsers, devices, and editing tools.`;
     whyText = `${from} to ${to} conversion is useful when a file needs to be more widely supported, easier to upload, or better suited for editing and playback.`;
   } else if (inputIsImage && isVideoFmt(to)) {
-    intro = `Convert ${from} to ${to} online to turn animated image content into a more flexible video format. This can help with sharing, editing, and playback on more platforms.`;
-    whyText = `${from} to ${to} conversion can help when you want better control over playback, easier uploads, or broader compatibility than an animated image format provides.`;
+    intro = `Convert ${from} to ${to} online to turn image-based visual content into a more flexible video format. This can help with sharing, editing, and playback on more platforms.`;
+    whyText = `${from} to ${to} conversion can help when you want better control over playback, easier uploads, or broader compatibility across devices and apps.`;
+  } else if (inputIsImage && isImageFmt(to)) {
+    intro = `Convert ${from} to ${to} online for better compatibility, compression, editing, and sharing. This is useful when different apps, devices, or websites prefer a different image format.`;
+    whyText = `${from} to ${to} conversion is commonly used to reduce file size, improve transparency support, preserve compatibility, or prepare images for upload and editing.`;
   } else if (outputIsImage) {
-    whyText = `${from} to ${to} conversion is useful for lightweight motion previews, simple animations, and quick visual sharing.`;
+    whyText = `${from} to ${to} conversion is useful for visual sharing, simpler compatibility, and preparing files for web, apps, or quick previews.`;
   }
 
   return {
@@ -248,7 +273,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     ],
     whyText,
     useText,
-    browserText: `Converto currently uses a server-assisted conversion flow for better stability.`,
+    browserText: `Converto currently uses a hybrid conversion flow: canvas for supported image conversions and server-assisted processing for other formats.`,
   };
 }
 
@@ -289,7 +314,7 @@ function buildFaqSchema(input?: string | null, output?: string | null) {
         name: `Does ${from} to ${to} conversion happen in the browser?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Converto currently uses a server-assisted conversion flow for better compatibility and stability.`,
+          text: `Supported image conversions can run with canvas in the browser, while other conversions use a server-assisted flow for better compatibility and stability.`,
         },
       },
     ],
@@ -578,6 +603,9 @@ export default function ConverterPageContent({
     if (n.endsWith(".webm")) return "WEBM";
     if (n.endsWith(".mov")) return "MOV";
     if (n.endsWith(".gif")) return "GIF";
+    if (n.endsWith(".png")) return "PNG";
+    if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "JPG";
+    if (n.endsWith(".webp")) return "WEBP";
 
     if (
       n.endsWith(".mp4") ||
@@ -600,7 +628,7 @@ export default function ConverterPageContent({
   };
 
   const getAcceptForInput = () => {
-    return ".mp4,.mov,.mkv,.webm,.avi,.wmv,.flv,.mpg,.mpeg,.m4v,.3gp,.ts,.mts,.m2ts,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.gif,video/*,audio/*,image/gif";
+    return ".mp4,.mov,.mkv,.webm,.avi,.wmv,.flv,.mpg,.mpeg,.m4v,.3gp,.ts,.mts,.m2ts,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.gif,.png,.jpg,.jpeg,.webp,video/*,audio/*,image/gif,image/png,image/jpeg,image/webp";
   };
 
   const validateFile = (f: File) => {
@@ -630,6 +658,10 @@ export default function ConverterPageContent({
       ".opus",
       ".flac",
       ".gif",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".webp",
     ].some((x) => name.endsWith(x));
 
     if (!okExt) {
@@ -697,6 +729,88 @@ export default function ConverterPageContent({
     WEBM: "webm",
     MOV: "mov",
     GIF: "gif",
+    PNG: "png",
+    JPG: "jpg",
+    WEBP: "webp",
+  };
+
+  const canvasMimeMap: Partial<Record<TargetFmt, string>> = {
+    PNG: "image/png",
+    JPG: "image/jpeg",
+    WEBP: "image/webp",
+  };
+
+  const canConvertViaCanvas = (inputFmt: TargetFmt | null, outputFmt: TargetFmt) => {
+    return (
+      !!inputFmt &&
+      inputFmt !== "GIF" &&
+      isImageFmt(inputFmt) &&
+      ["PNG", "JPG", "WEBP"].includes(outputFmt)
+    );
+  };
+
+  const loadImageElement = (src: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Image preview could not be loaded."));
+      img.src = src;
+    });
+
+  const canvasToBlob = (
+    canvas: HTMLCanvasElement,
+    type: string,
+    quality?: number
+  ) =>
+    new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Image conversion failed."));
+            return;
+          }
+          resolve(blob);
+        },
+        type,
+        quality
+      );
+    });
+
+  const convertImageViaCanvas = async (
+    inputFile: File,
+    targetFormat: TargetFmt
+  ) => {
+    const objectUrl = URL.createObjectURL(inputFile);
+
+    try {
+      const img = await loadImageElement(objectUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Canvas context could not be created.");
+      }
+
+      if (targetFormat === "JPG") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      ctx.drawImage(img, 0, 0);
+
+      const mimeType = canvasMimeMap[targetFormat];
+      if (!mimeType) {
+        throw new Error("Unsupported image output format.");
+      }
+
+      const quality = targetFormat === "JPG" || targetFormat === "WEBP" ? 0.92 : undefined;
+      const blob = await canvasToBlob(canvas, mimeType, quality);
+      return URL.createObjectURL(blob);
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
   };
 
   const API_URL =
@@ -786,13 +900,19 @@ export default function ConverterPageContent({
         });
       }, 280);
 
-      const serverUrl = await convertViaServer(file, target);
+      let convertedUrl: string;
+
+      if (canConvertViaCanvas(fromFmt, target)) {
+        convertedUrl = await convertImageViaCanvas(file, target);
+      } else {
+        convertedUrl = await convertViaServer(file, target);
+      }
 
       if (fakeTimer) clearInterval(fakeTimer);
 
       setProgress(95);
       revokeResult();
-      setResultUrl(serverUrl);
+      setResultUrl(convertedUrl);
 
       setTimeout(() => {
         setProgress(100);
@@ -945,7 +1065,7 @@ export default function ConverterPageContent({
         <section className="mx-auto mb-8 max-w-[1100px] text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/8 px-3 py-1 text-[11px] text-white/70 ring-1 ring-white/10">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-            Server-assisted conversion
+            Hybrid conversion flow
           </div>
 
           <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -962,7 +1082,7 @@ export default function ConverterPageContent({
               Free: 50MB
             </span>
             <span className="rounded-full bg-white/8 px-3 py-2 text-[11px] text-white/72 ring-1 ring-white/10">
-              Stable server flow
+              Canvas + server flow
             </span>
             <span className="rounded-full bg-white/8 px-3 py-2 text-[11px] text-white/72 ring-1 ring-white/10">
               Quick conversions
@@ -1101,7 +1221,7 @@ export default function ConverterPageContent({
                       <p className="mt-2 text-sm text-white/60">
                         {file
                           ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
-                          : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF"}
+                          : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF • PNG • JPG • WEBP"}
                       </p>
 
                       {file && previewUrl ? (
@@ -1113,12 +1233,12 @@ export default function ConverterPageContent({
                               </div>
                               <audio controls src={previewUrl} className="w-full" />
                             </div>
-                          ) : fromFmt === "GIF" ? (
+                          ) : isImageFmt(fromFmt) ? (
                             <div className="flex justify-center">
                               <img
                                 src={previewUrl}
-                                alt="GIF preview"
-                                className="max-h-[260px] rounded-[18px] object-contain ring-1 ring-white/10"
+                                alt={`${fromFmt ?? "Image"} preview`}
+                                className="max-h-[320px] rounded-[18px] object-contain ring-1 ring-white/10"
                               />
                             </div>
                           ) : (
@@ -1353,13 +1473,13 @@ export default function ConverterPageContent({
 
                       <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Stable server-assisted conversion flow.
+                          Hybrid conversion flow for better reliability.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
                           50MB free limit for the demo.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                          Multiple popular output formats supported.
+                          Audio, video, GIF, and image targets supported.
                         </div>
                         <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
                           Good for quick everyday conversions.
@@ -1389,10 +1509,10 @@ export default function ConverterPageContent({
                       Popular formats
                     </div>
                     <h3 className="mt-3 text-base font-semibold text-white">
-                      Audio and video essentials
+                      Audio, video, and image essentials
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, and GIF.
+                      MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, GIF, PNG, JPG, and WEBP.
                     </p>
                   </div>
 
@@ -1404,7 +1524,7 @@ export default function ConverterPageContent({
                       Better conversion reliability
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      This version uses a server-assisted path to reduce browser-side conversion failures.
+                      Images can use canvas in-browser, while other conversions use a server-assisted path.
                     </p>
                   </div>
                 </div>
