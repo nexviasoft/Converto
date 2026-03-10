@@ -131,6 +131,12 @@ function normalizeFmtLabel(value?: string | null): string | null {
   return value.toString().trim().toUpperCase();
 }
 
+function toTargetFmt(value?: string | null): TargetFmt | null {
+  const v = normalizeFmtLabel(value);
+  if (!v) return null;
+  return ALL_TARGET_OPTIONS.includes(v as TargetFmt) ? (v as TargetFmt) : null;
+}
+
 function isAudioFmt(fmt: string | null | undefined) {
   return (
     fmt === "MP3" ||
@@ -495,10 +501,13 @@ export default function ConverterPageContent({
   const CENTER_MAX = "max-w-[1100px]";
   const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
 
+  const initialSuggestedInput = toTargetFmt(suggestedInput ?? rawInputLabel ?? null);
+  const initialSuggestedOutput = toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3";
+
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<ConvertStatus>("idle");
-  const [target, setTarget] = useState<TargetFmt>(suggestedOutput ?? "MP3");
+  const [target, setTarget] = useState<TargetFmt>(initialSuggestedOutput);
   const [targetOpen, setTargetOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -506,15 +515,15 @@ export default function ConverterPageContent({
   const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
   const [progress, setProgress] = useState(0);
 
+  /** Soft route state */
+  const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
+  const [routeOutput, setRouteOutput] = useState<TargetFmt>(initialSuggestedOutput);
+
   const MAX_FREE_MB = 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
 
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setTarget(suggestedOutput ?? "MP3");
-  }, [suggestedOutput]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -535,6 +544,26 @@ export default function ConverterPageContent({
       window.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  /**
+   * Gerçek route navigation yok.
+   * Sadece URL bar + local screen state güncelleniyor.
+   * Böylece preview/file state korunuyor.
+   */
+  const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
+    if (!nextOutput) return;
+
+    setRouteInput(nextInput);
+    setRouteOutput(nextOutput);
+
+    if (!nextInput) return;
+
+    const nextPath = `/convert/${formatToSlug(nextInput)}-to-${formatToSlug(nextOutput)}`;
+
+    if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
+      window.history.replaceState(window.history.state, "", nextPath);
+    }
+  };
 
   const detectFmt = (name: string): TargetFmt | null => {
     const n = name.toLowerCase();
@@ -568,18 +597,6 @@ export default function ConverterPageContent({
     }
 
     return null;
-  };
-
-  const fmtToSlug = (fmt: TargetFmt) => fmt.toLowerCase();
-
-  const syncSeoRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
-    if (!nextInput || !nextOutput) return;
-
-    const nextPath = `/convert/${fmtToSlug(nextInput)}-to-${fmtToSlug(nextOutput)}`;
-
-    if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
-      window.history.replaceState({}, "", nextPath);
-    }
   };
 
   const getAcceptForInput = () => {
@@ -647,9 +664,20 @@ export default function ConverterPageContent({
     setFromFmt(null);
     setStatus("idle");
     setErrorMsg(null);
-    setTarget(suggestedOutput ?? "MP3");
+    setTarget(initialSuggestedOutput);
+    setRouteInput(initialSuggestedInput);
+    setRouteOutput(initialSuggestedOutput);
     setProgress(0);
     setTargetOpen(false);
+
+    if (typeof window !== "undefined" && initialSuggestedInput) {
+      const resetPath = `/convert/${formatToSlug(initialSuggestedInput)}-to-${formatToSlug(
+        initialSuggestedOutput
+      )}`;
+      if (window.location.pathname !== resetPath) {
+        window.history.replaceState(window.history.state, "", resetPath);
+      }
+    }
   };
 
   const buildOutputName = (original: string, ext: string) => {
@@ -682,12 +710,6 @@ export default function ConverterPageContent({
     const formData = new FormData();
     formData.append("file", inputFile);
     formData.append("target", targetFormat);
-
-    console.log("Sending file to server:", `${API_URL}/convert`, {
-      name: inputFile.name,
-      size: inputFile.size,
-      target: targetFormat,
-    });
 
     const res = await fetch(`${API_URL}/convert`, {
       method: "POST",
@@ -722,7 +744,7 @@ export default function ConverterPageContent({
 
     const detected = detectFmt(f.name);
     const availableForDetected = getAvailableTargets(detected);
-    const desiredTarget = suggestedOutput ?? target ?? "MP3";
+    const desiredTarget = routeOutput ?? target ?? "MP3";
     const nextTarget = availableForDetected.includes(desiredTarget)
       ? desiredTarget
       : availableForDetected[0];
@@ -737,10 +759,9 @@ export default function ConverterPageContent({
     revokeResult();
 
     setTarget(nextTarget);
+    setProgress(0);
 
-    if (detected) {
-      syncSeoRoute(detected, nextTarget);
-    }
+    softSyncRoute(detected, nextTarget);
   };
 
   const startConvert = async () => {
@@ -751,27 +772,32 @@ export default function ConverterPageContent({
     try {
       setErrorMsg(null);
       setStatus("processing");
-      setProgress(8);
+      setProgress(6);
       setTargetOpen(false);
 
       fakeTimer = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 92) return prev;
-          if (prev < 30) return prev + 8;
-          if (prev < 60) return prev + 5;
-          if (prev < 80) return prev + 3;
+          if (prev >= 90) return prev;
+          if (prev < 25) return prev + 7;
+          if (prev < 45) return prev + 5;
+          if (prev < 65) return prev + 3;
+          if (prev < 80) return prev + 2;
           return prev + 1;
         });
-      }, 350);
+      }, 280);
 
       const serverUrl = await convertViaServer(file, target);
 
       if (fakeTimer) clearInterval(fakeTimer);
 
-      setProgress(100);
+      setProgress(95);
       revokeResult();
       setResultUrl(serverUrl);
-      setStatus("done");
+
+      setTimeout(() => {
+        setProgress(100);
+        setStatus("done");
+      }, 220);
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
       setErrorMsg(err?.message ?? "Server conversion failed.");
@@ -787,7 +813,7 @@ export default function ConverterPageContent({
     };
   }, [resultUrl, previewUrl]);
 
-  const activeInputForTargets = fromFmt ?? suggestedInput ?? rawInputLabel;
+  const activeInputForTargets = fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel;
   const availableTargets = useMemo(() => {
     return getAvailableTargets(activeInputForTargets);
   }, [activeInputForTargets]);
@@ -795,30 +821,32 @@ export default function ConverterPageContent({
   useEffect(() => {
     if (!availableTargets.includes(target)) {
       const fallback =
-        suggestedOutput && availableTargets.includes(suggestedOutput)
-          ? suggestedOutput
+        routeOutput && availableTargets.includes(routeOutput)
+          ? routeOutput
           : availableTargets[0];
 
       setTarget(fallback);
 
-      const nextInputForRoute = fromFmt ?? suggestedInput ?? null;
-      if (nextInputForRoute) {
-        syncSeoRoute(nextInputForRoute, fallback);
+      const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
+      if (nextInputForSoftRoute) {
+        softSyncRoute(nextInputForSoftRoute, fallback);
+      } else {
+        setRouteOutput(fallback);
       }
     }
-  }, [availableTargets, target, suggestedOutput, fromFmt, suggestedInput]);
+  }, [availableTargets, target]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sameFormatSelected = !!fromFmt && fromFmt === target;
-  const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : null;
+  const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : `${routeInput ?? "INPUT"} → ${target}`;
 
   const activeInputLabel = useMemo(
-    () => normalizeFmtLabel(fromFmt ?? suggestedInput ?? rawInputLabel ?? "file"),
-    [fromFmt, suggestedInput, rawInputLabel]
+    () => normalizeFmtLabel(fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel ?? "file"),
+    [fromFmt, routeInput, suggestedInput, rawInputLabel]
   );
 
   const activeOutputLabel = useMemo(
-    () => normalizeFmtLabel(target ?? suggestedOutput ?? rawOutputLabel ?? "file"),
-    [target, suggestedOutput, rawOutputLabel]
+    () => normalizeFmtLabel(target ?? routeOutput ?? suggestedOutput ?? rawOutputLabel ?? "file"),
+    [target, routeOutput, suggestedOutput, rawOutputLabel]
   );
 
   const siteUrl =
@@ -966,23 +994,21 @@ export default function ConverterPageContent({
                           Choose a file, select a format, and send it for conversion.
                         </p>
 
-                        {formatFlowText ? (
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/10">
-                              {formatFlowText}
-                            </span>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/10">
+                            {formatFlowText}
+                          </span>
 
+                          {fromFmt ? (
                             <span className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/20">
                               Detected input: {fromFmt}
                             </span>
-                          </div>
-                        ) : suggestedInput || suggestedOutput ? (
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                          ) : routeInput || suggestedInput ? (
                             <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
-                              Suggested: {(suggestedInput ?? "INPUT")} → {target}
+                              Soft route: {(routeInput ?? suggestedInput ?? "INPUT")} → {routeOutput}
                             </span>
-                          </div>
-                        ) : null}
+                          ) : null}
+                        </div>
                       </div>
 
                       <span
@@ -1105,27 +1131,24 @@ export default function ConverterPageContent({
                         </div>
                       ) : null}
 
-                      {(suggestedOutput || fromFmt || target) ? (
-                        <p className="mt-6 text-xs leading-6 text-white/55">
-                          {fromFmt ? (
-                            <>
-                              You are converting{" "}
-                              <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
-                              <span className="font-semibold text-white/75">{target}</span>. The route
-                              updates automatically when the detected input or selected output changes.
-                            </>
-                          ) : (
-                            <>
-                              This page suggests converting{" "}
-                              <span className="font-semibold text-white/75">{suggestedInput ?? "input"}</span>{" "}
-                              files to{" "}
-                              <span className="font-semibold text-white/75">{suggestedOutput ?? target}</span>.
-                              You can still upload a different supported file type, and the route will
-                              adapt automatically.
-                            </>
-                          )}
-                        </p>
-                      ) : null}
+                      <p className="mt-6 text-xs leading-6 text-white/55">
+                        {fromFmt ? (
+                          <>
+                            You are converting{" "}
+                            <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
+                            <span className="font-semibold text-white/75">{target}</span>. URL updates
+                            softly without clearing the selected file.
+                          </>
+                        ) : (
+                          <>
+                            This page suggests converting{" "}
+                            <span className="font-semibold text-white/75">{routeInput ?? "input"}</span>{" "}
+                            files to{" "}
+                            <span className="font-semibold text-white/75">{routeOutput}</span>. You can
+                            still switch formats without losing the current file state.
+                          </>
+                        )}
+                      </p>
 
                       <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
                         <button
@@ -1177,9 +1200,11 @@ export default function ConverterPageContent({
                                       setTarget(fmt);
                                       setTargetOpen(false);
 
-                                      const nextInputForRoute = fromFmt ?? suggestedInput;
-                                      if (nextInputForRoute) {
-                                        syncSeoRoute(nextInputForRoute, fmt);
+                                      const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
+                                      if (nextInputForSoftRoute) {
+                                        softSyncRoute(nextInputForSoftRoute, fmt);
+                                      } else {
+                                        setRouteOutput(fmt);
                                       }
                                     }}
                                     className={cx(
