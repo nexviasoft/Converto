@@ -1,5 +1,7 @@
 "use client";
 
+const MAINTENANCE_MODE = false;
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -1049,6 +1051,127 @@ export default function ConverterPageContent({
       }),
     [siteUrl, schemaTitle, schemaDescription, activeInputLabel, activeOutputLabel]
   );
+
+  if (MAINTENANCE_MODE) {
+    return (
+      <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
+        <AdSenseScript />
+
+        <div className="pointer-events-none fixed inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.23),transparent_56%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_52%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.06),transparent_45%)]" />
+          <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:84px_84px]" />
+        </div>
+
+        <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05040F]/80 backdrop-blur">
+          <div className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-3 sm:px-5">
+            <Link href="/" className="group inline-flex items-center gap-3">
+              <img
+                src="/brand/converto-logo.svg"
+                alt="Converto logo"
+                className="h-10 w-10 object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
+              />
+
+              <span className="leading-tight">
+                <span className="block text-[15px] font-semibold tracking-tight text-white">
+                  Converto
+                </span>
+                <span className="block -mt-0.5 text-[11px] text-white/50">
+                  by NexviaSoft
+                </span>
+              </span>
+            </Link>
+
+            <div className="flex items-center gap-4">
+              <Link href="/formats" className="text-sm text-white/70 transition hover:text-white">
+                Formats
+              </Link>
+              <Link href="/terms" className="text-sm text-white/70 transition hover:text-white">
+                Terms
+              </Link>
+              <Link href="/privacy" className="text-sm text-white/70 transition hover:text-white">
+                Privacy
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="mx-auto flex min-h-[calc(100vh-160px)] max-w-[1100px] items-center justify-center px-4 py-10 sm:px-5">
+          <div className="w-full max-w-xl rounded-[30px] bg-white/10 p-8 text-center ring-1 ring-white/10 shadow-[0_35px_95px_rgba(0,0,0,0.42)]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-3 py-1 text-[11px] font-semibold text-amber-200 ring-1 ring-amber-300/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              Temporary maintenance
+            </div>
+
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
+              Converto is being updated
+            </h1>
+
+            <p className="mx-auto mt-3 max-w-[560px] text-sm leading-6 text-white/65 sm:text-[15px]">
+              We’re currently fixing the converter and bringing the service back online.
+              The site is still available, but file conversion is temporarily paused.
+            </p>
+
+            <div className="mt-6 grid gap-3 text-left sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
+                Converter engine is being stabilized
+              </div>
+              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
+                Route pages and SEO remain live
+              </div>
+              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
+                Formats directory is still accessible
+              </div>
+              <div className="rounded-2xl bg-white/6 px-4 py-3 ring-1 ring-white/10 text-sm text-white/70">
+                Service will return after backend checks
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/"
+                className="inline-flex rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                Go home
+              </Link>
+
+              <Link
+                href="/formats"
+                className="inline-flex rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+              >
+                Browse formats
+              </Link>
+            </div>
+          </div>
+        </main>
+
+        <footer className="border-t border-white/10">
+          <div className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="text-sm text-white/70">
+              <span className="font-semibold text-white">Converto</span>{" "}
+              <span className="text-white/50">•</span> by NexviaSoft
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-sm text-white/60">
+              <Link className="transition hover:text-white" href="/">
+                Home
+              </Link>
+              <Link className="transition hover:text-white" href="/formats">
+                Formats
+              </Link>
+              <Link className="transition hover:text-white" href="/privacy">
+                Privacy
+              </Link>
+              <Link className="transition hover:text-white" href="/terms">
+                Terms
+              </Link>
+            </div>
+
+            <div className="text-xs text-white/40">© 2026 NexviaSoft</div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
