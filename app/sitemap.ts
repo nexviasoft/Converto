@@ -54,42 +54,62 @@ function unique(items: string[]) {
   return [...new Set(items)];
 }
 
+const DEFAULT_LAST_MODIFIED = new Date("2026-03-10");
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
     "https://converto.tools";
 
-  const now = new Date();
-
-  const staticRoutes = ["/", "/privacy", "/terms", "/converter", "/formats", "/compare"];
-
-  const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
-    url: `${siteUrl}${path}`,
-    lastModified: now,
-    changeFrequency:
-      path === "/"
-        ? "daily"
-        : path === "/formats"
-        ? "weekly"
-        : "monthly",
-    priority:
-      path === "/"
-        ? 1
-        : path === "/formats"
-        ? 0.85
-        : 0.7,
-  }));
+  const staticEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${siteUrl}/`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "daily",
+      priority: 1,
+    },
+    {
+      url: `${siteUrl}/converter`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${siteUrl}/formats`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${siteUrl}/compare`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/privacy`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+    {
+      url: `${siteUrl}/terms`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+  ];
 
   const formatGuideEntries: MetadataRoute.Sitemap = FORMAT_GUIDES.map((format) => ({
     url: `${siteUrl}/formats/${format}`,
-    lastModified: now,
+    lastModified: DEFAULT_LAST_MODIFIED,
     changeFrequency: "weekly",
     priority: 0.75,
   }));
 
   const compareEntries: MetadataRoute.Sitemap = COMPARE_PAGES.map((slug) => ({
     url: `${siteUrl}/compare/${slug}`,
-    lastModified: now,
+    lastModified: DEFAULT_LAST_MODIFIED,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
@@ -99,13 +119,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, VIDEO_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
+    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS)
   ]);
 
   const converterEntries: MetadataRoute.Sitemap = converterSlugs.map((slug) => ({
     url: `${siteUrl}/convert/${slug}`,
-    lastModified: now,
+    lastModified: DEFAULT_LAST_MODIFIED,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
