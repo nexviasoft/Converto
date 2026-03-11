@@ -10,13 +10,28 @@ type TargetFmt =
   | "OGG"
   | "OPUS"
   | "FLAC"
+  | "AIFF"
+  | "WMA"
+  | "AMR"
   | "MP4"
   | "WEBM"
   | "MOV"
+  | "MKV"
+  | "AVI"
+  | "WMV"
+  | "FLV"
+  | "M4V"
+  | "MPG"
+  | "MPEG"
+  | "3GP"
   | "GIF"
   | "PNG"
   | "JPG"
-  | "WEBP";
+  | "WEBP"
+  | "BMP"
+  | "TIFF"
+  | "ICO"
+  | "AVIF";
 
 type PageProps = {
   params: Promise<{
@@ -27,9 +42,43 @@ type PageProps = {
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://converto.tools";
 
-const AUDIO_FORMATS = ["mp3", "wav", "m4a", "aac", "ogg", "opus", "flac"] as const;
-const VIDEO_FORMATS = ["mp4", "webm", "mov"] as const;
-const IMAGE_FORMATS = ["gif", "png", "jpg", "webp"] as const;
+const AUDIO_FORMATS = [
+  "mp3",
+  "wav",
+  "m4a",
+  "aac",
+  "ogg",
+  "opus",
+  "flac",
+  "aiff",
+  "wma",
+  "amr",
+] as const;
+
+const VIDEO_FORMATS = [
+  "mp4",
+  "webm",
+  "mov",
+  "mkv",
+  "avi",
+  "wmv",
+  "flv",
+  "m4v",
+  "mpg",
+  "mpeg",
+  "3gp",
+] as const;
+
+const IMAGE_FORMATS = [
+  "gif",
+  "png",
+  "jpg",
+  "webp",
+  "bmp",
+  "tiff",
+  "ico",
+  "avif",
+] as const;
 
 function buildPairSlugs(
   fromFormats: readonly string[],
@@ -61,29 +110,30 @@ function mapSlugPartToFmt(value: string): TargetFmt | null {
   if (v === "ogg") return "OGG";
   if (v === "opus") return "OPUS";
   if (v === "flac") return "FLAC";
+  if (v === "aiff" || v === "aif") return "AIFF";
+  if (v === "wma") return "WMA";
+  if (v === "amr") return "AMR";
+
   if (v === "mp4") return "MP4";
   if (v === "webm") return "WEBM";
   if (v === "mov") return "MOV";
+  if (v === "mkv") return "MKV";
+  if (v === "avi") return "AVI";
+  if (v === "wmv") return "WMV";
+  if (v === "flv") return "FLV";
+  if (v === "m4v") return "M4V";
+  if (v === "mpg") return "MPG";
+  if (v === "mpeg") return "MPEG";
+  if (v === "3gp") return "3GP";
+
   if (v === "gif") return "GIF";
   if (v === "png") return "PNG";
   if (v === "jpg" || v === "jpeg") return "JPG";
   if (v === "webp") return "WEBP";
-
-  if (
-    v === "mkv" ||
-    v === "avi" ||
-    v === "wmv" ||
-    v === "flv" ||
-    v === "mpg" ||
-    v === "mpeg" ||
-    v === "m4v" ||
-    v === "3gp" ||
-    v === "ts" ||
-    v === "mts" ||
-    v === "m2ts"
-  ) {
-    return "MP4";
-  }
+  if (v === "bmp") return "BMP";
+  if (v === "tiff" || v === "tif") return "TIFF";
+  if (v === "ico") return "ICO";
+  if (v === "avif") return "AVIF";
 
   return null;
 }
@@ -116,7 +166,6 @@ export function generateStaticParams() {
     ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, VIDEO_FORMATS),
     ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
   ]);
 

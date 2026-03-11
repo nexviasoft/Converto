@@ -1,9 +1,47 @@
 import type { MetadataRoute } from "next";
 
-const AUDIO_FORMATS = ["mp3", "wav", "aac", "m4a", "ogg", "opus", "flac"] as const;
-const VIDEO_FORMATS = ["mp4", "webm", "mov"] as const;
-const IMAGE_FORMATS = ["gif", "png", "jpg", "webp"] as const;
+const AUDIO_FORMATS = [
+  "mp3",
+  "wav",
+  "aac",
+  "m4a",
+  "ogg",
+  "opus",
+  "flac",
+  "aiff",
+  "wma",
+  "amr",
+] as const;
 
+const VIDEO_FORMATS = [
+  "mp4",
+  "webm",
+  "mov",
+  "mkv",
+  "avi",
+  "wmv",
+  "flv",
+  "m4v",
+  "mpg",
+  "mpeg",
+  "3gp",
+] as const;
+
+const IMAGE_FORMATS = [
+  "gif",
+  "png",
+  "jpg",
+  "webp",
+  "bmp",
+  "tiff",
+  "ico",
+  "avif",
+] as const;
+
+/**
+ * Burada sadece gerçekten oluşturduğun format guide sayfaları duruyor.
+ * Yeni /formats klasörlerini açtıkça buraya ekle.
+ */
 const FORMAT_GUIDES = [
   "mp3",
   "wav",
@@ -16,11 +54,12 @@ const FORMAT_GUIDES = [
   "opus",
   "mov",
   "gif",
-  "png",
-  "jpg",
-  "webp",
 ] as const;
 
+/**
+ * Burada da sadece gerçekten oluşturduğun compare sayfaları duruyor.
+ * Yeni /compare klasörleri açtıkça buraya ekle.
+ */
 const COMPARE_PAGES = [
   "mp3-vs-wav",
   "flac-vs-mp3",
@@ -28,10 +67,6 @@ const COMPARE_PAGES = [
   "mp4-vs-mov",
   "aac-vs-mp3",
   "m4a-vs-mp3",
-  "png-vs-jpg",
-  "jpg-vs-webp",
-  "png-vs-webp",
-  "gif-vs-webp",
 ] as const;
 
 function buildPairSlugs(
@@ -119,7 +154,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
     ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS)
+    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
   ]);
 
   const converterEntries: MetadataRoute.Sitemap = converterSlugs.map((slug) => ({

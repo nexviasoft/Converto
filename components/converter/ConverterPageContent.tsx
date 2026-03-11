@@ -5,7 +5,6 @@ const MAINTENANCE_MODE = false;
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
-import type { UserEntitlement } from "@/types/billing";
 
 type TargetFmt =
   | "MP3"
@@ -15,13 +14,28 @@ type TargetFmt =
   | "OGG"
   | "OPUS"
   | "FLAC"
+  | "AIFF"
+  | "WMA"
+  | "AMR"
   | "MP4"
   | "WEBM"
   | "MOV"
+  | "MKV"
+  | "AVI"
+  | "WMV"
+  | "FLV"
+  | "M4V"
+  | "MPG"
+  | "MPEG"
+  | "3GP"
   | "GIF"
   | "PNG"
   | "JPG"
-  | "WEBP";
+  | "WEBP"
+  | "BMP"
+  | "TIFF"
+  | "ICO"
+  | "AVIF";
 
 type ConverterPageContentProps = {
   seoTitle?: string;
@@ -107,7 +121,7 @@ function AdUnit({
   );
 }
 
-const ALL_TARGET_OPTIONS: TargetFmt[] = [
+const AUDIO_TARGETS: TargetFmt[] = [
   "MP3",
   "WAV",
   "M4A",
@@ -115,13 +129,40 @@ const ALL_TARGET_OPTIONS: TargetFmt[] = [
   "OGG",
   "OPUS",
   "FLAC",
+  "AIFF",
+  "WMA",
+  "AMR",
+];
+
+const VIDEO_TARGETS: TargetFmt[] = [
   "MP4",
   "WEBM",
   "MOV",
+  "MKV",
+  "AVI",
+  "WMV",
+  "FLV",
+  "M4V",
+  "MPG",
+  "MPEG",
+  "3GP",
+];
+
+const IMAGE_TARGETS: TargetFmt[] = [
   "GIF",
   "PNG",
   "JPG",
   "WEBP",
+  "BMP",
+  "TIFF",
+  "ICO",
+  "AVIF",
+];
+
+const ALL_TARGET_OPTIONS: TargetFmt[] = [
+  ...AUDIO_TARGETS,
+  ...VIDEO_TARGETS,
+  ...IMAGE_TARGETS,
 ];
 
 const homepagePopularConversions = [
@@ -133,6 +174,8 @@ const homepagePopularConversions = [
   { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
   { href: "/convert/png-to-jpg", label: "PNG to JPG" },
   { href: "/convert/webp-to-png", label: "WEBP to PNG" },
+  { href: "/convert/mkv-to-mp4", label: "MKV to MP4" },
+  { href: "/convert/avi-to-mp4", label: "AVI to MP4" },
 ];
 
 function normalizeFmtLabel(value?: string | null): string | null {
@@ -154,12 +197,27 @@ function isAudioFmt(fmt: string | null | undefined) {
     fmt === "AAC" ||
     fmt === "OGG" ||
     fmt === "OPUS" ||
-    fmt === "FLAC"
+    fmt === "FLAC" ||
+    fmt === "AIFF" ||
+    fmt === "WMA" ||
+    fmt === "AMR"
   );
 }
 
 function isVideoFmt(fmt: string | null | undefined) {
-  return fmt === "MP4" || fmt === "WEBM" || fmt === "MOV";
+  return (
+    fmt === "MP4" ||
+    fmt === "WEBM" ||
+    fmt === "MOV" ||
+    fmt === "MKV" ||
+    fmt === "AVI" ||
+    fmt === "WMV" ||
+    fmt === "FLV" ||
+    fmt === "M4V" ||
+    fmt === "MPG" ||
+    fmt === "MPEG" ||
+    fmt === "3GP"
+  );
 }
 
 function isImageFmt(fmt: string | null | undefined) {
@@ -167,7 +225,11 @@ function isImageFmt(fmt: string | null | undefined) {
     fmt === "GIF" ||
     fmt === "PNG" ||
     fmt === "JPG" ||
-    fmt === "WEBP"
+    fmt === "WEBP" ||
+    fmt === "BMP" ||
+    fmt === "TIFF" ||
+    fmt === "ICO" ||
+    fmt === "AVIF"
   );
 }
 
@@ -175,26 +237,25 @@ function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
   const fmt = normalizeFmtLabel(inputFmt);
 
   if (isAudioFmt(fmt)) {
-    return ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC"];
+    return AUDIO_TARGETS;
   }
 
   if (isVideoFmt(fmt)) {
-    return ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"];
+    return [...AUDIO_TARGETS, ...VIDEO_TARGETS, ...IMAGE_TARGETS];
   }
 
   if (isImageFmt(fmt)) {
-    if (fmt === "GIF") {
-      return ["MP4", "WEBM", "MOV", "PNG", "JPG", "WEBP"];
-    }
-
-    return ["PNG", "JPG", "WEBP"];
+    return IMAGE_TARGETS;
   }
 
   return ALL_TARGET_OPTIONS;
 }
 
 function formatToSlug(value?: string | null) {
-  return value ? value.toLowerCase() : "";
+  if (!value) return "";
+  const normalized = value.toLowerCase();
+  if (normalized === "jpeg") return "jpg";
+  return normalized;
 }
 
 function buildRelatedConversions(input?: string | null, output?: string | null) {
@@ -206,15 +267,11 @@ function buildRelatedConversions(input?: string | null, output?: string | null) 
   let pool: string[] = [];
 
   if (isAudioFmt(from)) {
-    pool = ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC"];
+    pool = [...AUDIO_TARGETS];
   } else if (isVideoFmt(from)) {
-    pool = ["MP3", "WAV", "M4A", "AAC", "OGG", "OPUS", "FLAC", "MP4", "WEBM", "MOV", "GIF"];
+    pool = [...AUDIO_TARGETS, ...VIDEO_TARGETS, ...IMAGE_TARGETS];
   } else if (isImageFmt(from)) {
-    if (from === "GIF") {
-      pool = ["MP4", "WEBM", "MOV", "PNG", "JPG", "WEBP"];
-    } else {
-      pool = ["PNG", "JPG", "WEBP"];
-    }
+    pool = [...IMAGE_TARGETS];
   } else {
     pool = ALL_TARGET_OPTIONS.map((fmt) => fmt);
   }
@@ -252,9 +309,9 @@ function buildSeoContent(input?: string | null, output?: string | null) {
   } else if (inputIsVideo && isVideoFmt(to)) {
     intro = `Convert ${from} to ${to} online for better compatibility, easier sharing, and cleaner playback across browsers, devices, and editing tools.`;
     whyText = `${from} to ${to} conversion is useful when a file needs to be more widely supported, easier to upload, or better suited for editing and playback.`;
-  } else if (inputIsImage && isVideoFmt(to)) {
-    intro = `Convert ${from} to ${to} online to turn image-based visual content into a more flexible video format. This can help with sharing, editing, and playback on more platforms.`;
-    whyText = `${from} to ${to} conversion can help when you want better control over playback, easier uploads, or broader compatibility across devices and apps.`;
+  } else if (inputIsVideo && isImageFmt(to)) {
+    intro = `Convert ${from} to ${to} online to create image-based output from video content. This can help with previews, thumbnails, lightweight sharing, or visual exports for web workflows.`;
+    whyText = `${from} to ${to} conversion can help when you want a visual snapshot, lighter sharing format, or a still-image output for websites, apps, and quick previews.`;
   } else if (inputIsImage && isImageFmt(to)) {
     intro = `Convert ${from} to ${to} online for better compatibility, compression, editing, and sharing. This is useful when different apps, devices, or websites prefer a different image format.`;
     whyText = `${from} to ${to} conversion is commonly used to reduce file size, improve transparency support, preserve compatibility, or prepare images for upload and editing.`;
@@ -273,7 +330,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     ],
     whyText,
     useText,
-    browserText: `Converto currently uses a hybrid conversion flow: canvas for supported image conversions and server-assisted processing for other formats.`,
+    browserText: `Converto currently uses a hybrid conversion flow: canvas for supported browser-safe image conversions and server-assisted processing for other formats.`,
   };
 }
 
@@ -314,7 +371,7 @@ function buildFaqSchema(input?: string | null, output?: string | null) {
         name: `Does ${from} to ${to} conversion happen in the browser?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Supported image conversions can run with canvas in the browser, while other conversions use a server-assisted flow for better compatibility and stability.`,
+          text: `Supported browser-safe image conversions can run with canvas in the browser, while other conversions use a server-assisted flow for better compatibility and stability.`,
         },
       },
     ],
@@ -600,35 +657,36 @@ export default function ConverterPageContent({
     if (n.endsWith(".ogg")) return "OGG";
     if (n.endsWith(".opus")) return "OPUS";
     if (n.endsWith(".flac")) return "FLAC";
+    if (n.endsWith(".aiff") || n.endsWith(".aif")) return "AIFF";
+    if (n.endsWith(".wma")) return "WMA";
+    if (n.endsWith(".amr")) return "AMR";
+
+    if (n.endsWith(".mp4")) return "MP4";
     if (n.endsWith(".webm")) return "WEBM";
     if (n.endsWith(".mov")) return "MOV";
+    if (n.endsWith(".mkv")) return "MKV";
+    if (n.endsWith(".avi")) return "AVI";
+    if (n.endsWith(".wmv")) return "WMV";
+    if (n.endsWith(".flv")) return "FLV";
+    if (n.endsWith(".m4v")) return "M4V";
+    if (n.endsWith(".mpg")) return "MPG";
+    if (n.endsWith(".mpeg")) return "MPEG";
+    if (n.endsWith(".3gp")) return "3GP";
+
     if (n.endsWith(".gif")) return "GIF";
     if (n.endsWith(".png")) return "PNG";
     if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "JPG";
     if (n.endsWith(".webp")) return "WEBP";
-
-    if (
-      n.endsWith(".mp4") ||
-      n.endsWith(".mkv") ||
-      n.endsWith(".avi") ||
-      n.endsWith(".wmv") ||
-      n.endsWith(".flv") ||
-      n.endsWith(".mpg") ||
-      n.endsWith(".mpeg") ||
-      n.endsWith(".m4v") ||
-      n.endsWith(".3gp") ||
-      n.endsWith(".ts") ||
-      n.endsWith(".mts") ||
-      n.endsWith(".m2ts")
-    ) {
-      return "MP4";
-    }
+    if (n.endsWith(".bmp")) return "BMP";
+    if (n.endsWith(".tiff") || n.endsWith(".tif")) return "TIFF";
+    if (n.endsWith(".ico")) return "ICO";
+    if (n.endsWith(".avif")) return "AVIF";
 
     return null;
   };
 
   const getAcceptForInput = () => {
-    return ".mp4,.mov,.mkv,.webm,.avi,.wmv,.flv,.mpg,.mpeg,.m4v,.3gp,.ts,.mts,.m2ts,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.gif,.png,.jpg,.jpeg,.webp,video/*,audio/*,image/gif,image/png,image/jpeg,image/webp";
+    return ".mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.aiff,.aif,.wma,.amr,.mp4,.webm,.mov,.mkv,.avi,.wmv,.flv,.m4v,.mpg,.mpeg,.3gp,.gif,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif,.ico,.avif,video/*,audio/*,image/gif,image/png,image/jpeg,image/webp,image/bmp,image/avif";
   };
 
   const validateFile = (f: File) => {
@@ -636,20 +694,6 @@ export default function ConverterPageContent({
 
     const name = f.name.toLowerCase();
     const okExt = [
-      ".mp4",
-      ".mov",
-      ".mkv",
-      ".webm",
-      ".avi",
-      ".wmv",
-      ".flv",
-      ".mpg",
-      ".mpeg",
-      ".m4v",
-      ".3gp",
-      ".ts",
-      ".mts",
-      ".m2ts",
       ".mp3",
       ".wav",
       ".m4a",
@@ -657,11 +701,31 @@ export default function ConverterPageContent({
       ".ogg",
       ".opus",
       ".flac",
+      ".aiff",
+      ".aif",
+      ".wma",
+      ".amr",
+      ".mp4",
+      ".webm",
+      ".mov",
+      ".mkv",
+      ".avi",
+      ".wmv",
+      ".flv",
+      ".m4v",
+      ".mpg",
+      ".mpeg",
+      ".3gp",
       ".gif",
       ".png",
       ".jpg",
       ".jpeg",
       ".webp",
+      ".bmp",
+      ".tiff",
+      ".tif",
+      ".ico",
+      ".avif",
     ].some((x) => name.endsWith(x));
 
     if (!okExt) {
@@ -725,13 +789,28 @@ export default function ConverterPageContent({
     OGG: "ogg",
     OPUS: "opus",
     FLAC: "flac",
+    AIFF: "aiff",
+    WMA: "wma",
+    AMR: "amr",
     MP4: "mp4",
     WEBM: "webm",
     MOV: "mov",
+    MKV: "mkv",
+    AVI: "avi",
+    WMV: "wmv",
+    FLV: "flv",
+    M4V: "m4v",
+    MPG: "mpg",
+    MPEG: "mpeg",
+    "3GP": "3gp",
     GIF: "gif",
     PNG: "png",
     JPG: "jpg",
     WEBP: "webp",
+    BMP: "bmp",
+    TIFF: "tiff",
+    ICO: "ico",
+    AVIF: "avif",
   };
 
   const canvasMimeMap: Partial<Record<TargetFmt, string>> = {
@@ -744,7 +823,7 @@ export default function ConverterPageContent({
     return (
       !!inputFmt &&
       inputFmt !== "GIF" &&
-      isImageFmt(inputFmt) &&
+      ["PNG", "JPG", "WEBP", "BMP", "AVIF"].includes(inputFmt) &&
       ["PNG", "JPG", "WEBP"].includes(outputFmt)
     );
   };
@@ -1221,7 +1300,7 @@ export default function ConverterPageContent({
                       <p className="mt-2 text-sm text-white/60">
                         {file
                           ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
-                          : "Supported: MP4 • MOV • MKV • WEBM • AVI • MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • GIF • PNG • JPG • WEBP"}
+                          : "Supported: MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • AIFF • WMA • AMR • MP4 • WEBM • MOV • MKV • AVI • WMV • FLV • M4V • MPG • MPEG • 3GP • GIF • PNG • JPG • WEBP • BMP • TIFF • ICO • AVIF"}
                       </p>
 
                       {file && previewUrl ? (
@@ -1512,7 +1591,7 @@ export default function ConverterPageContent({
                       Audio, video, and image essentials
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      MP3, AAC, M4A, OPUS, FLAC, MP4, WEBM, MOV, GIF, PNG, JPG, and WEBP.
+                      MP3, WAV, AAC, FLAC, AIFF, WMA, AMR, MP4, WEBM, MOV, MKV, AVI, WMV, PNG, JPG, WEBP, BMP, TIFF, ICO, and AVIF.
                     </p>
                   </div>
 
@@ -1524,7 +1603,7 @@ export default function ConverterPageContent({
                       Better conversion reliability
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-white/60">
-                      Images can use canvas in-browser, while other conversions use a server-assisted path.
+                      Images can use canvas in-browser when supported, while other conversions use a server-assisted path.
                     </p>
                   </div>
                 </div>
