@@ -1,59 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  audioFormats,
+  videoFormats,
+  imageFormats,
+  allFormats,
+} from "@/lib/formatData";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://converto.tools";
-
-const audioFormats = [
-  { label: "MP3", href: "/formats/mp3" },
-  { label: "WAV", href: "/formats/wav" },
-  { label: "AAC", href: "/formats/aac" },
-  { label: "FLAC", href: "/formats/flac" },
-  { label: "M4A", href: "/formats/m4a" },
-  { label: "OGG", href: "/formats/ogg" },
-  { label: "OPUS", href: "/formats/opus" },
-];
-
-const videoFormats = [
-  { label: "MP4", href: "/formats/mp4" },
-  { label: "WEBM", href: "/formats/webm" },
-  { label: "MOV", href: "/formats/mov" },
-  { label: "GIF", href: "/formats/gif" },
-];
-
-const formatGuides = [
-  {
-    href: "/formats/mp4",
-    label: "MP4 format guide",
-    desc: "Learn what MP4 is, why it is widely supported, and common MP4 conversion paths.",
-  },
-  {
-    href: "/formats/mp3",
-    label: "MP3 format guide",
-    desc: "Understand the MP3 format, why it is popular, and when to convert MP3 files.",
-  },
-  {
-    href: "/formats/wav",
-    label: "WAV format guide",
-    desc: "Explore WAV as a lossless audio format used for editing, mastering, and archiving.",
-  },
-  {
-    href: "/formats/webm",
-    label: "WEBM format guide",
-    desc: "See how WEBM works for modern web video and common WEBM conversion needs.",
-  },
-  {
-    href: "/formats/flac",
-    label: "FLAC format guide",
-    desc: "Discover FLAC as a lossless audio format and where FLAC conversions make sense.",
-  },
-  {
-    href: "/formats/mov",
-    label: "MOV format guide",
-    desc: "Understand MOV for Apple and editing workflows, plus when to convert it to MP4.",
-  },
-];
 
 const compareGuides = [
   {
@@ -119,12 +75,22 @@ const popularConversions = [
     label: "MP4 to GIF",
     desc: "Create lightweight animated clips from video.",
   },
+  {
+    href: "/convert/png-to-jpg",
+    label: "PNG to JPG",
+    desc: "Convert clean graphics into a more compact image format.",
+  },
+  {
+    href: "/convert/webp-to-png",
+    label: "WEBP to PNG",
+    desc: "Turn lightweight web images into a more editing-friendly format.",
+  },
 ];
 
 export const metadata: Metadata = {
   title: "Supported File Formats",
   description:
-    "Explore the audio, video, and image formats supported by Converto. Convert MP3, WAV, AAC, FLAC, MP4, WEBM, MOV, GIF, and more online.",
+    "Explore the audio, video, and image formats supported by Converto. Convert MP3, WAV, AAC, FLAC, MP4, WEBM, MOV, GIF, PNG, JPG, WEBP, and more online.",
   alternates: {
     canonical: `${siteUrl}/formats`,
   },
@@ -145,6 +111,12 @@ export const metadata: Metadata = {
 };
 
 export default function FormatsPage() {
+  const formatGuides = allFormats.map((item) => ({
+    href: `/formats/${item.slug}`,
+    label: `${item.label} format guide`,
+    desc: item.metaDescription,
+  }));
+
   return (
     <main className="min-h-screen bg-[#151233] text-white">
       <div className="pointer-events-none fixed inset-0 -z-10">
@@ -163,10 +135,9 @@ export default function FormatsPage() {
           </h1>
 
           <p className="mt-4 max-w-3xl text-sm leading-7 text-white/70 sm:text-base">
-            Converto supports a growing set of popular audio, video, and lightweight
-            animated formats for fast browser-based conversion. This page gives you a
-            quick overview of the main formats currently available and common conversion
-            paths users start with.
+            Converto supports a growing set of audio, video, and image formats for
+            everyday conversion workflows. Use this page to browse format guides,
+            compare similar formats, and jump directly into common conversion paths.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -193,20 +164,19 @@ export default function FormatsPage() {
           </div>
         </div>
 
-        <section className="mt-10 grid gap-6 md:grid-cols-2">
+        <section className="mt-10 grid gap-6 lg:grid-cols-3">
           <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
             <h2 className="text-2xl font-semibold tracking-tight">Audio formats</h2>
             <p className="mt-3 text-sm leading-6 text-white/65">
-              Audio conversion is useful for playback compatibility, smaller file size,
-              and extracting sound from video-based workflows. Converto is designed to
-              support common everyday listening and sharing formats.
+              Audio conversion is useful for playback compatibility, file size control,
+              extraction from video, and general listening workflows across devices and apps.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
               {audioFormats.map((format) => (
                 <Link
-                  key={format.label}
-                  href={format.href}
+                  key={format.slug}
+                  href={`/formats/${format.slug}`}
                   className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
                 >
                   {format.label}
@@ -216,20 +186,37 @@ export default function FormatsPage() {
           </div>
 
           <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Video and animation formats
-            </h2>
+            <h2 className="text-2xl font-semibold tracking-tight">Video formats</h2>
             <p className="mt-3 text-sm leading-6 text-white/65">
-              Video conversion helps improve device compatibility, reduce friction in
-              sharing, and prepare files for different social, browser, and playback
-              use cases. Lightweight animation support is especially useful for short clips.
+              Video conversion helps improve playback compatibility, reduce sharing friction,
+              modernize old media files, and prepare content for browsers, devices, and apps.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
               {videoFormats.map((format) => (
                 <Link
-                  key={format.label}
-                  href={format.href}
+                  key={format.slug}
+                  href={`/formats/${format.slug}`}
+                  className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                >
+                  {format.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+            <h2 className="text-2xl font-semibold tracking-tight">Image formats</h2>
+            <p className="mt-3 text-sm leading-6 text-white/65">
+              Image conversion is useful for compatibility, compression, transparency support,
+              web optimization, and moving between editing-friendly and delivery-friendly formats.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              {imageFormats.map((format) => (
+                <Link
+                  key={format.slug}
+                  href={`/formats/${format.slug}`}
                   className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
                 >
                   {format.label}
@@ -245,13 +232,13 @@ export default function FormatsPage() {
           </div>
 
           <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-            Explore detailed guides for the most important media formats
+            Explore detailed guides for all supported formats
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-            These format pages help explain what each format is, when people use it,
-            and which conversion paths are the most practical. They also make it easier
-            to jump into the right converter flow from a format-specific starting point.
+            These format pages explain what each format is, where it fits best, and
+            which conversion paths are the most practical for compatibility, editing,
+            playback, sharing, or optimization.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -325,7 +312,7 @@ export default function FormatsPage() {
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
             These are some of the most useful conversion paths for compatibility,
-            sharing, lightweight output, and extracting audio from video.
+            sharing, lightweight output, extracting audio, and modernizing older files.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -354,11 +341,12 @@ export default function FormatsPage() {
             <p className="mt-3 text-sm leading-6 text-white/65">
               Different devices, browsers, apps, and sharing workflows work better with
               different file formats. A flexible converter helps you move between those
-              formats without needing to install heavy desktop software for simple tasks.
+              formats without needing heavy desktop software for simple everyday tasks.
             </p>
             <p className="mt-4 text-sm leading-6 text-white/65">
               In practice, users often convert files to improve compatibility, reduce size,
-              extract audio, or prepare media for uploading, playback, editing, or archiving.
+              extract audio, prepare media for upload, or modernize older libraries into
+              formats that are easier to open and share.
             </p>
           </div>
 
