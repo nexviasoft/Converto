@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { allFormats } from "@/lib/formatData";
+import { allCompareItems } from "@/lib/compareData";
 
 const AUDIO_FORMATS = [
   "mp3",
@@ -38,37 +40,6 @@ const IMAGE_FORMATS = [
   "avif",
 ] as const;
 
-/**
- * Burada sadece gerçekten oluşturduğun format guide sayfaları duruyor.
- * Yeni /formats klasörlerini açtıkça buraya ekle.
- */
-const FORMAT_GUIDES = [
-  "mp3",
-  "wav",
-  "flac",
-  "mp4",
-  "webm",
-  "aac",
-  "m4a",
-  "ogg",
-  "opus",
-  "mov",
-  "gif",
-] as const;
-
-/**
- * Burada da sadece gerçekten oluşturduğun compare sayfaları duruyor.
- * Yeni /compare klasörleri açtıkça buraya ekle.
- */
-const COMPARE_PAGES = [
-  "mp3-vs-wav",
-  "flac-vs-mp3",
-  "mp4-vs-webm",
-  "mp4-vs-mov",
-  "aac-vs-mp3",
-  "m4a-vs-mp3",
-] as const;
-
 function buildPairSlugs(
   fromFormats: readonly string[],
   toFormats: readonly string[]
@@ -89,7 +60,7 @@ function unique(items: string[]) {
   return [...new Set(items)];
 }
 
-const DEFAULT_LAST_MODIFIED = new Date("2026-03-10");
+const DEFAULT_LAST_MODIFIED = new Date("2026-03-11");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl =
@@ -119,7 +90,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteUrl}/compare`,
       lastModified: DEFAULT_LAST_MODIFIED,
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${siteUrl}/privacy`,
@@ -135,15 +106,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const formatGuideEntries: MetadataRoute.Sitemap = FORMAT_GUIDES.map((format) => ({
-    url: `${siteUrl}/formats/${format}`,
+  const formatGuideEntries: MetadataRoute.Sitemap = allFormats.map((format) => ({
+    url: `${siteUrl}/formats/${format.slug}`,
     lastModified: DEFAULT_LAST_MODIFIED,
     changeFrequency: "weekly",
     priority: 0.75,
   }));
 
-  const compareEntries: MetadataRoute.Sitemap = COMPARE_PAGES.map((slug) => ({
-    url: `${siteUrl}/compare/${slug}`,
+  const compareEntries: MetadataRoute.Sitemap = allCompareItems.map((item) => ({
+    url: `${siteUrl}/compare/${item.slug}`,
     lastModified: DEFAULT_LAST_MODIFIED,
     changeFrequency: "weekly",
     priority: 0.8,
