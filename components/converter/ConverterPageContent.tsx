@@ -595,7 +595,15 @@ export default function ConverterPageContent({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
-  const [progress, setProgress] = useState(0);
+
+  /** Gerçek işlem ilerlemesi */
+  const [actualProgress, setActualProgress] = useState(0);
+
+  /** Kullanıcıya gösterilen akıcı ilerleme */
+  const [displayProgress, setDisplayProgress] = useState(0);
+
+  /** Progress açıklama metni */
+  const [progressLabel, setProgressLabel] = useState("Preparing file...");
 
   /** Soft route state */
   const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
@@ -606,6 +614,7 @@ export default function ConverterPageContent({
 
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
+  const holdNinetyRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -626,6 +635,60 @@ export default function ConverterPageContent({
       window.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status !== "processing") return;
+
+    if (actualProgress < 15) {
+      setProgressLabel("Preparing file...");
+    } else if (actualProgress < 35) {
+      setProgressLabel("Uploading file...");
+    } else if (actualProgress < 88) {
+      setProgressLabel("Converting...");
+    } else if (actualProgress < 97) {
+      setProgressLabel("Finalizing output...");
+    } else {
+      setProgressLabel("Almost done...");
+    }
+  }, [actualProgress, status]);
+
+  /**
+   * Ekrandaki progress bar, gerçek progress'i yumuşak şekilde takip eder.
+   * Böylece takılı kalmış hissi azalır.
+   */
+  useEffect(() => {
+    if (status !== "processing") return;
+
+    const timer = setInterval(() => {
+      setDisplayProgress((prev) => {
+        if (prev >= actualProgress) return prev;
+
+        const diff = actualProgress - prev;
+
+        if (prev < 60) {
+          return Math.min(actualProgress, prev + Math.max(2, Math.ceil(diff * 0.35)));
+        }
+
+        if (prev < 85) {
+          return Math.min(actualProgress, prev + Math.max(1, Math.ceil(diff * 0.22)));
+        }
+
+        if (prev < 95) {
+          return Math.min(actualProgress, prev + 1);
+        }
+
+        return Math.min(actualProgress, prev + 1);
+      });
+    }, 120);
+
+    return () => clearInterval(timer);
+  }, [actualProgress, status]);
 
   /**
    * Gerçek route navigation yok.
@@ -754,6 +817,8 @@ export default function ConverterPageContent({
   };
 
   const resetConverter = () => {
+    if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
+
     revokeResult();
     revokePreview();
     setFile(null);
@@ -763,7 +828,9 @@ export default function ConverterPageContent({
     setTarget(initialSuggestedOutput);
     setRouteInput(initialSuggestedInput);
     setRouteOutput(initialSuggestedOutput);
-    setProgress(0);
+    setActualProgress(0);
+    setDisplayProgress(0);
+    setProgressLabel("Preparing file...");
     setTargetOpen(false);
 
     if (typeof window !== "undefined" && initialSuggestedInput) {
@@ -952,7 +1019,9 @@ export default function ConverterPageContent({
     revokeResult();
 
     setTarget(nextTarget);
-    setProgress(0);
+    setActualProgress(0);
+    setDisplayProgress(0);
+    setProgressLabel("Preparing file...");
 
     softSyncRoute(detected, nextTarget);
   };
@@ -963,21 +1032,26 @@ export default function ConverterPageContent({
     let fakeTimer: ReturnType<typeof setInterval> | null = null;
 
     try {
+      if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
+
       setErrorMsg(null);
       setStatus("processing");
-      setProgress(6);
+      setActualProgress(8);
+      setDisplayProgress(4);
+      setProgressLabel("Preparing file...");
       setTargetOpen(false);
 
       fakeTimer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) return prev;
-          if (prev < 25) return prev + 7;
-          if (prev < 45) return prev + 5;
-          if (prev < 65) return prev + 3;
-          if (prev < 80) return prev + 2;
+        setActualProgress((prev) => {
+          if (prev >= 92) return prev;
+          if (prev < 18) return prev + 8;
+          if (prev < 35) return prev + 6;
+          if (prev < 55) return prev + 4;
+          if (prev < 75) return prev + 3;
+          if (prev < 88) return prev + 2;
           return prev + 1;
         });
-      }, 280);
+      }, 260);
 
       let convertedUrl: string;
 
@@ -989,19 +1063,37 @@ export default function ConverterPageContent({
 
       if (fakeTimer) clearInterval(fakeTimer);
 
-      setProgress(95);
+      setActualProgress(94);
+      setProgressLabel("Finalizing output...");
+
+      holdNinetyRef.current = setInterval(() => {
+        setActualProgress((prev) => {
+          if (prev >= 96) {
+            if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 220);
+
       revokeResult();
       setResultUrl(convertedUrl);
 
       setTimeout(() => {
-        setProgress(100);
+        if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
+        setProgressLabel("Almost done...");
+        setActualProgress(100);
+        setDisplayProgress(100);
         setStatus("done");
-      }, 220);
+      }, 420);
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
+      if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
       setErrorMsg(err?.message ?? "Server conversion failed.");
       setStatus("error");
-      setProgress(0);
+      setActualProgress(0);
+      setDisplayProgress(0);
+      setProgressLabel("Preparing file...");
     }
   };
 
@@ -1231,7 +1323,7 @@ export default function ConverterPageContent({
                           )}
                         />
                         {status === "processing"
-                          ? `Converting • ${progress}%`
+                          ? `${progressLabel} • ${displayProgress}%`
                           : status === "done"
                           ? "Done"
                           : status === "ready"
@@ -1471,7 +1563,7 @@ export default function ConverterPageContent({
                               )}
                             >
                               {status === "processing"
-                                ? `Converting… ${progress}%`
+                                ? `${progressLabel} ${displayProgress}%`
                                 : sameFormatSelected
                                 ? "Same format selected"
                                 : "Convert"}
@@ -1497,11 +1589,25 @@ export default function ConverterPageContent({
                       </div>
 
                       {status === "processing" ? (
-                        <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
-                          <div
-                            className="h-full bg-white/40 transition-[width] duration-200"
-                            style={{ width: `${progress}%` }}
-                          />
+                        <div className="mt-5">
+                          <div className="mb-2 flex items-center justify-between text-xs text-white/55">
+                            <span>{progressLabel}</span>
+                            <span>{displayProgress}%</span>
+                          </div>
+
+                          <div className="h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                            <div
+                              className={cx(
+                                "h-full bg-white/40 transition-[width] duration-200",
+                                displayProgress >= 90 ? "animate-pulse" : ""
+                              )}
+                              style={{ width: `${displayProgress}%` }}
+                            />
+                          </div>
+
+                          <p className="mt-2 text-[11px] text-white/45">
+                            Please keep this tab open until the converted file is ready.
+                          </p>
                         </div>
                       ) : null}
 
