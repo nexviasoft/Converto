@@ -16,6 +16,7 @@ export default function Footer({
   return (
     <footer className="border-t border-white/10">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
+        
         <div className="text-sm text-white/70">
           <span className="font-semibold text-white">Converto</span>{" "}
           <span className="text-white/50">•</span> by NexviaSoft
@@ -25,17 +26,29 @@ export default function Footer({
           <a className="transition hover:text-white" href="#features">
             Features
           </a>
+
           <a className="transition hover:text-white" href="#how">
             How
           </a>
+
           <a className="transition hover:text-white" href="/converter">
             Online
           </a>
+
           <a className="transition hover:text-white" href="#pricing">
             Free vs Pro
           </a>
+
           <a className="transition hover:text-white" href="#faq">
             FAQ
+          </a>
+
+          <a className="transition hover:text-white" href="/formats">
+            Formats
+          </a>
+
+          <a className="transition hover:text-white" href="/compare">
+            Compare
           </a>
 
           {googlePlayUrl ? (
@@ -61,12 +74,23 @@ export default function Footer({
         </div>
 
         <div className="flex flex-wrap gap-3 text-xs text-white/50">
+
+          <a className="transition hover:text-white" href="/about">
+            About
+          </a>
+
+          <a className="transition hover:text-white" href="/contact">
+            Contact
+          </a>
+
           <a className="transition hover:text-white" href="/privacy">
             Privacy
           </a>
+
           <a className="transition hover:text-white" href="/terms">
             Terms
           </a>
+
           <a
             className="transition hover:text-white"
             href="mailto:support@converto.tools"
@@ -74,7 +98,11 @@ export default function Footer({
           >
             Support
           </a>
-          <span className="text-white/30">© {new Date().getFullYear()} NexviaSoft</span>
+
+          <span className="text-white/30">
+            © {new Date().getFullYear()} NexviaSoft
+          </span>
+
         </div>
       </div>
     </footer>
