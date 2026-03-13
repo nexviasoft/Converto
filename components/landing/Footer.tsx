@@ -15,8 +15,8 @@ export default function Footer({
 }) {
   return (
     <footer className="border-t border-white/10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
-        
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
+
         <div className="text-sm text-white/70">
           <span className="font-semibold text-white">Converto</span>{" "}
           <span className="text-white/50">•</span> by NexviaSoft
@@ -73,7 +73,7 @@ export default function Footer({
           )}
         </div>
 
-        <div className="flex flex-wrap gap-3 text-xs text-white/50">
+        <div className="flex items-center gap-4 text-xs text-white/50">
 
           <a className="transition hover:text-white" href="/about">
             About
@@ -99,11 +99,12 @@ export default function Footer({
             Support
           </a>
 
-          <span className="text-white/30">
+          <span className="text-white/30 whitespace-nowrap">
             © {new Date().getFullYear()} NexviaSoft
           </span>
 
         </div>
+
       </div>
     </footer>
   );
