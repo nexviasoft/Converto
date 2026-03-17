@@ -30,9 +30,15 @@ export default function TrustWaitlistSection({
               Built with privacy in mind
             </h3>
             <p className="mt-2 text-sm text-white/70">
-              Mobile conversions run locally for images & documents. Online
-              conversion will use strict limits and auto-deletion.
-            </p>
+  Mobile conversions run locally for images & documents. Online
+  conversion will use strict limits and auto-deletion. 
+  <span className="text-white/60">
+    {" "}
+    {waitlistCount > 0
+      ? `🔥 ${waitlistCount} people already joined early access.`
+      : "Be one of the first to join early access."}
+  </span>
+</p>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {[
@@ -86,12 +92,6 @@ export default function TrustWaitlistSection({
                 {joined ? "Joined" : "Join waitlist"}
               </button>
             </form>
-
-            <p className="pl-1 text-xs text-white/55">
-              {waitlistCount > 0
-                ? `🔥 ${waitlistCount} people joined early access`
-                : "Be one of the first to join early access"}
-            </p>
           </div>
         </div>
       </div>
