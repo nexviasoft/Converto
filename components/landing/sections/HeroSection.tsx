@@ -19,8 +19,6 @@ export default function HeroSection({
     <section className="mx-auto max-w-6xl px-4 pb-10 pt-12 sm:pt-16">
       <div className="grid gap-10 md:grid-cols-2 md:items-center">
         <div>
-          <Badge>Beta: Online converter launching soon</Badge>
-
           <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
             Convert files in seconds.
             <span className="block bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-clip-text text-transparent">
@@ -34,8 +32,8 @@ export default function HeroSection({
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <Pill>JPG • PNG • WEBP • PDF</Pill>
-            <Pill>MP4 • MOV • MKV (server beta)</Pill>
+            <Pill>JPG • PNG • WEBP • AVIF</Pill>
+            <Pill>MP4 • MOV • MKV</Pill>
             <Pill>No watermarks</Pill>
           </div>
 

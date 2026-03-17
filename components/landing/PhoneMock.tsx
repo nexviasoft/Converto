@@ -17,7 +17,7 @@ export default function PhoneMock() {
 
           <span className="inline-flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Online Beta
+            Online 
           </span>
         </div>
 
@@ -25,7 +25,7 @@ export default function PhoneMock() {
           <div className="rounded-3xl bg-white/10 p-4 ring-1 ring-white/10">
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold">Quick Convert</div>
-              <span className="text-xs text-white/60">Local • Fast</span>
+              <span className="text-xs text-white/60">Local • Private</span>
             </div>
 
             <div className="mt-3 grid gap-3">
