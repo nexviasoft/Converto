@@ -596,16 +596,10 @@ export default function ConverterPageContent({
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
 
-  /** Gerçek işlem ilerlemesi */
   const [actualProgress, setActualProgress] = useState(0);
-
-  /** Kullanıcıya gösterilen akıcı ilerleme */
   const [displayProgress, setDisplayProgress] = useState(0);
-
-  /** Progress açıklama metni */
   const [progressLabel, setProgressLabel] = useState("Preparing file...");
 
-  /** Soft route state */
   const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
   const [routeOutput, setRouteOutput] = useState<TargetFmt>(initialSuggestedOutput);
 
@@ -614,7 +608,6 @@ export default function ConverterPageContent({
 
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
-  const holdNinetyRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -637,31 +630,21 @@ export default function ConverterPageContent({
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
     if (status !== "processing") return;
 
-    if (actualProgress < 15) {
+    if (actualProgress < 12) {
       setProgressLabel("Preparing file...");
-    } else if (actualProgress < 35) {
+    } else if (actualProgress < 28) {
       setProgressLabel("Uploading file...");
-    } else if (actualProgress < 88) {
+    } else if (actualProgress < 90) {
       setProgressLabel("Converting...");
-    } else if (actualProgress < 97) {
-      setProgressLabel("Finalizing output...");
+    } else if (actualProgress < 99) {
+      setProgressLabel("Preparing download...");
     } else {
-      setProgressLabel("Almost done...");
+      setProgressLabel("Done...");
     }
   }, [actualProgress, status]);
 
-  /**
-   * Ekrandaki progress bar, gerçek progress'i yumuşak şekilde takip eder.
-   * Böylece takılı kalmış hissi azalır.
-   */
   useEffect(() => {
     if (status !== "processing") return;
 
@@ -690,11 +673,6 @@ export default function ConverterPageContent({
     return () => clearInterval(timer);
   }, [actualProgress, status]);
 
-  /**
-   * Gerçek route navigation yok.
-   * Sadece URL bar + local screen state güncelleniyor.
-   * Böylece preview/file state korunuyor.
-   */
   const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
     if (!nextOutput) return;
 
@@ -817,8 +795,6 @@ export default function ConverterPageContent({
   };
 
   const resetConverter = () => {
-    if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
-
     revokeResult();
     revokePreview();
     setFile(null);
@@ -967,26 +943,39 @@ export default function ConverterPageContent({
       throw new Error("Server conversion is not configured.");
     }
 
-    const formData = new FormData();
-    formData.append("file", inputFile);
-    formData.append("target", targetFormat);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1000 * 60 * 8);
 
-    const res = await fetch(`${API_URL}/convert`, {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const formData = new FormData();
+      formData.append("file", inputFile);
+      formData.append("target", targetFormat);
 
-    if (!res.ok) {
-      let message = "Server conversion failed.";
-      try {
-        const data = await res.json();
-        if (data?.error) message = data.error;
-      } catch {}
-      throw new Error(message);
+      const res = await fetch(`${API_URL}/convert`, {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        let message = "Server conversion failed.";
+        try {
+          const data = await res.json();
+          if (data?.error) message = data.error;
+        } catch {}
+        throw new Error(message);
+      }
+
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        throw new Error("Conversion timed out. Please try a smaller file.");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
     }
-
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
   };
 
   const pickFile = (f: File) => {
@@ -1032,26 +1021,23 @@ export default function ConverterPageContent({
     let fakeTimer: ReturnType<typeof setInterval> | null = null;
 
     try {
-      if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
-
       setErrorMsg(null);
       setStatus("processing");
-      setActualProgress(8);
-      setDisplayProgress(4);
+      setActualProgress(6);
+      setDisplayProgress(3);
       setProgressLabel("Preparing file...");
       setTargetOpen(false);
 
       fakeTimer = setInterval(() => {
         setActualProgress((prev) => {
-          if (prev >= 92) return prev;
-          if (prev < 18) return prev + 8;
-          if (prev < 35) return prev + 6;
-          if (prev < 55) return prev + 4;
-          if (prev < 75) return prev + 3;
-          if (prev < 88) return prev + 2;
+          if (prev >= 90) return prev;
+          if (prev < 15) return prev + 7;
+          if (prev < 30) return prev + 5;
+          if (prev < 55) return prev + 3;
+          if (prev < 75) return prev + 2;
           return prev + 1;
         });
-      }, 260);
+      }, 300);
 
       let convertedUrl: string;
 
@@ -1063,32 +1049,18 @@ export default function ConverterPageContent({
 
       if (fakeTimer) clearInterval(fakeTimer);
 
-      setActualProgress(94);
-      setProgressLabel("Finalizing output...");
-
-      holdNinetyRef.current = setInterval(() => {
-        setActualProgress((prev) => {
-          if (prev >= 96) {
-            if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 220);
+      setActualProgress(97);
+      setProgressLabel("Preparing download...");
 
       revokeResult();
       setResultUrl(convertedUrl);
 
-      setTimeout(() => {
-        if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
-        setProgressLabel("Almost done...");
-        setActualProgress(100);
-        setDisplayProgress(100);
-        setStatus("done");
-      }, 420);
+      setActualProgress(100);
+      setDisplayProgress(100);
+      setProgressLabel("Done...");
+      setStatus("done");
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
-      if (holdNinetyRef.current) clearInterval(holdNinetyRef.current);
       setErrorMsg(err?.message ?? "Server conversion failed.");
       setStatus("error");
       setActualProgress(0);
