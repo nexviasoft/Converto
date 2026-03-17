@@ -17,7 +17,7 @@ export default function FeaturesSection() {
           title="Lightning-fast defaults"
           desc="Smart presets that keep files small and quality high."
           accent="from-emerald-500/15 via-violet-500/10 to-sky-500/15"
-          icon={<img src="/brand/icons/lightning.png" alt="Lightning" className="block h-9 w-9 object-contain select-none" draggable={false} />}
+          icon={<img src="/brand/icons/lightning.png" alt="Lightning" className="block h-14 w-14 object-contain select-none" draggable={false} />}
         />
         <FeatureCard
           title="Privacy-first"
