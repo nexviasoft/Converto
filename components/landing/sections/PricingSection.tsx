@@ -35,12 +35,12 @@ export default function PricingSection({
 
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             {[
-              "Images & documents: local conversion",
-              "Core formats: JPG, PNG, WEBP, PDF",
-              "Daily limit (planned): 1 online conversion/day",
-              "Max size (planned): 50MB",
-              "Auto-delete (planned): 15 minutes",
-              "Basic presets: optimized default quality",
+              "Local browser conversion (privacy-friendly)",
+              "Core formats: JPG • PNG • WEBP • MP3 • MP4",
+              "Basic conversion quality",
+              "File size limit: 50MB",
+              "Auto delete after 15 minutes",
+              "No signup required",
             ].map((x) => (
               <li key={x} className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-white/40" />
@@ -70,12 +70,12 @@ export default function PricingSection({
 
           <ul className="relative mt-4 space-y-3 text-sm text-white/70">
             {[
-              "Higher limits (size + daily usage)",
+              "Larger file size limits",
+              "Faster server processing",
               "Batch conversion (multi-file)",
-              "More formats (premium formats roadmap)",
-              "Faster queue + priority processing (web)",
-              "Longer auto-delete window options (web)",
-              "Expanded recents + workflow helpers",
+              "Access to all premium formats",
+              "Priority conversion queue",
+              "Extended file retention",
             ].map((x) => (
               <li key={x} className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-300/80" />

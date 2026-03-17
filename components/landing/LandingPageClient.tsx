@@ -46,6 +46,7 @@ export default function LandingPageClient() {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [joined, setJoined] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState(0);
 
   const [toastOpen, setToastOpen] = useState(false);
   const [toastTitle, setToastTitle] = useState("Done!");
@@ -102,6 +103,20 @@ export default function LandingPageClient() {
   }, []);
 
   useEffect(() => {
+    const loadWaitlistCount = async () => {
+      try {
+        const res = await fetch("/api/waitlist/count");
+        const data = await res.json();
+        setWaitlistCount(data.count ?? 0);
+      } catch {
+        setWaitlistCount(0);
+      }
+    };
+
+    loadWaitlistCount();
+  }, []);
+
+  useEffect(() => {
     const ids = sections.map((s) => s.id);
     const els = ids
       .map((id) => document.getElementById(id))
@@ -114,7 +129,9 @@ export default function LandingPageClient() {
       (entries) => {
         const visible = entries
           .filter((e) => e.isIntersecting)
-          .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0))[0];
+          .sort(
+            (a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0)
+          )[0];
 
         if (visible?.target?.id) setActiveId(visible.target.id);
       },
@@ -129,11 +146,12 @@ export default function LandingPageClient() {
     return () => observerRef.current?.disconnect();
   }, [sections]);
 
-  const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const validateEmail = (v: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
-  const onJoin = (e: React.FormEvent) => {
+  const onJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const v = email.trim();
+    const v = email.trim().toLowerCase();
 
     if (!validateEmail(v)) {
       setEmailError("Please enter a valid email address.");
@@ -142,13 +160,43 @@ export default function LandingPageClient() {
     }
 
     setEmailError(null);
-    setJoined(true);
 
     try {
-      localStorage.setItem("converto_waitlist_joined_v1", "1");
-    } catch {}
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: v }),
+      });
 
-    showToast("You're on the waitlist!", "We’ll notify you when online conversion goes live.");
+      const data = await res.json();
+
+      if (!res.ok) {
+        const message =
+          data?.error || data?.message || "Something went wrong. Please try again.";
+
+        setEmailError(message);
+        showToast("Could not join", message);
+        return;
+      }
+
+      setJoined(true);
+      setEmail("");
+      setWaitlistCount((prev) => prev + 1);
+
+      try {
+        localStorage.setItem("converto_waitlist_joined_v1", "1");
+      } catch {}
+
+      showToast(
+        "You're on the waitlist!",
+        "We’ll notify you when online conversion goes live."
+      );
+    } catch {
+      setEmailError("Something went wrong. Please try again.");
+      showToast("Server error", "Please try again in a moment.");
+    }
   };
 
   return (
@@ -195,6 +243,7 @@ export default function LandingPageClient() {
           emailError={emailError}
           setEmail={setEmail}
           onJoin={onJoin}
+          waitlistCount={waitlistCount}
         />
 
         <FaqSection />
