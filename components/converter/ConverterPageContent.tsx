@@ -5,6 +5,11 @@ const MAINTENANCE_MODE = false;
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
+import FormatOverviewSection from "@/components/converter/sections/FormatOverviewSection";
+import UseCasesSection from "@/components/converter/sections/UseCasesSection";
+import QualityNotesSection from "@/components/converter/sections/QualityNotesSection";
+import RouteSpecificFaqSection from "@/components/converter/sections/RouteSpecificFaqSection";
+import { getConverterContent } from "@/lib/converterContent";
 
 type TargetFmt =
   | "MP3"
@@ -38,6 +43,7 @@ type TargetFmt =
   | "AVIF";
 
 type ConverterPageContentProps = {
+  slug?: string;
   seoTitle?: string;
   seoDescription?: string;
   suggestedInput?: TargetFmt | null;
@@ -298,7 +304,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
 
   let whyText = `Converting ${from} to ${to} can help with playback compatibility, sharing, compression, editing workflows, or extracting audio from video files.`;
 
-  let useText = `This page is optimized around ${from} to ${to}, but it does not lock your workflow. You can still upload another supported file type and switch the output format inside the converter.`;
+  let useText = `Use this converter when you need a quick way to change ${from} into ${to} for easier playback, sharing, editing, or file compatibility.`;
 
   if (inputIsAudio && isAudioFmt(to)) {
     intro = `Convert ${from} to ${to} online with a simple workflow. This is useful when you need better compatibility, different compression, or a format that works better across devices and apps.`;
@@ -331,50 +337,6 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     whyText,
     useText,
     browserText: `Converto currently uses a hybrid conversion flow: canvas for supported browser-safe image conversions and server-assisted processing for other formats.`,
-  };
-}
-
-function buildFaqSchema(input?: string | null, output?: string | null) {
-  const from = normalizeFmtLabel(input) ?? "FILE";
-  const to = normalizeFmtLabel(output) ?? "FILE";
-
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `How do I convert ${from} to ${to}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Upload your ${from} file, keep ${to} as the suggested output format or choose another supported target, then start the conversion and download the result when it is ready.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Can I upload a different file type on the ${from} to ${to} page?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Yes. This page suggests ${from} to ${to} conversion, but the converter is not locked to that exact path. If you upload a different supported file type, the route and suggested flow can adapt.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Is ${from} to ${to} conversion free?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Yes. The current demo is free for quick everyday conversions with a 50MB file limit.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `Does ${from} to ${to} conversion happen in the browser?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Supported browser-safe image conversions can run with canvas in the browser, while other conversions use a server-assisted flow for better compatibility and stability.`,
-        },
-      },
-    ],
   };
 }
 
@@ -474,7 +436,7 @@ function SeoInfoSection({
           </div>
 
           <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-            <h3 className="text-sm font-semibold text-white">When to use this page</h3>
+            <h3 className="text-sm font-semibold text-white">When to use this converter</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">{seo.useText}</p>
           </div>
 
@@ -511,8 +473,7 @@ function RelatedConversionsSection({
         </h3>
 
         <p className="mt-2 max-w-[70ch] text-sm leading-6 text-white/60">
-          These pages are related to your current conversion route and can help users
-          discover other common format combinations.
+          Browse similar conversions that are commonly used for audio, video, and image workflows.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -544,8 +505,7 @@ function PopularEntrySection() {
         </h3>
 
         <p className="mt-2 max-w-[70ch] text-sm leading-6 text-white/60">
-          These are some of the most common converter paths on Converto. They also help strengthen
-          internal linking across the site and make it easier to discover related pages.
+          These are some of the most common file conversion routes people use for audio, video, and images. Browse them to quickly jump into other useful format changes.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -572,6 +532,7 @@ function PopularEntrySection() {
 }
 
 export default function ConverterPageContent({
+  slug,
   seoTitle,
   seoDescription,
   suggestedInput = null,
@@ -608,6 +569,8 @@ export default function ConverterPageContent({
 
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
+
+  const customContent = slug ? getConverterContent(slug) : null;
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -1122,9 +1085,37 @@ export default function ConverterPageContent({
     seoDescription ||
     `Convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} online with Converto. Upload your file, choose your target format, and download the converted result in a simple workflow.`;
 
+  const effectiveFaqItems = useMemo(() => {
+    if (customContent?.faq?.length) {
+      return customContent.faq;
+    }
+
+    return [
+      {
+        q: `How do I convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"}?`,
+        a: `Upload your ${activeInputLabel ?? "FILE"} file, choose ${activeOutputLabel ?? "FILE"} as the output format, start the conversion, and download the result when it is ready.`,
+      },
+      {
+        q: `Is ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} conversion free?`,
+        a: `Yes. Converto currently offers free everyday conversion with a 50MB file limit for the demo workflow.`,
+      },
+    ];
+  }, [customContent, activeInputLabel, activeOutputLabel]);
+
   const faqSchema = useMemo(
-    () => buildFaqSchema(activeInputLabel, activeOutputLabel),
-    [activeInputLabel, activeOutputLabel]
+    () => ({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: effectiveFaqItems.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.a,
+        },
+      })),
+    }),
+    [effectiveFaqItems]
   );
 
   const webPageSchema = useMemo(
@@ -1268,7 +1259,7 @@ export default function ConverterPageContent({
                             </span>
                           ) : routeInput || suggestedInput ? (
                             <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
-                              Soft route: {(routeInput ?? suggestedInput ?? "INPUT")} → {routeOutput}
+                              Suggested route: {(routeInput ?? suggestedInput ?? "INPUT")} → {routeOutput}
                             </span>
                           ) : null}
                         </div>
@@ -1399,16 +1390,14 @@ export default function ConverterPageContent({
                           <>
                             You are converting{" "}
                             <span className="font-semibold text-white/75">{fromFmt}</span> files to{" "}
-                            <span className="font-semibold text-white/75">{target}</span>. URL updates
-                            softly without clearing the selected file.
+                            <span className="font-semibold text-white/75">{target}</span>. The page keeps your workflow aligned with the selected format route while you continue converting.
                           </>
                         ) : (
                           <>
-                            This page suggests converting{" "}
+                            This page starts with a suggested route of{" "}
                             <span className="font-semibold text-white/75">{routeInput ?? "input"}</span>{" "}
-                            files to{" "}
-                            <span className="font-semibold text-white/75">{routeOutput}</span>. You can
-                            still switch formats without losing the current file state.
+                            to{" "}
+                            <span className="font-semibold text-white/75">{routeOutput}</span>, and you can still switch to another supported output format at any time.
                           </>
                         )}
                       </p>
@@ -1688,6 +1677,38 @@ export default function ConverterPageContent({
               </section>
 
               <SeoInfoSection input={activeInputLabel} output={activeOutputLabel} />
+
+              {customContent ? (
+                <>
+                  <FormatOverviewSection
+                    inputLabel={activeInputLabel ?? "FILE"}
+                    outputLabel={activeOutputLabel ?? "FILE"}
+                    whatIsInput={customContent.whatIsInput}
+                    whatIsOutput={customContent.whatIsOutput}
+                  />
+
+                  <UseCasesSection
+                    inputLabel={activeInputLabel ?? "FILE"}
+                    outputLabel={activeOutputLabel ?? "FILE"}
+                    whyConvert={customContent.whyConvert}
+                    useCases={customContent.useCases}
+                  />
+
+                  <QualityNotesSection
+                    inputLabel={activeInputLabel ?? "FILE"}
+                    outputLabel={activeOutputLabel ?? "FILE"}
+                    qualityNotes={customContent.qualityNotes}
+                    tips={customContent.tips}
+                  />
+
+                  <RouteSpecificFaqSection
+                    inputLabel={activeInputLabel ?? "FILE"}
+                    outputLabel={activeOutputLabel ?? "FILE"}
+                    faq={customContent.faq}
+                  />
+                </>
+              ) : null}
+
               <PopularEntrySection />
               <RelatedConversionsSection input={activeInputLabel} output={activeOutputLabel} />
             </div>

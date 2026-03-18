@@ -224,6 +224,7 @@ export default async function ConvertSlugPage({ params }: PageProps) {
   if (!parsed) notFound();
 
   const {
+    slug,
     input,
     output,
     suggestedInput,
@@ -234,6 +235,7 @@ export default async function ConvertSlugPage({ params }: PageProps) {
 
   return (
     <ConverterPageContent
+      slug={slug}
       seoTitle={`Convert ${inputUpper} to ${outputUpper} online`}
       seoDescription={`Free online ${inputUpper} to ${outputUpper} converter. Fast, simple, and built for quick everyday file conversion tasks.`}
       suggestedInput={suggestedInput}
