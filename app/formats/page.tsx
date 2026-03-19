@@ -6,16 +6,16 @@ const siteUrl =
   "https://converto.tools";
 
 export const metadata: Metadata = {
-  title: "Supported File Formats",
+  title: "Supported File Formats | Converto",
   description:
-    "Explore the audio, video, and image formats supported by Converto. Convert MP3, WAV, AAC, FLAC, MP4, WEBM, MOV, GIF, PNG, JPG, WEBP, and more online.",
+    "Explore Converto’s supported audio, video, and image formats. Learn what each format is best for, compare similar formats, and jump into common conversion paths.",
   alternates: {
     canonical: `${siteUrl}/formats`,
   },
   openGraph: {
     title: "Supported File Formats | Converto",
     description:
-      "Explore the audio, video, and image formats supported by Converto.",
+      "Explore Converto’s supported audio, video, and image formats.",
     url: `${siteUrl}/formats`,
     siteName: "Converto",
     type: "website",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Supported File Formats | Converto",
     description:
-      "Explore the audio, video, and image formats supported by Converto.",
+      "Explore Converto’s supported audio, video, and image formats.",
   },
 };
 

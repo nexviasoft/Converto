@@ -12,6 +12,18 @@ export type FormatDataItem = {
   bestFor: string[];
   commonConversions: { href: string; label: string }[];
   relatedFormats: { href: string; label: string }[];
+
+  deepGuideIntro?: string;
+  technicalPoints?: string[];
+  bestConversionSettings?: { label: string; value: string }[];
+  formatComparison?: {
+    title: string;
+    points: string[];
+  };
+  faq?: {
+    question: string;
+    answer: string;
+  }[];
 };
 
 export const formatData: Record<string, FormatDataItem> = {
@@ -47,6 +59,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/flac", label: "FLAC" },
       { href: "/formats/m4a", label: "M4A" },
     ],
+    deepGuideIntro:
+      "MP3 became the default everyday audio format because it is easy to store, easy to share, and supported almost everywhere. It is especially useful when file size matters more than keeping every bit of the original source audio intact.",
+    technicalPoints: [
+      "MP3 is a lossy audio format, which means some audio data is removed to reduce file size.",
+      "Higher bitrates usually preserve more detail, while lower bitrates create smaller files.",
+      "MP3 is often a better delivery format than an editing format.",
+      "Converting a low-quality MP3 into WAV or FLAC will not restore the detail that was already lost.",
+    ],
+    bestConversionSettings: [
+      { label: "For casual listening", value: "MP3 at 192 kbps" },
+      { label: "For better music quality", value: "MP3 at 320 kbps" },
+      { label: "For editing", value: "Convert to WAV for broader editing support" },
+      { label: "For archive quality", value: "Keep or start from a lossless source when possible" },
+    ],
+    formatComparison: {
+      title: "MP3 vs other common audio formats",
+      points: [
+        "Compared with WAV, MP3 is much smaller but less suitable for production and editing.",
+        "Compared with FLAC, MP3 is lighter and more portable but not lossless.",
+        "Compared with AAC, MP3 is usually more universal, while AAC can be more efficient at similar bitrates.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is MP3 best used for?",
+        answer:
+          "MP3 is best for portable listening, general music playback, podcasts, voice clips, and broad compatibility across devices.",
+      },
+      {
+        question: "Is MP3 lossless?",
+        answer:
+          "No. MP3 is a lossy format designed to reduce file size while keeping usable sound quality.",
+      },
+      {
+        question: "Can converting MP3 to WAV improve sound quality?",
+        answer:
+          "No. It can improve workflow compatibility for editing, but it cannot restore audio detail that was removed during MP3 compression.",
+      },
+    ],
   },
 
   wav: {
@@ -80,6 +131,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/flac", label: "FLAC" },
       { href: "/formats/aiff", label: "AIFF" },
       { href: "/formats/aac", label: "AAC" },
+    ],
+    deepGuideIntro:
+      "WAV is often used when users need quality-first audio rather than compact delivery. It is a strong format for editing, mastering, recording, and preserving a cleaner source before exporting into smaller formats for sharing.",
+    technicalPoints: [
+      "WAV is usually uncompressed, which is why the files are much larger than MP3 or AAC.",
+      "Because it is less compressed, WAV is more suitable for editing and production workflows.",
+      "WAV is often used as an intermediate or master-like working format before exporting to smaller delivery formats.",
+      "If storage space matters, WAV is often converted to MP3, AAC, or FLAC depending on the goal.",
+    ],
+    bestConversionSettings: [
+      { label: "For editing", value: "Keep WAV when quality and flexibility matter most" },
+      { label: "For sharing", value: "Convert to MP3 or AAC for smaller files" },
+      { label: "For lossless compression", value: "Convert to FLAC to reduce size while preserving audio" },
+      { label: "For spoken content", value: "Use practical export settings based on playback needs" },
+    ],
+    formatComparison: {
+      title: "WAV vs other common audio formats",
+      points: [
+        "Compared with MP3, WAV is much larger but better for editing and preserving source quality.",
+        "Compared with FLAC, WAV is often larger because FLAC compresses lossless audio more efficiently.",
+        "Compared with AIFF, WAV is similarly quality-focused but more common in many Windows and cross-platform workflows.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is WAV best used for?",
+        answer:
+          "WAV is best for editing, recording, mastering, archiving, and other quality-first audio workflows.",
+      },
+      {
+        question: "Why is WAV so large?",
+        answer:
+          "WAV files are often uncompressed, so they preserve more original audio detail at the cost of much larger file sizes.",
+      },
+      {
+        question: "Should I keep WAV or convert it?",
+        answer:
+          "Keep WAV for editing or preservation. Convert it when you need smaller files or easier sharing.",
+      },
     ],
   },
 
@@ -115,6 +205,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/opus", label: "OPUS" },
       { href: "/formats/flac", label: "FLAC" },
     ],
+    deepGuideIntro:
+      "AAC is a practical modern audio format for users who want efficient compression without falling back on older standards alone. It is especially common in streaming ecosystems, mobile use, and Apple-adjacent workflows where compact files and solid perceived quality matter.",
+    technicalPoints: [
+      "AAC is a lossy format designed to deliver good sound quality at relatively efficient bitrates.",
+      "It is often seen as a more modern alternative to MP3 for many streaming and mobile scenarios.",
+      "AAC commonly appears in app playback, downloads, mobile media, and platform-friendly audio containers.",
+      "Users often convert AAC to MP3 for broader compatibility or to WAV and FLAC for workflow convenience, not true quality restoration.",
+    ],
+    bestConversionSettings: [
+      { label: "For mobile playback", value: "Keep AAC when the ecosystem already supports it well" },
+      { label: "For broad compatibility", value: "Convert AAC to MP3 when you need a safer universal format" },
+      { label: "For editing workflows", value: "Convert to WAV for easier handling in many editors" },
+      { label: "For archive-minded storage", value: "Use a lossless source when preservation matters" },
+    ],
+    formatComparison: {
+      title: "AAC vs other common audio formats",
+      points: [
+        "Compared with MP3, AAC is often more efficient at similar bitrates.",
+        "Compared with WAV, AAC is much smaller but not suitable as a quality-first editing format.",
+        "Compared with FLAC, AAC is compact and convenient but not lossless.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is AAC best used for?",
+        answer:
+          "AAC is best for mobile playback, streaming, compact listening files, and modern lossy audio delivery.",
+      },
+      {
+        question: "Is AAC better than MP3?",
+        answer:
+          "AAC is often more efficient at similar bitrates, but MP3 is still the more universally recognized compatibility choice in many workflows.",
+      },
+      {
+        question: "Can converting AAC to WAV restore lost audio detail?",
+        answer:
+          "No. Converting AAC to WAV can help with editing compatibility, but it cannot recover detail removed by lossy compression.",
+      },
+    ],
   },
 
   m4a: {
@@ -148,6 +277,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/mp3", label: "MP3" },
       { href: "/formats/wav", label: "WAV" },
       { href: "/formats/opus", label: "OPUS" },
+    ],
+    deepGuideIntro:
+      "M4A is commonly used when users want compact, modern audio files in ecosystems that handle AAC-based audio well. It often appears in music libraries, podcast downloads, voice content, and Apple-friendly workflows where smaller file sizes and smooth playback matter.",
+    technicalPoints: [
+      "M4A is a container format commonly used for AAC audio, though the exact encoding can vary.",
+      "It is often associated with Apple-friendly playback and modern compact listening files.",
+      "M4A is a good everyday format when the playback environment already supports it well.",
+      "Users often convert M4A to MP3 for broader compatibility or to WAV for editing-friendly workflows.",
+    ],
+    bestConversionSettings: [
+      { label: "For Apple-friendly playback", value: "Keep M4A when your devices and apps already support it" },
+      { label: "For universal compatibility", value: "Convert M4A to MP3 when sharing widely" },
+      { label: "For editing and production", value: "Convert to WAV for easier workflow handling" },
+      { label: "For higher-quality library strategy", value: "Use lossless originals when long-term preservation matters" },
+    ],
+    formatComparison: {
+      title: "M4A vs other common audio formats",
+      points: [
+        "Compared with MP3, M4A can feel more modern and compact in some ecosystems, though MP3 is often more universal.",
+        "Compared with AAC, M4A is commonly the container users encounter around AAC-based audio.",
+        "Compared with WAV, M4A is much smaller but not a quality-first production format.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is M4A best used for?",
+        answer:
+          "M4A is best for compact music playback, podcasts, mobile listening, and Apple-friendly audio workflows.",
+      },
+      {
+        question: "Should I convert M4A to MP3?",
+        answer:
+          "Yes, if you want broader compatibility across more devices, apps, and sharing scenarios.",
+      },
+      {
+        question: "Is M4A lossless?",
+        answer:
+          "Usually no. M4A commonly contains lossy AAC audio, though the container itself does not guarantee one specific quality type.",
+      },
     ],
   },
 
@@ -250,6 +418,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/mp3", label: "MP3" },
       { href: "/formats/aiff", label: "AIFF" },
       { href: "/formats/opus", label: "OPUS" },
+    ],
+    deepGuideIntro:
+      "FLAC is one of the most practical formats for users who care about keeping audio quality intact without storing fully uncompressed files all the time. It is often used in serious music libraries, backup collections, and listening setups where source quality matters more than minimum file size.",
+    technicalPoints: [
+      "FLAC is lossless, which means it preserves the original audio detail instead of discarding it.",
+      "Compared with WAV, FLAC often saves space while keeping the same core audio information intact.",
+      "FLAC is a strong format for archiving and higher-quality listening but is less lightweight than delivery-first formats like MP3 or AAC.",
+      "Users often convert FLAC to MP3 or AAC when they need smaller, easier-to-share files.",
+    ],
+    bestConversionSettings: [
+      { label: "For archive-minded storage", value: "Keep FLAC when preserving audio quality matters" },
+      { label: "For smaller portable files", value: "Convert FLAC to MP3 or AAC for everyday sharing and playback" },
+      { label: "For editing workflows", value: "Convert to WAV when broader editor handling is preferred" },
+      { label: "For serious listening", value: "Keep FLAC when your playback chain supports lossless audio well" },
+    ],
+    formatComparison: {
+      title: "FLAC vs other common audio formats",
+      points: [
+        "Compared with MP3, FLAC preserves original audio quality but creates larger files.",
+        "Compared with WAV, FLAC is often more storage-efficient while still remaining lossless.",
+        "Compared with AAC, FLAC is less compact but far better suited to preservation and lossless listening.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is FLAC best used for?",
+        answer:
+          "FLAC is best for lossless music libraries, archiving audio, and higher-quality listening workflows.",
+      },
+      {
+        question: "Is FLAC better than MP3?",
+        answer:
+          "FLAC preserves more audio information because it is lossless, but MP3 is smaller and more convenient for casual portable use.",
+      },
+      {
+        question: "Should I convert FLAC to MP3?",
+        answer:
+          "Yes, when file size and portability matter more than keeping every bit of the original audio intact.",
+      },
     ],
   },
 
@@ -387,6 +594,52 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/mkv", label: "MKV" },
       { href: "/formats/gif", label: "GIF" },
     ],
+    deepGuideIntro:
+      "MP4 is often the safest starting point when you need a video file that works across modern devices, browsers, social platforms, and apps. In real workflows, people use MP4 for downloads, recordings, sharing, uploads, and playback because it balances compatibility, quality, and manageable file sizes better than many older or more specialized containers.",
+    technicalPoints: [
+      "MP4 is a container format, which means it can hold video, audio, subtitles, and metadata together in one file.",
+      "Many MP4 files use H.264 video and AAC audio, which is one reason they are so widely supported.",
+      "MP4 is often a more practical sharing format than larger or less universally supported containers like MKV, AVI, or some MOV exports.",
+      "If you only need the sound from a video, converting MP4 to MP3 is one of the most common and useful workflows.",
+      "Converting MP4 does not magically improve quality. The original source still matters the most.",
+    ],
+    bestConversionSettings: [
+      { label: "For audio extraction", value: "MP3 at 192 kbps or 320 kbps" },
+      { label: "For broad playback compatibility", value: "MP4 with H.264 video and AAC audio" },
+      { label: "For browser-focused delivery", value: "WEBM when web-first playback matters most" },
+      { label: "For easy sharing", value: "Keep resolution and bitrate practical to avoid oversized files" },
+    ],
+    formatComparison: {
+      title: "MP4 vs other common video formats",
+      points: [
+        "Compared with MKV, MP4 is usually easier to play on mainstream devices and websites.",
+        "Compared with MOV, MP4 is often better for sharing and broad compatibility outside editing-heavy workflows.",
+        "Compared with WEBM, MP4 is typically the safer all-around choice across apps, devices, and platforms.",
+        "Compared with AVI or WMV, MP4 is generally the more modern option for everyday playback and delivery.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is MP4 best used for?",
+        answer:
+          "MP4 is best for general playback, sharing, uploads, and broad compatibility across phones, browsers, laptops, and apps.",
+      },
+      {
+        question: "Is MP4 good for extracting audio?",
+        answer:
+          "Yes. Converting MP4 to MP3 is a very common workflow when users only need the audio from a video.",
+      },
+      {
+        question: "Can converting MP4 improve quality?",
+        answer:
+          "No. Conversion may improve compatibility or reduce file size, but it cannot restore detail missing from the original source.",
+      },
+      {
+        question: "Should I use MP4 or WEBM?",
+        answer:
+          "Use MP4 when you want the safest broad compatibility. Use WEBM when your workflow is more web-focused and browser delivery matters most.",
+      },
+    ],
   },
 
   webm: {
@@ -421,6 +674,40 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/mkv", label: "MKV" },
       { href: "/formats/gif", label: "GIF" },
     ],
+    deepGuideIntro:
+      "WEBM is most useful when the final destination is the web. It is designed around efficient browser playback and is commonly used in online workflows where file weight and web delivery matter more than universal offline compatibility.",
+    technicalPoints: [
+      "WEBM is especially associated with browser-friendly playback and lighter delivery.",
+      "Compared with MP4, WEBM is often more web-oriented but not always the best all-around compatibility choice.",
+      "Users often convert WEBM to MP4 when they want safer playback across more apps and devices.",
+      "WEBM can also be converted to MP3 when the goal is audio extraction rather than video playback.",
+    ],
+    bestConversionSettings: [
+      { label: "For browser playback", value: "Keep WEBM when the workflow is strongly web-focused" },
+      { label: "For universal sharing", value: "Convert to MP4 for broader compatibility" },
+      { label: "For audio extraction", value: "Convert to MP3 when only the sound is needed" },
+      { label: "For lightweight loops", value: "Convert to GIF only when short looping visuals are the goal" },
+    ],
+    formatComparison: {
+      title: "WEBM vs other common video formats",
+      points: [
+        "Compared with MP4, WEBM is more browser-oriented while MP4 is usually safer for broad compatibility.",
+        "Compared with MOV, WEBM is generally more web-focused and less tied to editing-heavy workflows.",
+        "Compared with MKV, WEBM is usually more streamlined for online delivery rather than richer container features.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is WEBM best used for?",
+        answer:
+          "WEBM is best for browser playback, online delivery, and web-focused video workflows.",
+      },
+      {
+        question: "Should I convert WEBM to MP4?",
+        answer:
+          "Yes, if you want broader compatibility across apps, devices, and general playback environments.",
+      },
+    ],
   },
 
   mov: {
@@ -454,6 +741,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/webm", label: "WEBM" },
       { href: "/formats/mkv", label: "MKV" },
       { href: "/formats/avi", label: "AVI" },
+    ],
+    deepGuideIntro:
+      "MOV is commonly used in creation and editing workflows where source flexibility and Apple-oriented media handling matter more than broad sharing convenience. It often appears in camera exports, editing timelines, and production pipelines before being converted into a more universal delivery format.",
+    technicalPoints: [
+      "MOV is a container format often associated with Apple and editing-friendly workflows.",
+      "It can be practical in production environments but less convenient than MP4 for broad public sharing.",
+      "Users often convert MOV to MP4 when they want smoother playback across browsers, apps, and non-editing environments.",
+      "MOV can also be converted to MP3 when the video visuals are no longer needed and only the audio matters.",
+    ],
+    bestConversionSettings: [
+      { label: "For editing workflows", value: "Keep MOV when your tools and workflow already depend on it" },
+      { label: "For wider playback support", value: "Convert MOV to MP4 for easier sharing and compatibility" },
+      { label: "For audio extraction", value: "Convert to MP3 when only the soundtrack or spoken content is needed" },
+      { label: "For short visual loops", value: "Convert to GIF when you need a lightweight animated clip" },
+    ],
+    formatComparison: {
+      title: "MOV vs other common video formats",
+      points: [
+        "Compared with MP4, MOV is often more editing-oriented while MP4 is usually better for general playback and sharing.",
+        "Compared with WEBM, MOV is less web-focused and more tied to production or Apple-adjacent workflows.",
+        "Compared with MKV, MOV is less about rich container flexibility and more about ecosystem-oriented media handling.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is MOV best used for?",
+        answer:
+          "MOV is best for editing workflows, Apple-oriented media handling, exports, and production-related video files.",
+      },
+      {
+        question: "Why do people convert MOV to MP4?",
+        answer:
+          "People convert MOV to MP4 to improve compatibility for sharing, browser playback, and general device support.",
+      },
+      {
+        question: "Is MOV better than MP4?",
+        answer:
+          "Not universally. MOV is often stronger in editing-heavy contexts, while MP4 is usually the better all-around delivery format.",
+      },
     ],
   },
 
@@ -761,6 +1087,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/jpg", label: "JPG" },
       { href: "/formats/mp4", label: "MP4" },
     ],
+    deepGuideIntro:
+      "GIF is still one of the easiest ways to share short looping visual content across messaging apps, social posts, reaction threads, and simple web pages. Even though newer formats can be more efficient, GIF remains widely recognized and extremely practical for quick animated snippets.",
+    technicalPoints: [
+      "GIF is commonly used for short loops, reactions, memes, and lightweight animated visuals.",
+      "It is simple and widely recognized, but not always the most compression-efficient format for longer or higher-quality animation.",
+      "Users often convert video clips such as MP4 into GIF when they want an instantly shareable looping visual.",
+      "Users also convert GIF into PNG, JPG, or WEBP when they want static frames or a different image workflow.",
+    ],
+    bestConversionSettings: [
+      { label: "For short loops", value: "Keep clips short to avoid oversized animated files" },
+      { label: "For web efficiency", value: "Consider WEBP when animation support and lighter output matter" },
+      { label: "For static extraction", value: "Convert GIF to PNG when you need a crisp still frame" },
+      { label: "For simple sharing", value: "Use GIF when universal recognition matters more than modern compression" },
+    ],
+    formatComparison: {
+      title: "GIF vs other common image and animation formats",
+      points: [
+        "Compared with PNG or JPG, GIF is useful for looping animation instead of only static imagery.",
+        "Compared with WEBP, GIF is often less efficient but more familiar in many casual sharing contexts.",
+        "Compared with MP4, GIF is easier for quick looping visual sharing but much less efficient for longer content.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is GIF best used for?",
+        answer:
+          "GIF is best for short looping animations, reactions, memes, and quick visual snippets shared across the web.",
+      },
+      {
+        question: "Should I use GIF or MP4?",
+        answer:
+          "Use GIF for short looping visuals that need instant shareability. Use MP4 when you want better efficiency and longer video playback.",
+      },
+      {
+        question: "Can I convert a video into GIF?",
+        answer:
+          "Yes. Converting MP4 or other short video clips into GIF is one of the most common animation workflows.",
+      },
+    ],
   },
 
   png: {
@@ -794,6 +1159,40 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/webp", label: "WEBP" },
       { href: "/formats/bmp", label: "BMP" },
       { href: "/formats/avif", label: "AVIF" },
+    ],
+    deepGuideIntro:
+      "PNG is a practical choice when image clarity, transparency, and crisp edges matter more than ultra-small file size. It is commonly used for logos, interface assets, screenshots, overlays, and illustrations where visual cleanliness is important.",
+    technicalPoints: [
+      "PNG supports transparency, which makes it especially useful for logos, icons, and layered-style graphics.",
+      "PNG is often better than JPG for screenshots, interface elements, and graphics with sharp edges or text.",
+      "Because PNG is less focused on aggressive compression, it can be heavier than JPG or WEBP.",
+      "Users often convert PNG to JPG or WEBP when they want smaller files for websites or sharing.",
+    ],
+    bestConversionSettings: [
+      { label: "For transparency", value: "Keep PNG when transparent backgrounds are needed" },
+      { label: "For smaller website images", value: "Convert PNG to WEBP or AVIF when transparency handling allows it" },
+      { label: "For photo-style sharing", value: "Convert PNG to JPG when small file size matters more than transparency" },
+      { label: "For editing", value: "Keep PNG when crisp quality matters more than aggressive compression" },
+    ],
+    formatComparison: {
+      title: "PNG vs other common image formats",
+      points: [
+        "Compared with JPG, PNG is better for transparency and clean edges but often larger.",
+        "Compared with WEBP, PNG is often less storage-efficient but still useful for graphics-first workflows.",
+        "Compared with AVIF, PNG is usually easier in simple graphic workflows but less compression-efficient.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is PNG best used for?",
+        answer:
+          "PNG is best for logos, screenshots, interface elements, illustrations, and transparent graphics.",
+      },
+      {
+        question: "Should I use PNG or JPG?",
+        answer:
+          "Use PNG for transparency and crisp graphics. Use JPG when smaller size matters more for photos and general sharing.",
+      },
     ],
   },
 
@@ -829,6 +1228,40 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/bmp", label: "BMP" },
       { href: "/formats/tiff", label: "TIFF" },
     ],
+    deepGuideIntro:
+      "JPG is the standard everyday format for photos because it is lightweight, widely supported, and practical for uploads, websites, messaging, and general device compatibility. It is usually the better delivery format for photographic content when transparency is not needed.",
+    technicalPoints: [
+      "JPG uses lossy compression, so some image data is removed to reduce file size.",
+      "JPG is often the best choice for photos and general web images where small files matter.",
+      "JPG is usually less suitable than PNG for transparent graphics, logos, and hard-edged interface assets.",
+      "Users often convert JPG to PNG for editing flexibility or to WEBP and AVIF for more modern web optimization.",
+    ],
+    bestConversionSettings: [
+      { label: "For photo sharing", value: "Keep JPG when broad support and small size matter" },
+      { label: "For web optimization", value: "Consider WEBP or AVIF when supported" },
+      { label: "For graphics editing", value: "Convert to PNG when transparency or cleaner edges matter" },
+      { label: "For archive quality", value: "Keep a higher-quality original source whenever possible" },
+    ],
+    formatComparison: {
+      title: "JPG vs other common image formats",
+      points: [
+        "Compared with PNG, JPG is usually smaller and better for photos, but it does not support transparency.",
+        "Compared with WEBP, JPG is more traditional and universally familiar, though WEBP can be more efficient.",
+        "Compared with AVIF, JPG is simpler and more widely expected, while AVIF can offer stronger compression efficiency.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is JPG best used for?",
+        answer:
+          "JPG is best for photos, general web uploads, messaging, and lightweight image sharing.",
+      },
+      {
+        question: "Does JPG support transparency?",
+        answer:
+          "No. If transparency matters, PNG is usually the better choice.",
+      },
+    ],
   },
 
   webp: {
@@ -862,6 +1295,45 @@ export const formatData: Record<string, FormatDataItem> = {
       { href: "/formats/jpg", label: "JPG" },
       { href: "/formats/avif", label: "AVIF" },
       { href: "/formats/gif", label: "GIF" },
+    ],
+    deepGuideIntro:
+      "WEBP is one of the most useful modern formats for websites and web apps because it aims to reduce image weight without sacrificing too much visual quality. It is especially valuable when page speed, lighter assets, and browser-friendly delivery matter more than sticking to older image standards.",
+    technicalPoints: [
+      "WEBP is designed around smaller web-friendly image delivery.",
+      "It can often produce lighter files than JPG or PNG depending on the content and settings.",
+      "WEBP is a strong option for websites, app assets, and general performance-focused image workflows.",
+      "Users often convert WEBP to PNG for editing convenience or to JPG for broader legacy familiarity.",
+    ],
+    bestConversionSettings: [
+      { label: "For website delivery", value: "Keep WEBP when modern browser support is acceptable" },
+      { label: "For editing convenience", value: "Convert WEBP to PNG when you need a more familiar workflow format" },
+      { label: "For broad sharing familiarity", value: "Convert WEBP to JPG when users expect a more traditional format" },
+      { label: "For further optimization", value: "Compare WEBP with AVIF when maximum compression matters" },
+    ],
+    formatComparison: {
+      title: "WEBP vs other common image formats",
+      points: [
+        "Compared with JPG, WEBP can often offer better efficiency at similar visual quality.",
+        "Compared with PNG, WEBP is often lighter, though PNG can still be more convenient in some graphics workflows.",
+        "Compared with AVIF, WEBP is widely useful today while AVIF can push compression efficiency even further in some cases.",
+      ],
+    },
+    faq: [
+      {
+        question: "What is WEBP best used for?",
+        answer:
+          "WEBP is best for website images, lighter online delivery, app assets, and modern web-focused image workflows.",
+      },
+      {
+        question: "Should I convert PNG or JPG to WEBP?",
+        answer:
+          "Yes, when you want smaller files and better web performance, especially for online use.",
+      },
+      {
+        question: "Why convert WEBP to PNG or JPG?",
+        answer:
+          "Users convert WEBP to PNG or JPG when they want broader editing convenience, easier sharing with older workflows, or a more familiar file format.",
+      },
     ],
   },
 
