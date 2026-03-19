@@ -8,7 +8,6 @@ import { allCompareItems } from "@/lib/compareData";
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
 
-/** Ad slots */
 const AD_SLOTS = {
   LEFT_RAIL: "3456789012",
   RIGHT_RAIL: "4567890123",
@@ -44,7 +43,7 @@ function AdUnit({
   return (
     <div
       className={cx(
-        "relative overflow-hidden rounded-[24px] bg-white/8 ring-1 ring-white/10 shadow-[0_22px_65px_rgba(0,0,0,0.34)]",
+        "relative overflow-hidden rounded-[28px] bg-white/8 ring-1 ring-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.34)]",
         sticky ? "sticky top-[92px]" : "",
         className
       )}
@@ -52,21 +51,23 @@ function AdUnit({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.14),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.10),transparent_55%)]" />
       <div className="relative p-4">
         <div className="mb-3 flex items-center justify-between">
-          <div className="text-[11px] font-semibold tracking-wide text-white/55">{title}</div>
+          <div className="text-[11px] font-semibold tracking-wide text-white/60">
+            {title}
+          </div>
           <div className="text-[11px] text-white/35">Ads keep Converto free</div>
         </div>
 
-        <div className="rounded-2xl bg-black/25 p-3 ring-1 ring-white/10">
-          <div className="mb-3 space-y-2">
+        <div className="rounded-[22px] bg-black/20 p-4 ring-1 ring-white/10">
+          <div className="mb-4 space-y-2">
             <div className="h-2.5 w-24 rounded-full bg-white/10" />
-            <div className="h-2.5 w-16 rounded-full bg-white/5" />
+            <div className="h-2.5 w-14 rounded-full bg-white/5" />
           </div>
 
           <ins
             className="adsbygoogle block"
             style={{
               display: "block",
-              minHeight: 320,
+              minHeight: 560,
             }}
             data-ad-slot={slot}
             data-ad-format="auto"
@@ -78,24 +79,50 @@ function AdUnit({
   );
 }
 
+const featuredComparisons = [
+  "mp3-vs-wav",
+  "flac-vs-mp3",
+  "aac-vs-mp3",
+  "mp4-vs-webm",
+  "mp4-vs-mov",
+  "png-vs-jpg",
+  "jpg-vs-webp",
+  "webp-vs-avif",
+];
+
+const categoryCopy = {
+  audio:
+    "Compare audio formats for listening quality, file size, compatibility, streaming, archiving, and editing workflows.",
+  video:
+    "Compare video formats for compatibility, browser playback, editing, sharing, and media library workflows.",
+  image:
+    "Compare image formats for transparency, compression, web performance, graphics quality, and everyday sharing.",
+} as const;
+
 export default function CompareHubPageClient() {
-  const SHELL_MAX = "max-w-[1700px]";
-  const CENTER_MAX = "max-w-[1100px]";
+  const SHELL_MAX = "max-w-[1750px]";
+  const CENTER_MAX = "max-w-[1120px]";
   const GRID =
-    "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
+    "xl:grid-cols-[270px_minmax(0,1fr)_270px] 2xl:grid-cols-[300px_minmax(0,1fr)_300px]";
 
-  const comparePages = useMemo(() => {
-    return allCompareItems.map((item) => ({
-      href: `/compare/${item.slug}`,
-      label: item.title,
-      desc: item.metaDescription,
-      category: item.category,
-    }));
-  }, []);
+  const featured = useMemo(
+    () =>
+      allCompareItems.filter((item) => featuredComparisons.includes(item.slug)),
+    []
+  );
 
-  const audioPages = comparePages.filter((item) => item.category === "audio");
-  const videoPages = comparePages.filter((item) => item.category === "video");
-  const imagePages = comparePages.filter((item) => item.category === "image");
+  const audio = useMemo(
+    () => allCompareItems.filter((item) => item.category === "audio"),
+    []
+  );
+  const video = useMemo(
+    () => allCompareItems.filter((item) => item.category === "video"),
+    []
+  );
+  const image = useMemo(
+    () => allCompareItems.filter((item) => item.category === "image"),
+    []
+  );
 
   return (
     <main className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
@@ -114,158 +141,230 @@ export default function CompareHubPageClient() {
 
           <section className="min-w-0">
             <div className={cx("mx-auto w-full", CENTER_MAX)}>
-              <div className="rounded-[30px] bg-white/10 p-8 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                  Compare Formats
-                </div>
+              <div className="relative overflow-hidden rounded-[34px] bg-white/10 p-8 ring-1 ring-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.28)] sm:p-10">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.15),transparent_32%)]" />
 
-                <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-                  Audio, video, and image format comparisons
-                </h1>
+                <div className="relative">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                    Compare Hub
+                  </div>
 
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-white/70 sm:text-base">
-                  Before converting a file, it helps to understand what each format is
-                  optimized for. These comparison pages explain differences in quality,
-                  file size, compatibility, editing workflows, streaming behavior, and
-                  everyday use.
-                </p>
+                  <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+                    Compare file formats before you convert
+                  </h1>
 
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Link
-                    href="/formats"
-                    className="inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
-                  >
-                    Browse format guides
-                  </Link>
+                  <p className="mt-4 max-w-3xl text-sm leading-7 text-white/70 sm:text-base">
+                    Converto comparison pages help users understand the practical
+                    differences between popular audio, video, and image formats.
+                    Instead of guessing, you can compare compatibility, quality,
+                    file size, workflow fit, and conversion direction before you
+                    choose an output format.
+                  </p>
 
-                  <Link
-                    href="/converter"
-                    className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
-                  >
-                    Open Converter
-                  </Link>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <span className="rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+                      Audio, video, and image comparisons
+                    </span>
+                    <span className="rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+                      Workflow-first explanations
+                    </span>
+                    <span className="rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+                      Built for conversion decisions
+                    </span>
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <Link
+                      href="/converter"
+                      className="inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                    >
+                      Open Converter
+                    </Link>
+
+                    <Link
+                      href="/formats"
+                      className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                    >
+                      Browse formats
+                    </Link>
+
+                    <Link
+                      href="/"
+                      className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                    >
+                      Back to Home
+                    </Link>
+                  </div>
                 </div>
               </div>
 
-              <section className="mt-10 grid gap-6 lg:grid-cols-3">
-                <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                  <h2 className="text-2xl font-semibold tracking-tight">Audio comparisons</h2>
-                  <p className="mt-3 text-sm leading-6 text-white/65">
-                    Compare lossy and lossless audio formats, portability, quality,
-                    streaming fit, and compatibility before you convert.
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    {audioPages.slice(0, 8).map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                  <h2 className="text-2xl font-semibold tracking-tight">Video comparisons</h2>
-                  <p className="mt-3 text-sm leading-6 text-white/65">
-                    Compare playback compatibility, editing fit, web delivery, legacy
-                    containers, and practical sharing use cases.
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    {videoPages.slice(0, 8).map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                  <h2 className="text-2xl font-semibold tracking-tight">Image comparisons</h2>
-                  <p className="mt-3 text-sm leading-6 text-white/65">
-                    Compare transparency, compression, graphics quality, modern web
-                    delivery, and photo-friendly image workflows.
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    {imagePages.slice(0, 8).map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="rounded-full bg-white/8 px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              <section className="mt-10 rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+              <section className="mt-10 rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                  Compare pages
+                  Featured comparisons
                 </div>
 
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                  Explore the most useful format comparisons
+                  Start with the most useful format decisions
                 </h2>
 
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-                  These comparisons help you choose the right format before converting.
-                  They are especially useful when two file types seem similar but serve
-                  very different purposes in playback, editing, storage, or web delivery.
+                  These are some of the most practical comparisons for users who
+                  want to choose between portability and quality, broad support and
+                  web optimization, or general sharing and editing workflows.
                 </p>
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {comparePages.map((item) => (
+                  {featured.map((item) => (
                     <Link
-                      key={item.href}
-                      href={item.href}
-                      className="group rounded-2xl bg-white/8 p-4 ring-1 ring-white/10 transition hover:bg-white/12"
+                      key={item.slug}
+                      href={`/compare/${item.slug}`}
+                      className="group rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10 transition hover:bg-white/12"
                     >
                       <div className="text-base font-semibold text-white">
-                        {item.label}
+                        {item.title}
                       </div>
                       <p className="mt-2 text-sm leading-6 text-white/65">
-                        {item.desc}
+                        {item.metaDescription}
                       </p>
                     </Link>
                   ))}
                 </div>
               </section>
 
-              <section className="mt-10 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                  <h2 className="text-2xl font-semibold tracking-tight">
-                    Why compare before converting?
-                  </h2>
-                  <p className="mt-3 text-sm leading-6 text-white/65">
-                    Some formats are better for raw quality, some are better for smaller
-                    size, and others are better for device compatibility or browser playback.
-                    Comparing them first makes it easier to choose the right target format.
-                  </p>
-                  <p className="mt-4 text-sm leading-6 text-white/65">
-                    This is especially useful when deciding between lossless and lossy
-                    audio, Apple-oriented and cross-platform video, or web-focused and
-                    editing-friendly file types.
-                  </p>
+              <section className="mt-10 grid gap-6 lg:grid-cols-3">
+                {[
+                  { title: "Audio comparisons", items: audio, key: "audio" as const },
+                  { title: "Video comparisons", items: video, key: "video" as const },
+                  { title: "Image comparisons", items: image, key: "image" as const },
+                ].map((group) => (
+                  <div
+                    key={group.title}
+                    className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]"
+                  >
+                    <h2 className="text-2xl font-semibold tracking-tight">
+                      {group.title}
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-white/65">
+                      {categoryCopy[group.key]}
+                    </p>
+
+                    <div className="mt-5 space-y-3">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.slug}
+                          href={`/compare/${item.slug}`}
+                          className="block rounded-[18px] bg-white/8 px-4 py-3 text-sm text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+
+              <section className="mt-10 rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  Why compare pages matter
                 </div>
 
-                <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                  Good conversion starts with choosing the right target
+                </h2>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                    <div className="text-base font-semibold text-white">
+                      Better decisions before converting
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      Many users do not need more features. They need confidence
+                      about which output format actually fits their workflow.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                    <div className="text-base font-semibold text-white">
+                      Less trial and error
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      Comparison pages reduce guesswork by showing the practical
+                      difference between quality, size, compatibility, and use case.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                    <div className="text-base font-semibold text-white">
+                      Stronger content depth
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      These pages make Converto feel less like a simple tool and
+                      more like a useful format resource users can learn from.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                    <div className="text-base font-semibold text-white">
+                      Easier next action
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      After users compare two formats, they can move directly into
+                      the exact conversion path that makes sense.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mt-10 grid gap-6 lg:grid-cols-2">
+                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
                   <h2 className="text-2xl font-semibold tracking-tight">
-                    Move from comparison to conversion
+                    Popular questions users usually have
+                  </h2>
+
+                  <div className="mt-5 space-y-4">
+                    <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                      <h3 className="text-base font-semibold text-white">
+                        Which format is better?
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        Usually neither is universally better. One format is often
+                        better for one specific goal, such as editing, sharing,
+                        streaming, archiving, or web delivery.
+                      </p>
+                    </div>
+
+                    <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                      <h3 className="text-base font-semibold text-white">
+                        Should I convert or keep the original?
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        Keep the original when it already fits your use case.
+                        Convert when you need smaller files, broader compatibility,
+                        or a format better suited to your destination workflow.
+                      </p>
+                    </div>
+
+                    <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                      <h3 className="text-base font-semibold text-white">
+                        Does converting improve quality?
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        Not really. Conversion can improve compatibility or reduce
+                        size, but it usually does not recover detail that is not
+                        present in the source.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                  <h2 className="text-2xl font-semibold tracking-tight">
+                    Start from a comparison or jump into converting
                   </h2>
                   <p className="mt-3 text-sm leading-6 text-white/65">
-                    Once you know which format suits your workflow, you can jump
-                    directly into the converter or open a format guide for more context.
+                    If you already know your target, open the converter directly.
+                    If you are still deciding between two outputs, browse one of the
+                    comparison pages above and then convert with more confidence.
                   </p>
 
                   <div className="mt-6 flex flex-wrap gap-3">
@@ -280,7 +379,14 @@ export default function CompareHubPageClient() {
                       href="/formats"
                       className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
                     >
-                      Open formats hub
+                      Browse format guides
+                    </Link>
+
+                    <Link
+                      href="/compare/mp3-vs-wav"
+                      className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                    >
+                      Try MP3 vs WAV
                     </Link>
                   </div>
                 </div>

@@ -6,7 +6,7 @@ const siteUrl =
   "https://converto.tools";
 
 export const metadata: Metadata = {
-  title: "Format Comparisons",
+  title: "Format Comparisons | Converto",
   description:
     "Compare popular audio, video, and image formats like MP3 vs WAV, FLAC vs MP3, MP4 vs WEBM, PNG vs JPG, and more with Converto.",
   alternates: {
