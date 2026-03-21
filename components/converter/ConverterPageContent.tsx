@@ -457,6 +457,11 @@ function RelatedConversionsSection({
   input?: string | null;
   output?: string | null;
 }) {
+  const normalizedInput = normalizeFmtLabel(input);
+
+  // 🔥 CRITICAL FIX
+  if (!normalizedInput || normalizedInput === "FILE") return null;
+
   const items = buildRelatedConversions(input, output);
 
   if (!items.length) return null;
