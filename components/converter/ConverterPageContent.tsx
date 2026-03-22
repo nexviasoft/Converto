@@ -271,6 +271,13 @@ function formatToSlug(value?: string | null) {
   if (normalized === "jpeg") return "jpg";
   return normalized;
 }
+function buildRouteSlug(input?: string | null, output?: string | null) {
+  const from = normalizeFmtLabel(input);
+  const to = normalizeFmtLabel(output);
+
+  if (!from || !to) return null;
+  return `${formatToSlug(from)}-to-${formatToSlug(to)}`;
+}
 
 function buildRelatedConversions(input?: string | null, output?: string | null) {
   const from = normalizeFmtLabel(input);
@@ -698,6 +705,8 @@ export default function ConverterPageContent({
   rawInputLabel,
   rawOutputLabel,
 }: ConverterPageContentProps) {
+  const [currentSlug, setCurrentSlug] = useState<string | null>(slug ?? null);
+
   const SHELL_MAX = "max-w-[1700px]";
   const CENTER_MAX = "max-w-[1100px]";
   const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
@@ -728,16 +737,26 @@ export default function ConverterPageContent({
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
 
-  const mapContent = slug ? getConverterContent(slug) : null;
+const mapContent = currentSlug ? getConverterContent(currentSlug) : null;
 
-  const resolvedInputLabel = normalizeFmtLabel(rawInputLabel ?? suggestedInput ?? null);
-  const resolvedOutputLabel = normalizeFmtLabel(rawOutputLabel ?? suggestedOutput ?? null);
-  const customContent = useMemo<ConverterPageContentEntry | null>(() => {
-    if (!slug) return null;
-    return mapContent ?? buildFallbackContent(resolvedInputLabel, resolvedOutputLabel);
-  }, [slug, mapContent, resolvedInputLabel, resolvedOutputLabel]);
+const resolvedInputLabel = normalizeFmtLabel(
+  fromFmt ?? routeInput ?? rawInputLabel ?? suggestedInput ?? null
+);
+const resolvedOutputLabel = normalizeFmtLabel(
+  target ?? routeOutput ?? rawOutputLabel ?? suggestedOutput ?? null
+);
 
-  useEffect(() => {
+const customContent = useMemo<ConverterPageContentEntry | null>(() => {
+  if (!currentSlug) return null;
+  return mapContent ?? buildFallbackContent(resolvedInputLabel, resolvedOutputLabel);
+}, [currentSlug, mapContent, resolvedInputLabel, resolvedOutputLabel]);
+
+useEffect(() => {
+  setCurrentSlug(slug ?? null);
+}, [slug]); 
+
+
+useEffect(() => {
     const onDown = (e: MouseEvent) => {
       const el = targetWrapRef.current;
       if (!el) return;
@@ -786,20 +805,25 @@ export default function ConverterPageContent({
     return () => clearInterval(timer);
   }, [actualProgress, status]);
 
-  const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
-    if (!nextOutput) return;
+const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null) => {
+  if (!nextOutput) return;
 
-    setRouteInput(nextInput);
-    setRouteOutput(nextOutput);
+  setRouteInput(nextInput);
+  setRouteOutput(nextOutput);
 
-    if (!nextInput) return;
+  if (!nextInput) return;
 
-    const nextPath = `/convert/${formatToSlug(nextInput)}-to-${formatToSlug(nextOutput)}`;
+  const nextSlug = buildRouteSlug(nextInput, nextOutput);
+  if (!nextSlug) return;
 
-    if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
-      window.history.replaceState(window.history.state, "", nextPath);
-    }
-  };
+  setCurrentSlug(nextSlug);
+
+  const nextPath = `/convert/${nextSlug}`;
+
+  if (typeof window !== "undefined" && window.location.pathname !== nextPath) {
+    window.history.replaceState(window.history.state, "", nextPath);
+  }
+};
 
   const detectFmt = (name: string): TargetFmt | null => {
     const n = name.toLowerCase();
@@ -920,18 +944,31 @@ export default function ConverterPageContent({
     setProgressLabel("Preparing file...");
     setTargetOpen(false);
 
-    if (typeof window !== "undefined" && initialSuggestedInput) {
-      const resetPath = `/convert/${formatToSlug(initialSuggestedInput)}-to-${formatToSlug(initialSuggestedOutput)}`;
-      if (window.location.pathname !== resetPath) {
-        window.history.replaceState(window.history.state, "", resetPath);
-      }
+if (typeof window !== "undefined" && initialSuggestedInput) {
+  const resetSlug = buildRouteSlug(initialSuggestedInput, initialSuggestedOutput);
+
+  if (resetSlug) {
+    setCurrentSlug(resetSlug);
+
+    const resetPath = `/convert/${resetSlug}`;
+    if (window.location.pathname !== resetPath) {
+      window.history.replaceState(window.history.state, "", resetPath);
     }
+  }
+}
   };
 
   const buildOutputName = (original: string, ext: string) => {
     const base = original.replace(/\.[^/.]+$/, "");
     return `${base}_converto.${ext}`;
   };
+
+  useEffect(() => {
+  if (!slug && initialSuggestedInput && initialSuggestedOutput) {
+    const initialSlug = buildRouteSlug(initialSuggestedInput, initialSuggestedOutput);
+    if (initialSlug) setCurrentSlug(initialSlug);
+  }
+}, [slug, initialSuggestedInput, initialSuggestedOutput]);
 
   const outputExtMap: Record<TargetFmt, string> = {
     MP3: "mp3",
@@ -1565,13 +1602,16 @@ export default function ConverterPageContent({
                                     key={fmt}
                                     type="button"
                                     onClick={() => {
-                                      setTarget(fmt);
-                                      setTargetOpen(false);
+                                    setTarget(fmt);
+                                    setTargetOpen(false);
 
-                                      const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
-                                      if (nextInputForSoftRoute) softSyncRoute(nextInputForSoftRoute, fmt);
-                                      else setRouteOutput(fmt);
-                                    }}
+                                    const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
+                                    if (nextInputForSoftRoute) {
+                                      softSyncRoute(nextInputForSoftRoute, fmt);
+                                    } else {
+                                      setRouteOutput(fmt);
+                                    }
+                                  }}
                                     className={cx(
                                       "flex w-full items-center justify-between px-4 py-3 text-sm transition",
                                       fmt === target
