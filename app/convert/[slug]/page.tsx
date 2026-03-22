@@ -160,6 +160,121 @@ function parseSlug(slug?: string | null) {
   };
 }
 
+function isAudioFmt(fmt: string) {
+  return [
+    "MP3",
+    "WAV",
+    "M4A",
+    "AAC",
+    "OGG",
+    "OPUS",
+    "FLAC",
+    "AIFF",
+    "WMA",
+    "AMR",
+  ].includes(fmt);
+}
+
+function isVideoFmt(fmt: string) {
+  return [
+    "MP4",
+    "WEBM",
+    "MOV",
+    "MKV",
+    "AVI",
+    "WMV",
+    "FLV",
+    "M4V",
+    "MPG",
+    "MPEG",
+    "3GP",
+  ].includes(fmt);
+}
+
+function isImageFmt(fmt: string) {
+  return ["GIF", "PNG", "JPG", "WEBP", "BMP", "TIFF", "ICO", "AVIF"].includes(fmt);
+}
+
+function buildMetaTitle(input: string, output: string) {
+  if (isVideoFmt(input) && isAudioFmt(output)) {
+    return `${input} to ${output} Converter for Audio Extraction | Converto`;
+  }
+
+  if (isVideoFmt(input) && isVideoFmt(output)) {
+    return `${input} to ${output} Video Converter Online | Converto`;
+  }
+
+  if (isImageFmt(input) && isImageFmt(output)) {
+    return `${input} to ${output} Image Converter Online | Converto`;
+  }
+
+  if (isAudioFmt(input) && isAudioFmt(output)) {
+    return `${input} to ${output} Audio Converter Online | Converto`;
+  }
+
+  return `${input} to ${output} Converter Online | Converto`;
+}
+
+function buildMetaDescription(input: string, output: string) {
+  if (isVideoFmt(input) && isAudioFmt(output)) {
+    return `Convert ${input} to ${output} online with Converto. Extract audio from video for music, lectures, interviews, podcasts, and everyday listening workflows.`;
+  }
+
+  if (isVideoFmt(input) && isVideoFmt(output)) {
+    return `Convert ${input} to ${output} online with Converto. Improve playback compatibility, sharing, and video support across browsers, devices, and apps.`;
+  }
+
+  if (isImageFmt(input) && isImageFmt(output)) {
+    return `Convert ${input} to ${output} online with Converto. Change image format for compression, compatibility, transparency needs, upload workflows, and simpler sharing.`;
+  }
+
+  if (isAudioFmt(input) && isAudioFmt(output)) {
+    return `Convert ${input} to ${output} online with Converto. Switch audio format for better compatibility, storage efficiency, playback support, and everyday listening.`;
+  }
+
+  return `Convert ${input} to ${output} online with Converto. Fast file conversion for compatibility, sharing, storage, and practical everyday workflow needs.`;
+}
+
+function buildSeoTitle(input: string, output: string) {
+  if (isVideoFmt(input) && isAudioFmt(output)) {
+    return `Convert ${input} to ${output} online and extract audio`;
+  }
+
+  if (isVideoFmt(input) && isVideoFmt(output)) {
+    return `Convert ${input} to ${output} online`;
+  }
+
+  if (isImageFmt(input) && isImageFmt(output)) {
+    return `Convert ${input} to ${output} images online`;
+  }
+
+  if (isAudioFmt(input) && isAudioFmt(output)) {
+    return `Convert ${input} to ${output} audio online`;
+  }
+
+  return `Convert ${input} to ${output} online`;
+}
+
+function buildSeoDescription(input: string, output: string) {
+  if (isVideoFmt(input) && isAudioFmt(output)) {
+    return `Free online ${input} to ${output} converter for extracting usable audio from video files in a quick and simple workflow.`;
+  }
+
+  if (isVideoFmt(input) && isVideoFmt(output)) {
+    return `Free online ${input} to ${output} converter designed for smoother compatibility, sharing, and practical video delivery workflows.`;
+  }
+
+  if (isImageFmt(input) && isImageFmt(output)) {
+    return `Free online ${input} to ${output} converter built for image compatibility, compression, sharing, and upload-ready file changes.`;
+  }
+
+  if (isAudioFmt(input) && isAudioFmt(output)) {
+    return `Free online ${input} to ${output} converter for everyday audio compatibility, smaller files, and easier playback across devices.`;
+  }
+
+  return `Free online ${input} to ${output} converter. Fast and simple file conversion for practical everyday use.`;
+}
+
 export function generateStaticParams() {
   const slugs = unique([
     ...buildPairSlugs(AUDIO_FORMATS, AUDIO_FORMATS),
@@ -188,9 +303,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { slug, inputUpper, outputUpper } = parsed;
-
-  const title = `${inputUpper} to ${outputUpper} Converter Online Free | Converto`;
-  const description = `Convert ${inputUpper} to ${outputUpper} online for free with Converto. Fast file conversion for quick audio, video, image, and compatibility tasks.`;
+  const canonicalUrl = `${SITE_URL}/convert/${slug}`;
+  const title = buildMetaTitle(inputUpper, outputUpper);
+  const description = buildMetaDescription(inputUpper, outputUpper);
 
   return {
     title,
@@ -200,12 +315,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       follow: true,
     },
     alternates: {
-      canonical: `${SITE_URL}/convert/${slug}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title,
       description,
-      url: `${SITE_URL}/convert/${slug}`,
+      url: canonicalUrl,
       siteName: "Converto",
       type: "website",
     },
@@ -236,8 +351,8 @@ export default async function ConvertSlugPage({ params }: PageProps) {
   return (
     <ConverterPageContent
       slug={slug}
-      seoTitle={`Convert ${inputUpper} to ${outputUpper} online`}
-      seoDescription={`Free online ${inputUpper} to ${outputUpper} converter. Fast, simple, and built for quick everyday file conversion tasks.`}
+      seoTitle={buildSeoTitle(inputUpper, outputUpper)}
+      seoDescription={buildSeoDescription(inputUpper, outputUpper)}
       suggestedInput={suggestedInput}
       suggestedOutput={suggestedOutput}
       rawInputLabel={input}

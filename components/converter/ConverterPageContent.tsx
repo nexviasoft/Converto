@@ -54,6 +54,22 @@ type ConverterPageContentProps = {
 
 type ConvertStatus = "idle" | "ready" | "loading" | "processing" | "done" | "error";
 
+type ConverterFaqItem = {
+  q: string;
+  a: string;
+};
+
+type ConverterPageContentEntry = {
+  intro: string;
+  whatIsInput: string;
+  whatIsOutput: string;
+  whyConvert: string;
+  useCases: string[];
+  qualityNotes: string;
+  tips: string[];
+  faq: ConverterFaqItem[];
+};
+
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
 
@@ -242,17 +258,9 @@ function isImageFmt(fmt: string | null | undefined) {
 function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
   const fmt = normalizeFmtLabel(inputFmt);
 
-  if (isAudioFmt(fmt)) {
-    return AUDIO_TARGETS;
-  }
-
-  if (isVideoFmt(fmt)) {
-    return [...AUDIO_TARGETS, ...VIDEO_TARGETS, ...IMAGE_TARGETS];
-  }
-
-  if (isImageFmt(fmt)) {
-    return IMAGE_TARGETS;
-  }
+  if (isAudioFmt(fmt)) return AUDIO_TARGETS;
+  if (isVideoFmt(fmt)) return [...AUDIO_TARGETS, ...VIDEO_TARGETS, ...IMAGE_TARGETS];
+  if (isImageFmt(fmt)) return IMAGE_TARGETS;
 
   return ALL_TARGET_OPTIONS;
 }
@@ -301,9 +309,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
   const outputIsImage = isImageFmt(to);
 
   let intro = `Convert ${from} to ${to} online with Converto. Upload your file, keep the suggested output format, or switch to another format if your workflow changes.`;
-
   let whyText = `Converting ${from} to ${to} can help with playback compatibility, sharing, compression, editing workflows, or extracting audio from video files.`;
-
   let useText = `Use this converter when you need a quick way to change ${from} into ${to} for easier playback, sharing, editing, or file compatibility.`;
 
   if (inputIsAudio && isAudioFmt(to)) {
@@ -336,7 +342,8 @@ function buildSeoContent(input?: string | null, output?: string | null) {
     ],
     whyText,
     useText,
-    browserText: `Converto currently uses a hybrid conversion flow: canvas for supported browser-safe image conversions and server-assisted processing for other formats.`,
+    browserText:
+      "Converto currently uses a hybrid conversion flow: canvas for supported browser-safe image conversions and server-assisted processing for other formats.",
   };
 }
 
@@ -380,6 +387,153 @@ function buildWebPageSchema({
       name: "NexviaSoft",
       url: siteUrl,
     },
+  };
+}
+
+function buildFallbackContent(input?: string | null, output?: string | null): ConverterPageContentEntry {
+  const from = normalizeFmtLabel(input) ?? "FILE";
+  const to = normalizeFmtLabel(output) ?? "FILE";
+
+  const inputIsAudio = isAudioFmt(from);
+  const inputIsVideo = isVideoFmt(from);
+  const inputIsImage = isImageFmt(from);
+
+  let whatIsInput = `${from} is a digital file format commonly used in everyday workflows. It can appear in downloads, exports, recorded media, design assets, or shared files depending on the type of content it holds.`;
+  let whatIsOutput = `${to} is a widely recognized target format used when users need better compatibility, easier sharing, or a different balance between quality and file size.`;
+  let whyConvert = `People convert ${from} to ${to} when they need a file that is easier to open, share, upload, store, or use across different devices and apps.`;
+  let qualityNotes = `The final quality of a ${from} to ${to} conversion depends mostly on the original source file and the settings used during conversion. A new file format can improve compatibility and convenience, but it cannot recreate detail that was never present in the original file.`;
+  let useCases = [
+    `Prepare ${from} files for devices or apps that work better with ${to}.`,
+    `Create a more shareable version of a ${from} file for daily use.`,
+    `Improve compatibility for upload, playback, storage, or transfer workflows.`,
+    `Keep a second copy in ${to} when the original ${from} file is less convenient.`,
+    `Use a format that better matches your current workflow or destination platform.`,
+  ];
+  let tips = [
+    `Keep the original ${from} file if you may need it again later.`,
+    `${to} may be more practical for everyday use, but source quality still matters.`,
+    `Test the converted ${to} file in the app or device you plan to use.`,
+    `If editing is important, keep the highest-quality source version available.`,
+    `For repeated workflows, use the format that best matches compatibility and storage needs.`,
+  ];
+  let faq: ConverterFaqItem[] = [
+    {
+      q: `Why convert ${from} to ${to}?`,
+      a: `The most common reason is compatibility. A ${to} file may be easier to use for playback, editing, uploading, sharing, or storage than the original ${from} file.`,
+    },
+    {
+      q: `Will converting ${from} to ${to} improve quality?`,
+      a: `Not automatically. Conversion can change the format and make the file more usable, but it does not recreate detail that was missing in the original source.`,
+    },
+    {
+      q: `Should I keep the original ${from} file after converting?`,
+      a: `Yes. It is usually smart to keep the source file in case you need the original quality, structure, or workflow later.`,
+    },
+    {
+      q: `Is ${to} better than ${from}?`,
+      a: `Not in every situation. The better choice depends on whether you care more about compatibility, size, editing flexibility, transparency, playback support, or archival quality.`,
+    },
+    {
+      q: `Can I use ${from} to ${to} conversion for everyday workflows?`,
+      a: `Yes. This type of conversion is commonly used for regular file tasks such as sharing, playback, uploading, storage, and format compatibility.`,
+    },
+  ];
+
+  if (inputIsVideo && isAudioFmt(to)) {
+    whatIsInput = `${from} is a video format that can contain both video and audio streams. It is often used for recordings, downloads, screen captures, and shared media.`;
+    whatIsOutput = `${to} is an audio format commonly used when only the sound from a file is needed. It is practical for listening, sharing, portable playback, and smaller audio-only workflows.`;
+    whyConvert = `People usually convert ${from} to ${to} to extract the audio from a video file. This is useful for lectures, interviews, music clips, podcasts, and voice-heavy recordings where the video is no longer needed.`;
+    qualityNotes = `When converting ${from} to ${to}, the output quality depends on the audio that already exists inside the original video file. Converting to an audio-only format can make the result smaller and easier to use, but it cannot improve poor source sound.`;
+    useCases = [
+      `Extract audio from ${from} video for listening on phones, laptops, or in the car.`,
+      `Keep the soundtrack or spoken content without storing the full video.`,
+      `Turn recorded talks, interviews, or lessons into an audio-only copy.`,
+      `Create a smaller file when visuals are no longer needed.`,
+      `Use the audio separately in playlists, notes, or review workflows.`,
+    ];
+    tips = [
+      `Keep the original ${from} file if you may need the video again later.`,
+      `If you plan to edit the sound heavily, another output may be better than a compressed listening format.`,
+      `The extracted ${to} file will only be as strong as the source audio track.`,
+      `Audio-only exports are often easier to store and share than full videos.`,
+      `Choose the target format based on whether you care more about portability or editing quality.`,
+    ];
+  } else if (inputIsVideo && isVideoFmt(to)) {
+    whatIsInput = `${from} is a video format used in recording, playback, editing, download, and archive workflows.`;
+    whatIsOutput = `${to} is a video format often chosen for broader compatibility, easier sharing, and smoother playback across common devices and apps.`;
+    whyConvert = `People convert ${from} to ${to} when they want a video that is easier to upload, send, store, or play across modern devices and platforms.`;
+    qualityNotes = `With video-to-video conversion, quality depends on the source material and conversion settings such as codec, bitrate, and resolution. A new format can improve usability and compatibility, but aggressive compression may reduce visible quality.`;
+    useCases = [
+      `Prepare ${from} files for more reliable playback on phones, tablets, browsers, or TVs.`,
+      `Make a video easier to upload or share with others.`,
+      `Create a more practical delivery version from a source file.`,
+      `Standardize mixed video files into a more common format.`,
+      `Reduce compatibility issues across apps and operating systems.`,
+    ];
+    tips = [
+      `Keep the original ${from} source if it came from a camera or editing workflow.`,
+      `Use ${to} when it better matches the platform where the video will be played.`,
+      `Conversion can improve compatibility without improving weak source footage.`,
+      `Check whether subtitles, tracks, or metadata matter before replacing the original.`,
+      `For everyday delivery, widely supported video formats are usually the safer choice.`,
+    ];
+  } else if (inputIsImage && isImageFmt(to)) {
+    whatIsInput = `${from} is an image format used for photos, graphics, screenshots, design assets, or web visuals depending on the file type.`;
+    whatIsOutput = `${to} is an image format chosen when users need a different balance of file size, transparency support, compatibility, or editing convenience.`;
+    whyConvert = `People convert ${from} to ${to} when they want lighter files, broader compatibility, better support for a specific upload requirement, or a format that fits their editing and publishing workflow more comfortably.`;
+    qualityNotes = `For image conversion, the main tradeoffs usually involve size, compression style, and transparency support. Some formats are stronger for photos, others for graphics, and others for modern web delivery.`;
+    useCases = [
+      `Prepare images for websites, forms, or apps that prefer ${to}.`,
+      `Create smaller image files for sharing or uploading.`,
+      `Switch to a format that better supports your design or editing workflow.`,
+      `Keep a second version optimized for web, storage, or presentation use.`,
+      `Make image files easier to reuse across different software tools.`,
+    ];
+    tips = [
+      `Keep the original ${from} image if you may need it for editing later.`,
+      `Check whether transparency matters before converting into a format that may not support it.`,
+      `Photo formats and graphic formats behave differently, so pick the target with purpose.`,
+      `A new image format can improve convenience without improving source detail.`,
+      `Use the lightest suitable format for publishing and the strongest source format for editing.`,
+    ];
+  } else if (inputIsAudio && isAudioFmt(to)) {
+    whatIsInput = `${from} is an audio format used for music, speech, recordings, listening copies, or editing sources depending on the workflow.`;
+    whatIsOutput = `${to} is an audio format commonly chosen for portability, compatibility, editing, storage efficiency, or playback support.`;
+    whyConvert = `People convert ${from} to ${to} when they need audio in a format that better suits their device, software, storage limit, or listening setup.`;
+    qualityNotes = `For audio conversion, quality depends on the source file and the way the target format handles compression. Some formats prioritize convenience and smaller size, while others are stronger for editing or preservation.`;
+    useCases = [
+      `Prepare audio for phones, tablets, laptops, or car playback.`,
+      `Create smaller files for easier storage and sharing.`,
+      `Use a more compatible format across players and apps.`,
+      `Build a listening copy from a larger or less practical source format.`,
+      `Adapt audio files for everyday playback or archive workflows.`,
+    ];
+    tips = [
+      `Keep the source ${from} file if it is your best-quality original.`,
+      `Choose ${to} based on whether you care more about size, compatibility, or editing flexibility.`,
+      `Compressed formats are often convenient, but they do not restore lost detail.`,
+      `Use a widely supported target when playback reliability matters most.`,
+      `For production work, keep a higher-quality source version as well.`,
+    ];
+  }
+
+  faq = [
+    ...faq,
+    {
+      q: `Is ${from} to ${to} conversion useful for compatibility?`,
+      a: `Yes. One of the main reasons people convert between formats is to make files easier to open, play, upload, edit, or share across different tools and devices.`,
+    },
+  ];
+
+  return {
+    intro: `${from} to ${to} conversion is a practical workflow when you need to change file format for compatibility, sharing, optimization, or easier day-to-day use. Depending on the file type, converting ${from} to ${to} can help with playback, editing, uploading, storage, or portability.`,
+    whatIsInput,
+    whatIsOutput,
+    whyConvert,
+    useCases,
+    qualityNotes,
+    tips,
+    faq,
   };
 }
 
@@ -459,7 +613,6 @@ function RelatedConversionsSection({
 }) {
   const normalizedInput = normalizeFmtLabel(input);
 
-  // 🔥 CRITICAL FIX
   if (!normalizedInput || normalizedInput === "FILE") return null;
 
   const items = buildRelatedConversions(input, output);
@@ -575,7 +728,14 @@ export default function ConverterPageContent({
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
 
-  const customContent = slug ? getConverterContent(slug) : null;
+  const mapContent = slug ? getConverterContent(slug) : null;
+
+  const resolvedInputLabel = normalizeFmtLabel(rawInputLabel ?? suggestedInput ?? null);
+  const resolvedOutputLabel = normalizeFmtLabel(rawOutputLabel ?? suggestedOutput ?? null);
+  const customContent = useMemo<ConverterPageContentEntry | null>(() => {
+    if (!slug) return null;
+    return mapContent ?? buildFallbackContent(resolvedInputLabel, resolvedOutputLabel);
+  }, [slug, mapContent, resolvedInputLabel, resolvedOutputLabel]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -600,17 +760,11 @@ export default function ConverterPageContent({
   useEffect(() => {
     if (status !== "processing") return;
 
-    if (actualProgress < 12) {
-      setProgressLabel("Preparing file...");
-    } else if (actualProgress < 28) {
-      setProgressLabel("Uploading file...");
-    } else if (actualProgress < 90) {
-      setProgressLabel("Converting...");
-    } else if (actualProgress < 99) {
-      setProgressLabel("Preparing download...");
-    } else {
-      setProgressLabel("Done...");
-    }
+    if (actualProgress < 12) setProgressLabel("Preparing file...");
+    else if (actualProgress < 28) setProgressLabel("Uploading file...");
+    else if (actualProgress < 90) setProgressLabel("Converting...");
+    else if (actualProgress < 99) setProgressLabel("Preparing download...");
+    else setProgressLabel("Done...");
   }, [actualProgress, status]);
 
   useEffect(() => {
@@ -619,20 +773,11 @@ export default function ConverterPageContent({
     const timer = setInterval(() => {
       setDisplayProgress((prev) => {
         if (prev >= actualProgress) return prev;
-
         const diff = actualProgress - prev;
 
-        if (prev < 60) {
-          return Math.min(actualProgress, prev + Math.max(2, Math.ceil(diff * 0.35)));
-        }
-
-        if (prev < 85) {
-          return Math.min(actualProgress, prev + Math.max(1, Math.ceil(diff * 0.22)));
-        }
-
-        if (prev < 95) {
-          return Math.min(actualProgress, prev + 1);
-        }
+        if (prev < 60) return Math.min(actualProgress, prev + Math.max(2, Math.ceil(diff * 0.35)));
+        if (prev < 85) return Math.min(actualProgress, prev + Math.max(1, Math.ceil(diff * 0.22)));
+        if (prev < 95) return Math.min(actualProgress, prev + 1);
 
         return Math.min(actualProgress, prev + 1);
       });
@@ -737,9 +882,7 @@ export default function ConverterPageContent({
       ".avif",
     ].some((x) => name.endsWith(x));
 
-    if (!okExt) {
-      return "Unsupported format selected.";
-    }
+    if (!okExt) return "Unsupported format selected.";
 
     return null;
   };
@@ -778,9 +921,7 @@ export default function ConverterPageContent({
     setTargetOpen(false);
 
     if (typeof window !== "undefined" && initialSuggestedInput) {
-      const resetPath = `/convert/${formatToSlug(initialSuggestedInput)}-to-${formatToSlug(
-        initialSuggestedOutput
-      )}`;
+      const resetPath = `/convert/${formatToSlug(initialSuggestedInput)}-to-${formatToSlug(initialSuggestedOutput)}`;
       if (window.location.pathname !== resetPath) {
         window.history.replaceState(window.history.state, "", resetPath);
       }
@@ -847,11 +988,7 @@ export default function ConverterPageContent({
       img.src = src;
     });
 
-  const canvasToBlob = (
-    canvas: HTMLCanvasElement,
-    type: string,
-    quality?: number
-  ) =>
+  const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality?: number) =>
     new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
@@ -866,10 +1003,7 @@ export default function ConverterPageContent({
       );
     });
 
-  const convertImageViaCanvas = async (
-    inputFile: File,
-    targetFormat: TargetFmt
-  ) => {
+  const convertImageViaCanvas = async (inputFile: File, targetFormat: TargetFmt) => {
     const objectUrl = URL.createObjectURL(inputFile);
 
     try {
@@ -879,9 +1013,7 @@ export default function ConverterPageContent({
       canvas.height = img.naturalHeight || img.height;
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        throw new Error("Canvas context could not be created.");
-      }
+      if (!ctx) throw new Error("Canvas context could not be created.");
 
       if (targetFormat === "JPG") {
         ctx.fillStyle = "#ffffff";
@@ -891,9 +1023,7 @@ export default function ConverterPageContent({
       ctx.drawImage(img, 0, 0);
 
       const mimeType = canvasMimeMap[targetFormat];
-      if (!mimeType) {
-        throw new Error("Unsupported image output format.");
-      }
+      if (!mimeType) throw new Error("Unsupported image output format.");
 
       const quality = targetFormat === "JPG" || targetFormat === "WEBP" ? 0.92 : undefined;
       const blob = await canvasToBlob(canvas, mimeType, quality);
@@ -903,13 +1033,10 @@ export default function ConverterPageContent({
     }
   };
 
-  const API_URL =
-    process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
+  const API_URL = process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
 
   const convertViaServer = async (inputFile: File, targetFormat: TargetFmt) => {
-    if (!API_URL) {
-      throw new Error("Server conversion is not configured.");
-    }
+    if (!API_URL) throw new Error("Server conversion is not configured.");
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 1000 * 60 * 8);
@@ -1009,11 +1136,8 @@ export default function ConverterPageContent({
 
       let convertedUrl: string;
 
-      if (canConvertViaCanvas(fromFmt, target)) {
-        convertedUrl = await convertImageViaCanvas(file, target);
-      } else {
-        convertedUrl = await convertViaServer(file, target);
-      }
+      if (canConvertViaCanvas(fromFmt, target)) convertedUrl = await convertImageViaCanvas(file, target);
+      else convertedUrl = await convertViaServer(file, target);
 
       if (fakeTimer) clearInterval(fakeTimer);
 
@@ -1045,9 +1169,7 @@ export default function ConverterPageContent({
   }, [resultUrl, previewUrl]);
 
   const activeInputForTargets = fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel;
-  const availableTargets = useMemo(() => {
-    return getAvailableTargets(activeInputForTargets);
-  }, [activeInputForTargets]);
+  const availableTargets = useMemo(() => getAvailableTargets(activeInputForTargets), [activeInputForTargets]);
 
   useEffect(() => {
     if (!availableTargets.includes(target)) {
@@ -1059,11 +1181,8 @@ export default function ConverterPageContent({
       setTarget(fallback);
 
       const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
-      if (nextInputForSoftRoute) {
-        softSyncRoute(nextInputForSoftRoute, fallback);
-      } else {
-        setRouteOutput(fallback);
-      }
+      if (nextInputForSoftRoute) softSyncRoute(nextInputForSoftRoute, fallback);
+      else setRouteOutput(fallback);
     }
   }, [availableTargets, target]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1080,8 +1199,7 @@ export default function ConverterPageContent({
     [target, routeOutput, suggestedOutput, rawOutputLabel]
   );
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://converto.tools";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://converto.tools";
 
   const schemaTitle =
     seoTitle || `${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} Converter`;
@@ -1091,9 +1209,7 @@ export default function ConverterPageContent({
     `Convert ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} online with Converto. Upload your file, choose your target format, and download the converted result in a simple workflow.`;
 
   const effectiveFaqItems = useMemo(() => {
-    if (customContent?.faq?.length) {
-      return customContent.faq;
-    }
+    if (customContent?.faq?.length) return customContent.faq;
 
     return [
       {
@@ -1163,12 +1279,7 @@ export default function ConverterPageContent({
       </div>
 
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05040F]/80 backdrop-blur">
-        <div
-          className={cx(
-            "mx-auto flex items-center justify-between px-4 py-3 sm:px-5 xl:px-6",
-            SHELL_MAX
-          )}
-        >
+        <div className={cx("mx-auto flex items-center justify-between px-4 py-3 sm:px-5 xl:px-6", SHELL_MAX)}>
           <Link href="/" className="group inline-flex items-center gap-3">
             <img
               src="/brand/converto-logo.svg"
@@ -1458,11 +1569,8 @@ export default function ConverterPageContent({
                                       setTargetOpen(false);
 
                                       const nextInputForSoftRoute = fromFmt ?? routeInput ?? null;
-                                      if (nextInputForSoftRoute) {
-                                        softSyncRoute(nextInputForSoftRoute, fmt);
-                                      } else {
-                                        setRouteOutput(fmt);
-                                      }
+                                      if (nextInputForSoftRoute) softSyncRoute(nextInputForSoftRoute, fmt);
+                                      else setRouteOutput(fmt);
                                     }}
                                     className={cx(
                                       "flex w-full items-center justify-between px-4 py-3 text-sm transition",
@@ -1491,9 +1599,7 @@ export default function ConverterPageContent({
 
                               <button
                                 type="button"
-                                onClick={() =>
-                                  targetListRef.current?.scrollBy({ top: 140, behavior: "smooth" })
-                                }
+                                onClick={() => targetListRef.current?.scrollBy({ top: 140, behavior: "smooth" })}
                                 className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-white/5 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
                                 aria-label="Scroll options"
                               >
