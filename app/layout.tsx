@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "Converto — Free Online File Converter",
-    template: "%s | Converto",
+    template: "%s",
   },
   description:
     "Convert audio, video, and image files online for free with Converto. Fast browser-based file converter for MP3, WAV, MP4, WEBM, GIF, and more.",

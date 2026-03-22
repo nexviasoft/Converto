@@ -705,31 +705,37 @@ export default function ConverterPageContent({
   rawInputLabel,
   rawOutputLabel,
 }: ConverterPageContentProps) {
-  const [currentSlug, setCurrentSlug] = useState<string | null>(slug ?? null);
+const SHELL_MAX = "max-w-[1700px]";
+const CENTER_MAX = "max-w-[1100px]";
+const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
 
-  const SHELL_MAX = "max-w-[1700px]";
-  const CENTER_MAX = "max-w-[1100px]";
-  const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
+const initialSuggestedInput = toTargetFmt(suggestedInput ?? rawInputLabel ?? null);
+const initialSuggestedOutput =
+  toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3";
 
-  const initialSuggestedInput = toTargetFmt(suggestedInput ?? rawInputLabel ?? null);
-  const initialSuggestedOutput = toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3";
+const initialRouteSlug =
+  slug ??
+  buildRouteSlug(initialSuggestedInput, initialSuggestedOutput) ??
+  "mp4-to-mp3";
 
-  const [file, setFile] = useState<File | null>(null);
-  const [dragOver, setDragOver] = useState(false);
-  const [status, setStatus] = useState<ConvertStatus>("idle");
-  const [target, setTarget] = useState<TargetFmt>(initialSuggestedOutput);
-  const [targetOpen, setTargetOpen] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
+const [currentSlug, setCurrentSlug] = useState<string>(initialRouteSlug);
 
-  const [actualProgress, setActualProgress] = useState(0);
-  const [displayProgress, setDisplayProgress] = useState(0);
-  const [progressLabel, setProgressLabel] = useState("Preparing file...");
+const [file, setFile] = useState<File | null>(null);
+const [dragOver, setDragOver] = useState(false);
+const [status, setStatus] = useState<ConvertStatus>("idle");
+const [target, setTarget] = useState<TargetFmt>(initialSuggestedOutput);
+const [targetOpen, setTargetOpen] = useState(false);
+const [errorMsg, setErrorMsg] = useState<string | null>(null);
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const [resultUrl, setResultUrl] = useState<string | null>(null);
+const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
 
-  const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
-  const [routeOutput, setRouteOutput] = useState<TargetFmt>(initialSuggestedOutput);
+const [actualProgress, setActualProgress] = useState(0);
+const [displayProgress, setDisplayProgress] = useState(0);
+const [progressLabel, setProgressLabel] = useState("Preparing file...");
+
+const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
+const [routeOutput, setRouteOutput] = useState<TargetFmt>(initialSuggestedOutput);
 
   const MAX_FREE_MB = 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
@@ -737,23 +743,40 @@ export default function ConverterPageContent({
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
 
-const mapContent = currentSlug ? getConverterContent(currentSlug) : null;
+const mapContent = getConverterContent(currentSlug);
 
 const resolvedInputLabel = normalizeFmtLabel(
-  fromFmt ?? routeInput ?? rawInputLabel ?? suggestedInput ?? null
-);
-const resolvedOutputLabel = normalizeFmtLabel(
-  target ?? routeOutput ?? rawOutputLabel ?? suggestedOutput ?? null
+  fromFmt ??
+    routeInput ??
+    toTargetFmt(rawInputLabel ?? suggestedInput ?? null) ??
+    null
 );
 
-const customContent = useMemo<ConverterPageContentEntry | null>(() => {
-  if (!currentSlug) return null;
+const resolvedOutputLabel = normalizeFmtLabel(
+  target ??
+    routeOutput ??
+    toTargetFmt(rawOutputLabel ?? suggestedOutput ?? null) ??
+    "MP3"
+);
+
+const customContent = useMemo<ConverterPageContentEntry>(() => {
   return mapContent ?? buildFallbackContent(resolvedInputLabel, resolvedOutputLabel);
-}, [currentSlug, mapContent, resolvedInputLabel, resolvedOutputLabel]);
+}, [mapContent, resolvedInputLabel, resolvedOutputLabel]);
 
 useEffect(() => {
-  setCurrentSlug(slug ?? null);
-}, [slug]); 
+  if (slug) {
+    setCurrentSlug(slug);
+    return;
+  }
+
+  const fallbackSlug =
+    buildRouteSlug(
+      toTargetFmt(suggestedInput ?? rawInputLabel ?? null),
+      toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3"
+    ) ?? "mp4-to-mp3";
+
+  setCurrentSlug(fallbackSlug);
+}, [slug, suggestedInput, suggestedOutput, rawInputLabel, rawOutputLabel]);
 
 
 useEffect(() => {
@@ -811,10 +834,10 @@ const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null
   setRouteInput(nextInput);
   setRouteOutput(nextOutput);
 
-  if (!nextInput) return;
-
-  const nextSlug = buildRouteSlug(nextInput, nextOutput);
-  if (!nextSlug) return;
+  const nextSlug =
+    buildRouteSlug(nextInput, nextOutput) ??
+    buildRouteSlug(initialSuggestedInput, nextOutput) ??
+    currentSlug;
 
   setCurrentSlug(nextSlug);
 
@@ -944,16 +967,15 @@ const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null
     setProgressLabel("Preparing file...");
     setTargetOpen(false);
 
-if (typeof window !== "undefined" && initialSuggestedInput) {
-  const resetSlug = buildRouteSlug(initialSuggestedInput, initialSuggestedOutput);
+if (typeof window !== "undefined") {
+  const resetSlug =
+    buildRouteSlug(initialSuggestedInput, initialSuggestedOutput) ?? "mp4-to-mp3";
 
-  if (resetSlug) {
-    setCurrentSlug(resetSlug);
+  setCurrentSlug(resetSlug);
 
-    const resetPath = `/convert/${resetSlug}`;
-    if (window.location.pathname !== resetPath) {
-      window.history.replaceState(window.history.state, "", resetPath);
-    }
+  const resetPath = `/convert/${resetSlug}`;
+  if (window.location.pathname !== resetPath) {
+    window.history.replaceState(window.history.state, "", resetPath);
   }
 }
   };
@@ -962,13 +984,6 @@ if (typeof window !== "undefined" && initialSuggestedInput) {
     const base = original.replace(/\.[^/.]+$/, "");
     return `${base}_converto.${ext}`;
   };
-
-  useEffect(() => {
-  if (!slug && initialSuggestedInput && initialSuggestedOutput) {
-    const initialSlug = buildRouteSlug(initialSuggestedInput, initialSuggestedOutput);
-    if (initialSlug) setCurrentSlug(initialSlug);
-  }
-}, [slug, initialSuggestedInput, initialSuggestedOutput]);
 
   const outputExtMap: Record<TargetFmt, string> = {
     MP3: "mp3",

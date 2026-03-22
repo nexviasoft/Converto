@@ -303,7 +303,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { slug, inputUpper, outputUpper } = parsed;
-  const canonicalUrl = `${SITE_URL}/convert/${slug}`;
+  const canonicalUrl = `${SITE_URL}/${slug}`;
   const title = buildMetaTitle(inputUpper, outputUpper);
   const description = buildMetaDescription(inputUpper, outputUpper);
 
