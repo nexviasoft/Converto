@@ -11,7 +11,7 @@ type PageProps = {
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://converto.tools";
+  "https://www.converto.tools";
 
 export function generateStaticParams() {
   return allFormats.map((item) => ({

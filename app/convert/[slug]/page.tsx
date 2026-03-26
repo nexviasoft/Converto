@@ -40,7 +40,8 @@ type PageProps = {
 };
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://converto.tools";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "https://www.converto.tools";
 
 const AUDIO_FORMATS = [
   "mp3",
@@ -303,7 +304,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { slug, inputUpper, outputUpper } = parsed;
-  const canonicalUrl = `${SITE_URL}/${slug}`;
+  const canonicalUrl = `${SITE_URL}/convert/${slug}`;
   const title = buildMetaTitle(inputUpper, outputUpper);
   const description = buildMetaDescription(inputUpper, outputUpper);
 
