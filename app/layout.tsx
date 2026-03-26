@@ -5,7 +5,7 @@ import "./globals.css";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://converto.tools";
+  "https://www.converto.tools";
 
 const ADSENSE_CLIENT = "ca-pub-4933934041035226";
 

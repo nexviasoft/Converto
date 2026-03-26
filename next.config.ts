@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/:from-to-:to",
-        destination: "/convert/:from-to-:to",
+        source: "/:fromFmt-to-:toFmt",
+        destination: "/convert/:fromFmt-to-:toFmt",
         permanent: true,
       },
     ];

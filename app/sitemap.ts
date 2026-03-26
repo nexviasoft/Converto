@@ -65,7 +65,7 @@ const DEFAULT_LAST_MODIFIED = new Date("2026-03-11");
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "https://converto.tools";
+    "https://www.converto.tools";
 
   const staticEntries: MetadataRoute.Sitemap = [
     {
