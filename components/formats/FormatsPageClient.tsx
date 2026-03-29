@@ -1,8 +1,9 @@
 "use client";
 
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import AdSenseScript from "@/components/ads/AdsenseScript";
 import {
   audioFormats,
   videoFormats,
@@ -12,6 +13,78 @@ import {
 
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
+
+const AD_SLOTS = {
+  LEFT_RAIL: "3456789012",
+  RIGHT_RAIL: "4567890123",
+} as const;
+
+const ADS_ENABLED = true;
+
+function AdUnit({
+  slot,
+  className = "",
+  title = "Sponsored",
+  sticky = false,
+}: {
+  slot: string;
+  className?: string;
+  title?: string;
+  sticky?: boolean;
+}) {
+  const pushedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      if (!ADS_ENABLED) return;
+      if (pushedRef.current) return;
+      // @ts-ignore
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      pushedRef.current = true;
+    } catch {}
+  }, []);
+
+  if (!ADS_ENABLED) return null;
+
+  return (
+    <div
+      className={cx(
+        "relative overflow-hidden rounded-[28px] bg-white/8 ring-1 ring-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.34)]",
+        sticky ? "sticky top-[92px]" : "",
+        className
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.14),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.10),transparent_55%)]" />
+
+      <div className="relative p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-[11px] font-semibold tracking-wide text-white/60">
+            {title}
+          </div>
+          <div className="text-[11px] text-white/35">Ads keep Converto free</div>
+        </div>
+
+        <div className="rounded-[22px] bg-black/20 p-4 ring-1 ring-white/10">
+          <div className="mb-4 space-y-2">
+            <div className="h-2.5 w-24 rounded-full bg-white/10" />
+            <div className="h-2.5 w-14 rounded-full bg-white/5" />
+          </div>
+
+          <ins
+            className="adsbygoogle block"
+            style={{
+              display: "block",
+              minHeight: 560,
+            }}
+            data-ad-slot={slot}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const compareGuides = [
   {
@@ -188,36 +261,6 @@ function LinkGridCard({
   );
 }
 
-function AdTrailer() {
-  return (
-    <div className="sticky top-[104px]">
-      <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.06] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-sm">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.14),transparent_35%),radial-gradient(circle_at_bottom,rgba(59,130,246,0.12),transparent_40%)]" />
-
-        <div className="relative">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="text-[12px] font-semibold text-white/70">
-              Sponsored
-            </div>
-            <div className="text-[12px] text-white/40">
-              Ads keep Converto free
-            </div>
-          </div>
-
-          <div className="rounded-[24px] border border-white/10 bg-black/10 p-4">
-            <div className="mb-4 space-y-2">
-              <div className="h-3 w-24 rounded-full bg-white/10" />
-              <div className="h-3 w-16 rounded-full bg-white/6" />
-            </div>
-
-            <div className="h-[620px] rounded-[22px] border border-white/10 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.10),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))]" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function FormatsPageClient() {
   const PAGE_MAX = "max-w-[1750px]";
   const CENTER_MAX = "max-w-[1120px]";
@@ -246,6 +289,8 @@ export default function FormatsPageClient() {
       <SimpleTopBar shellMax={PAGE_MAX} />
 
       <main className="min-h-screen bg-[#151233] pt-4 text-white selection:bg-white/20">
+        <AdSenseScript />
+
         <div className="pointer-events-none fixed inset-0 -z-10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.22),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_50%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.06),transparent_45%)]" />
           <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:72px_72px]" />
@@ -254,7 +299,7 @@ export default function FormatsPageClient() {
         <div className={cx("mx-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-14", PAGE_MAX)}>
           <div className="grid items-start gap-6 xl:gap-8 xl:grid-cols-[270px_minmax(0,1fr)_270px] 2xl:grid-cols-[300px_minmax(0,1fr)_300px]">
             <aside className="hidden xl:block">
-              <AdTrailer />
+              <AdUnit slot={AD_SLOTS.LEFT_RAIL} sticky className="w-full" />
             </aside>
 
             <div className="min-w-0">
@@ -553,7 +598,7 @@ export default function FormatsPageClient() {
             </div>
 
             <aside className="hidden xl:block">
-              <AdTrailer />
+              <AdUnit slot={AD_SLOTS.RIGHT_RAIL} sticky className="w-full" />
             </aside>
           </div>
         </div>

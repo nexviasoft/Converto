@@ -2,6 +2,7 @@
 
 const MAINTENANCE_MODE = false;
 
+import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
