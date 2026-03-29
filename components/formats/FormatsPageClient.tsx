@@ -219,7 +219,8 @@ function AdTrailer() {
 }
 
 export default function FormatsPageClient() {
-  const PAGE_MAX = "max-w-[1700px]";
+  const PAGE_MAX = "max-w-[1750px]";
+  const CENTER_MAX = "max-w-[1120px]";
 
   const formatGuides = useMemo(
     () =>
@@ -251,302 +252,304 @@ export default function FormatsPageClient() {
         </div>
 
         <div className={cx("mx-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-14", PAGE_MAX)}>
-          <div className="grid items-start gap-6 xl:grid-cols-[280px_minmax(0,1fr)_280px] 2xl:grid-cols-[300px_minmax(0,1fr)_300px]">
+          <div className="grid items-start gap-6 xl:gap-8 xl:grid-cols-[270px_minmax(0,1fr)_270px] 2xl:grid-cols-[300px_minmax(0,1fr)_300px]">
             <aside className="hidden xl:block">
               <AdTrailer />
             </aside>
 
             <div className="min-w-0">
-              <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.07] px-6 py-8 shadow-[0_30px_100px_rgba(0,0,0,0.25)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.14),transparent_30%)]" />
+              <div className={cx("mx-auto w-full", CENTER_MAX)}>
+                <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.07] px-6 py-8 shadow-[0_30px_100px_rgba(0,0,0,0.25)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.14),transparent_30%)]" />
 
-                <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)] lg:items-stretch">
-                  <div>
-                    <SectionLabel>Browse faster</SectionLabel>
+                  <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)] lg:items-stretch">
+                    <div>
+                      <SectionLabel>Browse faster</SectionLabel>
 
-                    <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                      Interactive format explorer
-                    </h1>
+                      <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                        Interactive format explorer
+                      </h1>
 
-                    <p className="mt-5 max-w-2xl text-sm leading-7 text-white/70 sm:text-base">
-                      Explore Converto’s supported audio, video, and image formats in a
-                      cleaner, more practical hub. Learn what each format is best for,
-                      compare related options, and jump directly into the conversion
-                      routes people use most.
+                      <p className="mt-5 max-w-2xl text-sm leading-7 text-white/70 sm:text-base">
+                        Explore Converto’s supported audio, video, and image formats in a
+                        cleaner, more practical hub. Learn what each format is best for,
+                        compare related options, and jump directly into the conversion
+                        routes people use most.
+                      </p>
+
+                      <div className="mt-6 flex flex-wrap gap-3">
+                        <Pill>Audio, video, and images</Pill>
+                        <Pill>Guides + comparisons</Pill>
+                        <Pill>Conversion-first workflows</Pill>
+                      </div>
+
+                      <div className="mt-8 flex flex-wrap gap-3">
+                        <Link
+                          href="/converter"
+                          className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                        >
+                          Open Converter
+                        </Link>
+
+                        <Link
+                          href="/compare"
+                          className="inline-flex rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-white/12 hover:text-white"
+                        >
+                          Browse comparisons
+                        </Link>
+                      </div>
+                    </div>
+
+                    <GlassCard className="relative overflow-hidden p-5 sm:p-6">
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.16),transparent_40%)]" />
+                      <div className="relative">
+                        <SectionLabel>Format library</SectionLabel>
+
+                        <div className="mt-4 grid gap-4">
+                          <ExplorerFeature
+                            title="Start with popular formats"
+                            desc="MP3, MP4, PNG, WEBM, FLAC, and WEBP cover many of the most common listening, playback, image, and sharing workflows."
+                          />
+                          <ExplorerFeature
+                            title="Compare before you convert"
+                            desc="Use compare pages to understand compatibility, editing flexibility, streaming behavior, transparency support, and file size trade-offs."
+                          />
+                          <ExplorerFeature
+                            title="Move faster from intent to action"
+                            desc="Instead of browsing random extensions, jump from a format question directly into a practical conversion path that fits your use case."
+                          />
+                        </div>
+                      </div>
+                    </GlassCard>
+                  </div>
+                </section>
+
+                <section className="mt-10">
+                  <GlassCard className="p-6 sm:p-7">
+                    <SectionLabel>Featured formats</SectionLabel>
+
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Start with the formats people use the most
+                    </h2>
+
+                    <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
+                      These formats cover the most common everyday use cases, from audio
+                      extraction and portable listening to browser playback, image
+                      optimization, and broad compatibility across devices.
+                    </p>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {featuredFormats.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="group rounded-[22px] border border-white/10 bg-white/[0.05] p-5 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.08]"
+                        >
+                          <div className="text-lg font-semibold text-white">{item.label}</div>
+                          <p className="mt-2 text-sm leading-6 text-white/65">{item.note}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </section>
+
+                <section className="mt-10 grid gap-6 xl:grid-cols-3">
+                  <FormatGroup
+                    title="Audio formats"
+                    desc="Audio conversion helps with listening compatibility, extracting sound from video, managing file size, and preparing files for playback across apps, phones, browsers, and music libraries."
+                    formats={audioFormats}
+                  />
+
+                  <FormatGroup
+                    title="Video formats"
+                    desc="Video conversion is useful for playback compatibility, modernizing older files, reducing sharing friction, preparing uploads, and choosing the right balance between quality and file size."
+                    formats={videoFormats}
+                  />
+
+                  <FormatGroup
+                    title="Image formats"
+                    desc="Image conversion helps with compression, transparency, editing flexibility, web optimization, and moving between graphics-first and delivery-first formats."
+                    formats={imageFormats}
+                  />
+                </section>
+
+                <section className="mt-10">
+                  <GlassCard className="p-6 sm:p-7">
+                    <SectionLabel>Why this hub matters</SectionLabel>
+
+                    <h2 className="mt-3 max-w-4xl text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Choosing the right format saves time, space, and compatibility headaches
+                    </h2>
+
+                    <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                      <ExplorerFeature
+                        title="Better compatibility"
+                        desc="Some formats work better in browsers, some are better for editing, and others are simply easier to share."
+                      />
+                      <ExplorerFeature
+                        title="Smaller or more flexible files"
+                        desc="A good converter is not only about changing extensions. It is also about portability, storage, and workflow fit."
+                      />
+                      <ExplorerFeature
+                        title="Clearer conversion decisions"
+                        desc="Users often need the right output for one task, like extracting audio, uploading to a site, or opening an older file."
+                      />
+                      <ExplorerFeature
+                        title="Less guesswork"
+                        desc="These pages focus on practical use cases so users can move from confusion to action much faster."
+                      />
+                    </div>
+                  </GlassCard>
+                </section>
+
+                <section className="mt-10">
+                  <GlassCard className="p-6 sm:p-7">
+                    <SectionLabel>Format guides</SectionLabel>
+
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Explore detailed guides for all supported formats
+                    </h2>
+
+                    <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
+                      Each guide explains what the format is, where it fits best, what it is
+                      commonly compared with, and which conversion paths are the most useful
+                      for real-world compatibility, playback, editing, or optimization.
+                    </p>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {formatGuides.map((item) => (
+                        <LinkGridCard
+                          key={item.href}
+                          href={item.href}
+                          title={item.label}
+                          desc={item.desc}
+                        />
+                      ))}
+                    </div>
+                  </GlassCard>
+                </section>
+
+                <section className="mt-10">
+                  <GlassCard className="p-6 sm:p-7">
+                    <SectionLabel>Format comparisons</SectionLabel>
+
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Compare similar formats before you convert
+                    </h2>
+
+                    <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
+                      Some formats seem similar until you look at playback support, editing
+                      flexibility, streaming use, transparency, or file size behavior. These
+                      compare pages help users choose the better fit before converting.
+                    </p>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {compareGuides.map((item) => (
+                        <LinkGridCard
+                          key={item.href}
+                          href={item.href}
+                          title={item.label}
+                          desc={item.desc}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="mt-6">
+                      <Link
+                        href="/compare"
+                        className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                      >
+                        Open compare hub
+                      </Link>
+                    </div>
+                  </GlassCard>
+                </section>
+
+                <section className="mt-10">
+                  <GlassCard className="p-6 sm:p-7">
+                    <SectionLabel>Popular conversions</SectionLabel>
+
+                    <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Common format changes people make every day
+                    </h2>
+
+                    <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
+                      These routes cover some of the most common reasons people convert
+                      files: extracting audio, reducing size, improving compatibility,
+                      creating web-friendly assets, or making older files easier to open.
+                    </p>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                      {popularConversions.map((item) => (
+                        <LinkGridCard
+                          key={item.href}
+                          href={item.href}
+                          title={item.label}
+                          desc={item.desc}
+                        />
+                      ))}
+                    </div>
+                  </GlassCard>
+                </section>
+
+                <section className="mt-10 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                  <GlassCard className="p-6 sm:p-7">
+                    <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Practical format questions users usually have
+                    </h2>
+
+                    <div className="mt-5 space-y-4">
+                      <ExplorerFeature
+                        title="Which format is the safest all-around choice?"
+                        desc="For video, MP4 is usually the safest broad-compatibility option. For audio, MP3 remains the most universal. For web-focused images, JPG, PNG, WEBP, and AVIF each serve different needs."
+                      />
+                      <ExplorerFeature
+                        title="When should I convert instead of keeping the original file?"
+                        desc="Convert when you need better compatibility, smaller file sizes, audio extraction, easier sharing, or a format that fits a specific browser, app, or editing workflow."
+                      />
+                      <ExplorerFeature
+                        title="Does conversion improve quality?"
+                        desc="Not by itself. Conversion can improve compatibility and sometimes workflow efficiency, but it cannot recreate detail that was not in the original file."
+                      />
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6 sm:p-7">
+                    <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                      Start converting
+                    </h2>
+
+                    <p className="mt-3 text-sm leading-6 text-white/65">
+                      You can jump directly into the converter, start from a format guide,
+                      or compare two formats first if you want a clearer sense of which
+                      output makes the most sense for your use case.
                     </p>
 
                     <div className="mt-6 flex flex-wrap gap-3">
-                      <Pill>Audio, video, and images</Pill>
-                      <Pill>Guides + comparisons</Pill>
-                      <Pill>Conversion-first workflows</Pill>
-                    </div>
-
-                    <div className="mt-8 flex flex-wrap gap-3">
                       <Link
                         href="/converter"
                         className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
                       >
-                        Open Converter
+                        Go to Converter
                       </Link>
 
                       <Link
                         href="/compare"
                         className="inline-flex rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-white/12 hover:text-white"
                       >
-                        Browse comparisons
+                        Compare formats
                       </Link>
-                    </div>
-                  </div>
 
-                  <GlassCard className="relative overflow-hidden p-5 sm:p-6">
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.16),transparent_40%)]" />
-                    <div className="relative">
-                      <SectionLabel>Format library</SectionLabel>
-
-                      <div className="mt-4 grid gap-4">
-                        <ExplorerFeature
-                          title="Start with popular formats"
-                          desc="MP3, MP4, PNG, WEBM, FLAC, and WEBP cover many of the most common listening, playback, image, and sharing workflows."
-                        />
-                        <ExplorerFeature
-                          title="Compare before you convert"
-                          desc="Use compare pages to understand compatibility, editing flexibility, streaming behavior, transparency support, and file size trade-offs."
-                        />
-                        <ExplorerFeature
-                          title="Move faster from intent to action"
-                          desc="Instead of browsing random extensions, jump from a format question directly into a practical conversion path that fits your use case."
-                        />
-                      </div>
+                      <Link
+                        href="/convert/mp4-to-mp3"
+                        className="inline-flex rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-white/12 hover:text-white"
+                      >
+                        Try MP4 to MP3
+                      </Link>
                     </div>
                   </GlassCard>
-                </div>
-              </section>
-
-              <section className="mt-10">
-                <GlassCard className="p-6 sm:p-7">
-                  <SectionLabel>Featured formats</SectionLabel>
-
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Start with the formats people use the most
-                  </h2>
-
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-                    These formats cover the most common everyday use cases, from audio
-                    extraction and portable listening to browser playback, image
-                    optimization, and broad compatibility across devices.
-                  </p>
-
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {featuredFormats.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="group rounded-[22px] border border-white/10 bg-white/[0.05] p-5 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.08]"
-                      >
-                        <div className="text-lg font-semibold text-white">{item.label}</div>
-                        <p className="mt-2 text-sm leading-6 text-white/65">{item.note}</p>
-                      </Link>
-                    ))}
-                  </div>
-                </GlassCard>
-              </section>
-
-              <section className="mt-10 grid gap-6 xl:grid-cols-3">
-                <FormatGroup
-                  title="Audio formats"
-                  desc="Audio conversion helps with listening compatibility, extracting sound from video, managing file size, and preparing files for playback across apps, phones, browsers, and music libraries."
-                  formats={audioFormats}
-                />
-
-                <FormatGroup
-                  title="Video formats"
-                  desc="Video conversion is useful for playback compatibility, modernizing older files, reducing sharing friction, preparing uploads, and choosing the right balance between quality and file size."
-                  formats={videoFormats}
-                />
-
-                <FormatGroup
-                  title="Image formats"
-                  desc="Image conversion helps with compression, transparency, editing flexibility, web optimization, and moving between graphics-first and delivery-first formats."
-                  formats={imageFormats}
-                />
-              </section>
-
-              <section className="mt-10">
-                <GlassCard className="p-6 sm:p-7">
-                  <SectionLabel>Why this hub matters</SectionLabel>
-
-                  <h2 className="mt-3 max-w-4xl text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Choosing the right format saves time, space, and compatibility headaches
-                  </h2>
-
-                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <ExplorerFeature
-                      title="Better compatibility"
-                      desc="Some formats work better in browsers, some are better for editing, and others are simply easier to share."
-                    />
-                    <ExplorerFeature
-                      title="Smaller or more flexible files"
-                      desc="A good converter is not only about changing extensions. It is also about portability, storage, and workflow fit."
-                    />
-                    <ExplorerFeature
-                      title="Clearer conversion decisions"
-                      desc="Users often need the right output for one task, like extracting audio, uploading to a site, or opening an older file."
-                    />
-                    <ExplorerFeature
-                      title="Less guesswork"
-                      desc="These pages focus on practical use cases so users can move from confusion to action much faster."
-                    />
-                  </div>
-                </GlassCard>
-              </section>
-
-              <section className="mt-10">
-                <GlassCard className="p-6 sm:p-7">
-                  <SectionLabel>Format guides</SectionLabel>
-
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Explore detailed guides for all supported formats
-                  </h2>
-
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-                    Each guide explains what the format is, where it fits best, what it is
-                    commonly compared with, and which conversion paths are the most useful
-                    for real-world compatibility, playback, editing, or optimization.
-                  </p>
-
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {formatGuides.map((item) => (
-                      <LinkGridCard
-                        key={item.href}
-                        href={item.href}
-                        title={item.label}
-                        desc={item.desc}
-                      />
-                    ))}
-                  </div>
-                </GlassCard>
-              </section>
-
-              <section className="mt-10">
-                <GlassCard className="p-6 sm:p-7">
-                  <SectionLabel>Format comparisons</SectionLabel>
-
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Compare similar formats before you convert
-                  </h2>
-
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-                    Some formats seem similar until you look at playback support, editing
-                    flexibility, streaming use, transparency, or file size behavior. These
-                    compare pages help users choose the better fit before converting.
-                  </p>
-
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {compareGuides.map((item) => (
-                      <LinkGridCard
-                        key={item.href}
-                        href={item.href}
-                        title={item.label}
-                        desc={item.desc}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="mt-6">
-                    <Link
-                      href="/compare"
-                      className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-                    >
-                      Open compare hub
-                    </Link>
-                  </div>
-                </GlassCard>
-              </section>
-
-              <section className="mt-10">
-                <GlassCard className="p-6 sm:p-7">
-                  <SectionLabel>Popular conversions</SectionLabel>
-
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Common format changes people make every day
-                  </h2>
-
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-                    These routes cover some of the most common reasons people convert
-                    files: extracting audio, reducing size, improving compatibility,
-                    creating web-friendly assets, or making older files easier to open.
-                  </p>
-
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    {popularConversions.map((item) => (
-                      <LinkGridCard
-                        key={item.href}
-                        href={item.href}
-                        title={item.label}
-                        desc={item.desc}
-                      />
-                    ))}
-                  </div>
-                </GlassCard>
-              </section>
-
-              <section className="mt-10 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                <GlassCard className="p-6 sm:p-7">
-                  <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Practical format questions users usually have
-                  </h2>
-
-                  <div className="mt-5 space-y-4">
-                    <ExplorerFeature
-                      title="Which format is the safest all-around choice?"
-                      desc="For video, MP4 is usually the safest broad-compatibility option. For audio, MP3 remains the most universal. For web-focused images, JPG, PNG, WEBP, and AVIF each serve different needs."
-                    />
-                    <ExplorerFeature
-                      title="When should I convert instead of keeping the original file?"
-                      desc="Convert when you need better compatibility, smaller file sizes, audio extraction, easier sharing, or a format that fits a specific browser, app, or editing workflow."
-                    />
-                    <ExplorerFeature
-                      title="Does conversion improve quality?"
-                      desc="Not by itself. Conversion can improve compatibility and sometimes workflow efficiency, but it cannot recreate detail that was not in the original file."
-                    />
-                  </div>
-                </GlassCard>
-
-                <GlassCard className="p-6 sm:p-7">
-                  <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                    Start converting
-                  </h2>
-
-                  <p className="mt-3 text-sm leading-6 text-white/65">
-                    You can jump directly into the converter, start from a format guide,
-                    or compare two formats first if you want a clearer sense of which
-                    output makes the most sense for your use case.
-                  </p>
-
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Link
-                      href="/converter"
-                      className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-                    >
-                      Go to Converter
-                    </Link>
-
-                    <Link
-                      href="/compare"
-                      className="inline-flex rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-white/12 hover:text-white"
-                    >
-                      Compare formats
-                    </Link>
-
-                    <Link
-                      href="/convert/mp4-to-mp3"
-                      className="inline-flex rounded-full border border-white/10 bg-white/8 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-white/12 hover:text-white"
-                    >
-                      Try MP4 to MP3
-                    </Link>
-                  </div>
-                </GlassCard>
-              </section>
+                </section>
+              </div>
             </div>
 
             <aside className="hidden xl:block">
