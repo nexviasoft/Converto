@@ -1331,38 +1331,7 @@ if (typeof window !== "undefined") {
         <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:84px_84px]" />
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05040F]/80 backdrop-blur">
-        <div className={cx("mx-auto flex items-center justify-between px-4 py-3 sm:px-5 xl:px-6", SHELL_MAX)}>
-          <Link href="/" className="group inline-flex items-center gap-3">
-            <img
-              src="/brand/converto-logo.svg"
-              alt="Converto logo"
-              className="h-10 w-10 object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
-            />
-
-            <span className="leading-tight">
-              <span className="block text-[15px] font-semibold tracking-tight text-white">
-                Converto
-              </span>
-              <span className="block -mt-0.5 text-[11px] text-white/50">
-                by NexviaSoft
-              </span>
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <Link href="/formats" className="text-sm text-white/70 transition hover:text-white">
-              Formats
-            </Link>
-            <Link href="/terms" className="text-sm text-white/70 transition hover:text-white">
-              Terms
-            </Link>
-            <Link href="/privacy" className="text-sm text-white/70 transition hover:text-white">
-              Privacy
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SimpleTopBar shellMax={SHELL_MAX} />
 
       <main className={cx("mx-auto px-4 py-8 sm:px-5 lg:px-6", SHELL_MAX)}>
         <section className="mx-auto mb-8 max-w-[1100px] text-center">
