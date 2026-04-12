@@ -6,18 +6,14 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const host = request.headers.get("host") ?? "";
 
-  const allowedHosts = [
-    CANONICAL_HOST,
-    "localhost:3000",
-    "127.0.0.1:3000",
-  ];
+  const isLocalhost =
+    host.includes("localhost") || host.startsWith("127.0.0.1");
 
-  const isPreview = host.endsWith(".vercel.app");
+  const isVercel = host.includes(".vercel.app");
 
-  if (!allowedHosts.includes(host) && !isPreview) {
-    url.protocol = "https";
-    url.host = CANONICAL_HOST;
-    return NextResponse.redirect(url, 301);
+  // SADECE production domain dışındaysa ve vercel değilse redirect et
+  if (!isLocalhost && !isVercel && host !== CANONICAL_HOST) {
+    return NextResponse.redirect(`https://${CANONICAL_HOST}${url.pathname}${url.search}`, 301);
   }
 
   return NextResponse.next();
