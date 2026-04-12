@@ -9,15 +9,20 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.0.7",
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
+    "@paddle/paddle-js": "^1.6.2",
+    "@stripe/react-stripe-js": "^6.1.0",
+    "@stripe/stripe-js": "^9.1.0",
     "@supabase/supabase-js": "^2.99.2",
     "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^2.0.0",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "stripe": "^22.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",

@@ -11,6 +11,9 @@ import UseCasesSection from "@/components/converter/sections/UseCasesSection";
 import QualityNotesSection from "@/components/converter/sections/QualityNotesSection";
 import RouteSpecificFaqSection from "@/components/converter/sections/RouteSpecificFaqSection";
 import { getConverterContent } from "@/lib/converterContent";
+import { getViewerEntitlement } from "@/lib/entitlements";
+import type { UserEntitlement } from "@/types/billing";
+import { useUser } from "@clerk/nextjs";
 
 type TargetFmt =
   | "MP3"
@@ -54,6 +57,7 @@ type ConverterPageContentProps = {
 };
 
 type ConvertStatus = "idle" | "ready" | "loading" | "processing" | "done" | "error";
+type BatchStatus = "idle" | "processing" | "done" | "error";
 
 type ConverterFaqItem = {
   q: string;
@@ -81,6 +85,52 @@ const AD_SLOTS = {
 } as const;
 
 const ADS_ENABLED = true;
+
+// ── Free batch quota helpers ──────────────────────────────────────────────────
+const FREE_BATCH_DAILY_LIMIT = 5;
+const BATCH_QUOTA_KEY = "converto_batch_quota";
+
+type BatchQuota = {
+  date: string; // "YYYY-MM-DD"
+  used: number;
+};
+
+function getTodayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getBatchQuota(): BatchQuota {
+  try {
+    const raw = localStorage.getItem(BATCH_QUOTA_KEY);
+    if (!raw) return { date: getTodayStr(), used: 0 };
+    const parsed: BatchQuota = JSON.parse(raw);
+    if (parsed.date !== getTodayStr()) return { date: getTodayStr(), used: 0 };
+    return parsed;
+  } catch {
+    return { date: getTodayStr(), used: 0 };
+  }
+}
+
+function incrementBatchQuota(count: number) {
+  const q = getBatchQuota();
+  const next: BatchQuota = { date: getTodayStr(), used: q.used + count };
+  try {
+    localStorage.setItem(BATCH_QUOTA_KEY, JSON.stringify(next));
+  } catch {}
+  return next;
+}
+
+function getMidnightCountdown(): string {
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0);
+  const diffMs = midnight.getTime() - now.getTime();
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  const s = Math.floor((diffMs % 60000) / 1000);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function AdUnit({
   slot,
@@ -187,6 +237,12 @@ const ALL_TARGET_OPTIONS: TargetFmt[] = [
   ...VIDEO_TARGETS,
   ...IMAGE_TARGETS,
 ];
+
+const VIDEO_RESOLUTION_OPTIONS = ["Source", "144p", "240p", "360p", "480p", "720p", "1080p", "1440p", "4K"] as const;
+const VIDEO_QUALITY_OPTIONS = ["small", "balanced", "high"] as const;
+const AUDIO_CHANNEL_OPTIONS = ["1", "2"] as const;
+const ICO_SIZE_OPTIONS = ["16", "32", "48", "64", "128", "256"] as const;
+const ICO_BIT_DEPTH_OPTIONS = ["8", "24", "32"] as const;
 
 const homepagePopularConversions = [
   { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
@@ -697,6 +753,223 @@ function PopularEntrySection() {
   );
 }
 
+
+function ProFeatureLock({
+  title,
+  enabled,
+  children,
+  onUpgrade,
+}: {
+  title: string;
+  enabled: boolean;
+  children: React.ReactNode;
+  onUpgrade: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
+
+          {!enabled && (
+            <>
+              <span className="inline-flex h-5 items-center rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-fuchsia-200">
+                Pro
+              </span>
+              <span className="text-sm text-white/45">🔒</span>
+            </>
+          )}
+        </div>
+
+        {!enabled && (
+          <button
+            type="button"
+            onClick={onUpgrade}
+            className="inline-flex h-8 items-center rounded-full border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
+          >
+            Unlock
+          </button>
+        )}
+      </div>
+
+      <div
+        className={[
+          "transition",
+          enabled ? "" : "pointer-events-none select-none opacity-50 grayscale-[0.15]",
+        ].join(" ")}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function UpgradePrompt({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-md rounded-[24px] border border-white/10 bg-[#0b1220] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.45)]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="inline-flex rounded-full border border-fuchsia-400/30 bg-fuchsia-500/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-fuchsia-200">
+              Converto Pro
+            </div>
+
+            <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">
+              Unlock advanced controls
+            </h3>
+
+            <p className="mt-3 text-sm leading-6 text-white/62">
+              Trim, bitrate, higher limits, faster workflows and more advanced export options.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <Link
+            href="/#pricing"
+            className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
+          >
+            View Pro
+          </Link>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-11 items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
+          >
+            Later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Free Batch Limit Exhausted Banner ─────────────────────────────────────────
+function BatchQuotaExhaustedBanner({
+  countdown,
+  onUpgrade,
+}: {
+  countdown: string;
+  onUpgrade: () => void;
+}) {
+  return (
+    <div className="mt-6 overflow-hidden rounded-[22px] border border-amber-400/20 bg-amber-500/8 ring-1 ring-amber-400/15">
+      <div className="p-5">
+        <div className="flex items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/15 text-lg">
+            ⏳
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-amber-100">
+              Daily batch limit reached
+            </div>
+            <p className="mt-1 text-xs leading-5 text-amber-200/70">
+              Free users can batch convert up to {FREE_BATCH_DAILY_LIMIT} files per day. Your quota resets at midnight.
+            </p>
+
+            {/* Countdown */}
+            <div className="mt-4 flex items-center gap-3">
+              <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-center">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-1">
+                  Resets in
+                </div>
+                <div className="font-mono text-xl font-bold tracking-widest text-white tabular-nums">
+                  {countdown}
+                </div>
+              </div>
+
+              <div className="text-xs text-white/40 leading-5">
+                Or upgrade to Pro for<br />unlimited batch conversions.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onUpgrade}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+          >
+            <span className="inline-flex h-4 items-center rounded-full border border-fuchsia-400/50 bg-fuchsia-500/20 px-1.5 text-[9px] font-bold uppercase tracking-wide text-fuchsia-200">
+              Pro
+            </span>
+            Upgrade for unlimited
+          </button>
+
+          <span className="text-[11px] text-white/35">
+            Free quota resets daily at 00:00
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Free Batch Quota Badge ────────────────────────────────────────────────────
+function BatchQuotaBadge({
+  used,
+  limit,
+  isPro,
+}: {
+  used: number;
+  limit: number;
+  isPro: boolean;
+}) {
+  if (isPro) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1 text-[11px] font-semibold text-fuchsia-200">
+        <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-300" />
+        Unlimited batch
+      </span>
+    );
+  }
+
+  const remaining = Math.max(0, limit - used);
+  const isLow = remaining <= 2 && remaining > 0;
+  const isDepleted = remaining === 0;
+
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ring-1",
+        isDepleted
+          ? "border-rose-400/25 bg-rose-500/10 text-rose-200 ring-rose-400/20"
+          : isLow
+          ? "border-amber-400/25 bg-amber-500/10 text-amber-200 ring-amber-400/20"
+          : "border-white/10 bg-white/8 text-white/70 ring-white/10"
+      )}
+    >
+      <span
+        className={cx(
+          "h-1.5 w-1.5 rounded-full",
+          isDepleted ? "bg-rose-300" : isLow ? "bg-amber-300" : "bg-white/40"
+        )}
+      />
+      {isDepleted ? "Limit reached" : `${remaining} of ${limit} free files left today`}
+    </span>
+  );
+}
+
+
 export default function ConverterPageContent({
   slug,
   seoTitle,
@@ -706,43 +979,91 @@ export default function ConverterPageContent({
   rawInputLabel,
   rawOutputLabel,
 }: ConverterPageContentProps) {
-const SHELL_MAX = "max-w-[1700px]";
-const CENTER_MAX = "max-w-[1100px]";
-const GRID = "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
+  const { user } = useUser();
+  const isPro = user?.id === "user_3Bfa3QpE3MCJzYTIIvMkFJlFmwo";
 
-const initialSuggestedInput = toTargetFmt(suggestedInput ?? rawInputLabel ?? null);
-const initialSuggestedOutput =
-  toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3";
+  const SHELL_MAX = "max-w-[1700px]";
+  const CENTER_MAX = "max-w-[1100px]";
+  const GRID =
+    "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
 
-const initialRouteSlug =
-  slug ??
-  buildRouteSlug(initialSuggestedInput, initialSuggestedOutput) ??
-  "mp4-to-mp3";
+  const initialSuggestedInput = toTargetFmt(
+    suggestedInput ?? rawInputLabel ?? null
+  );
+  const initialSuggestedOutput =
+    toTargetFmt(suggestedOutput ?? rawOutputLabel ?? null) ?? "MP3";
 
-const [currentSlug, setCurrentSlug] = useState<string>(initialRouteSlug);
+  const initialRouteSlug =
+    slug ??
+    buildRouteSlug(initialSuggestedInput, initialSuggestedOutput) ??
+    "mp4-to-mp3";
 
-const [file, setFile] = useState<File | null>(null);
-const [dragOver, setDragOver] = useState(false);
-const [status, setStatus] = useState<ConvertStatus>("idle");
-const [target, setTarget] = useState<TargetFmt>(initialSuggestedOutput);
-const [targetOpen, setTargetOpen] = useState(false);
-const [errorMsg, setErrorMsg] = useState<string | null>(null);
-const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-const [resultUrl, setResultUrl] = useState<string | null>(null);
-const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
+  const [currentSlug, setCurrentSlug] = useState<string>(initialRouteSlug);
 
-const [actualProgress, setActualProgress] = useState(0);
-const [displayProgress, setDisplayProgress] = useState(0);
-const [progressLabel, setProgressLabel] = useState("Preparing file...");
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [status, setStatus] = useState<ConvertStatus>("idle");
+  const [target, setTarget] = useState<TargetFmt>(initialSuggestedOutput);
+  const [targetOpen, setTargetOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
 
-const [routeInput, setRouteInput] = useState<TargetFmt | null>(initialSuggestedInput);
-const [routeOutput, setRouteOutput] = useState<TargetFmt>(initialSuggestedOutput);
+  const [actualProgress, setActualProgress] = useState(0);
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState("Preparing file...");
 
-  const MAX_FREE_MB = 50;
+  const [routeInput, setRouteInput] = useState<TargetFmt | null>(
+    initialSuggestedInput
+  );
+  const [routeOutput, setRouteOutput] =
+    useState<TargetFmt>(initialSuggestedOutput);
+  const [entitlement, setEntitlement] = useState<UserEntitlement | null>(null);
+  const [trimEnabled, setTrimEnabled] = useState(false);
+  const [mediaDuration, setMediaDuration] = useState(0);
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
+  const [audioBitrate, setAudioBitrate] = useState("192k");
+  const [audioSampleRate, setAudioSampleRate] = useState("44100");
+  const [audioChannels, setAudioChannels] = useState("2");
+  const [videoResolution, setVideoResolution] = useState("Source");
+  const [videoQuality, setVideoQuality] = useState("balanced");
+  const [videoFps, setVideoFps] = useState("30");
+  const [videoCodec, setVideoCodec] = useState("h264");
+  const [muteAudio, setMuteAudio] = useState(false);
+  const [iconSize, setIconSize] = useState("64");
+  const [iconBitDepth, setIconBitDepth] = useState("32");
+  const [imageWidth, setImageWidth] = useState("");
+  const [imageHeight, setImageHeight] = useState("");
+  const [imageQuality, setImageQuality] = useState(92);
+  const [showUpgradePanel, setShowUpgradePanel] = useState(false);
+
+  // ── Batch state ──────────────────────────────────────────────────────────
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
+  const [batchDragOver, setBatchDragOver] = useState(false);
+  const [batchStatus, setBatchStatus] = useState<BatchStatus>("idle");
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchResultUrl, setBatchResultUrl] = useState<string | null>(null);
+  const [batchResultName, setBatchResultName] = useState<string>("converto_batch.zip");
+  const [batchError, setBatchError] = useState<string | null>(null);
+
+  // ── Free batch quota state ────────────────────────────────────────────────
+  const [batchQuotaUsed, setBatchQuotaUsed] = useState(0);
+  const [midnightCountdown, setMidnightCountdown] = useState("--:--:--");
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const MAX_FREE_MB = isPro ? 1000 : entitlement?.maxFileSizeMb ?? 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
 
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
+
+  // ── Derived batch quota values ────────────────────────────────────────────
+  const batchQuotaRemaining = Math.max(0, FREE_BATCH_DAILY_LIMIT - batchQuotaUsed);
+  const batchQuotaExhausted = !isPro && batchQuotaRemaining === 0;
+  // ─────────────────────────────────────────────────────────────────────────
 
 const mapContent = getConverterContent(currentSlug);
 
@@ -764,6 +1085,79 @@ const customContent = useMemo<ConverterPageContentEntry>(() => {
   return mapContent ?? buildFallbackContent(resolvedInputLabel, resolvedOutputLabel);
 }, [mapContent, resolvedInputLabel, resolvedOutputLabel]);
 
+const viewerTier = isPro ? "pro" : entitlement?.tier ?? "free";
+const canUseTrim = isPro || (entitlement?.trimEnabled ?? false);
+const canUseBitrate = isPro || (entitlement?.audioBitrateControl ?? false);
+const canUseSampleRate = isPro || (entitlement?.audioSampleRateControl ?? false);
+const canUseAudioChannels = isPro;
+const canUseVideoResolution = isPro;
+const canUseVideoQuality = isPro;
+const canUseVideoFps = isPro;
+const canUseMuteAudio = isPro;
+const canUseIconControls = isPro;
+const canUseImageResize = isPro;
+const canUseImageQuality = isPro;
+const currentInputIsImage = isImageFmt(resolvedInputLabel);
+const currentInputIsAudio = isAudioFmt(resolvedInputLabel);
+const currentInputIsVideo = isVideoFmt(resolvedInputLabel);
+const outputIsAudio = isAudioFmt(resolvedOutputLabel);
+const outputIsVideo = isVideoFmt(resolvedOutputLabel);
+const outputIsGif = resolvedOutputLabel === "GIF";
+const outputIsIcon = resolvedOutputLabel === "ICO";
+const showTrimControls = currentInputIsAudio || currentInputIsVideo;
+const showBitrateControls = currentInputIsAudio || (currentInputIsVideo && outputIsAudio);
+const showSampleRateControls = currentInputIsAudio || (currentInputIsVideo && outputIsAudio);
+const showAudioChannelControls = currentInputIsAudio || currentInputIsVideo;
+const showVideoResolutionControls = currentInputIsVideo && (outputIsVideo || outputIsGif);
+const showVideoQualityControls = currentInputIsVideo && (outputIsVideo || outputIsGif);
+const showVideoFpsControls = currentInputIsVideo && outputIsVideo;
+const showMuteAudioControls = currentInputIsVideo && outputIsVideo;
+const showIconControls = outputIsIcon;
+const showImageResizeControls = currentInputIsImage && isImageFmt(resolvedOutputLabel);
+const showImageQualityControls = currentInputIsImage && ["JPG", "WEBP", "AVIF"].includes(resolvedOutputLabel ?? "");
+
+// ── Load batch quota from localStorage on mount ───────────────────────────
+useEffect(() => {
+  const q = getBatchQuota();
+  setBatchQuotaUsed(q.used);
+}, []);
+
+// ── Midnight countdown ticker ─────────────────────────────────────────────
+useEffect(() => {
+  if (!batchQuotaExhausted) return;
+
+  setMidnightCountdown(getMidnightCountdown());
+
+  const timer = setInterval(() => {
+    setMidnightCountdown(getMidnightCountdown());
+
+    // Auto-refresh quota if we've passed midnight
+    const q = getBatchQuota();
+    setBatchQuotaUsed(q.used);
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [batchQuotaExhausted]);
+
+useEffect(() => {
+  let mounted = true;
+
+  (async () => {
+    try {
+      const result = await getViewerEntitlement();
+      if (!mounted) return;
+      setEntitlement(result);
+    } catch {
+      if (!mounted) return;
+      setEntitlement(null);
+    }
+  })();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
+
 useEffect(() => {
   if (slug) {
     setCurrentSlug(slug);
@@ -779,6 +1173,50 @@ useEffect(() => {
   setCurrentSlug(fallbackSlug);
 }, [slug, suggestedInput, suggestedOutput, rawInputLabel, rawOutputLabel]);
 
+function formatTime(value: number) {
+  if (!Number.isFinite(value) || value < 0) return "00:00";
+
+  const totalSeconds = Math.floor(value);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+const readMediaDuration = (inputFile: File) =>
+  new Promise<number>((resolve) => {
+    const objectUrl = URL.createObjectURL(inputFile);
+    const media = document.createElement(
+      inputFile.type.startsWith("audio/") ? "audio" : "video"
+    );
+
+    media.preload = "metadata";
+    media.src = objectUrl;
+
+    const cleanup = () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    media.onloadedmetadata = () => {
+      const duration = Number.isFinite(media.duration) ? media.duration : 0;
+      cleanup();
+      resolve(duration > 0 ? duration : 0);
+    };
+
+    media.onerror = () => {
+      cleanup();
+      resolve(0);
+    };
+  });
 
 useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -967,6 +1405,20 @@ const softSyncRoute = (nextInput: TargetFmt | null, nextOutput: TargetFmt | null
     setDisplayProgress(0);
     setProgressLabel("Preparing file...");
     setTargetOpen(false);
+    setAudioSampleRate("44100");
+    setAudioChannels("2");
+    setVideoResolution("Source");
+    setVideoQuality("balanced");
+    setVideoFps("30");
+    setMuteAudio(false);
+    setIconSize("64");
+    setIconBitDepth("32");
+    setImageWidth("");
+    setImageHeight("");
+    setTrimEnabled(false);
+    setMediaDuration(0);
+    setTrimStart(0);
+    setTrimEnd(0);
 
 if (typeof window !== "undefined") {
   const resetSlug =
@@ -1025,11 +1477,15 @@ if (typeof window !== "undefined") {
   };
 
   const canConvertViaCanvas = (inputFmt: TargetFmt | null, outputFmt: TargetFmt) => {
+    const hasResize = !!imageWidth || !!imageHeight;
+    const needsAdvancedImageProcessing = hasResize || outputFmt === "AVIF";
+
     return (
       !!inputFmt &&
       inputFmt !== "GIF" &&
       ["PNG", "JPG", "WEBP", "BMP", "AVIF"].includes(inputFmt) &&
-      ["PNG", "JPG", "WEBP"].includes(outputFmt)
+      ["PNG", "JPG", "WEBP"].includes(outputFmt) &&
+      !needsAdvancedImageProcessing
     );
   };
 
@@ -1078,7 +1534,10 @@ if (typeof window !== "undefined") {
       const mimeType = canvasMimeMap[targetFormat];
       if (!mimeType) throw new Error("Unsupported image output format.");
 
-      const quality = targetFormat === "JPG" || targetFormat === "WEBP" ? 0.92 : undefined;
+      const quality =
+        targetFormat === "JPG" || targetFormat === "WEBP"
+          ? imageQuality / 100
+          : undefined;
       const blob = await canvasToBlob(canvas, mimeType, quality);
       return URL.createObjectURL(blob);
     } finally {
@@ -1086,47 +1545,97 @@ if (typeof window !== "undefined") {
     }
   };
 
-  const API_URL = process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
+  const API_URL =
+  process.env.NEXT_PUBLIC_CONVERTO_API_URL?.replace(/\/$/, "") || "";
 
-  const convertViaServer = async (inputFile: File, targetFormat: TargetFmt) => {
-    if (!API_URL) throw new Error("Server conversion is not configured.");
+const convertViaServer = async (inputFile: File, targetFormat: TargetFmt) => {
+  if (!API_URL) throw new Error("Server conversion is not configured.");
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1000 * 60 * 8);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1000 * 60 * 8);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", inputFile);
-      formData.append("target", targetFormat);
+  try {
+    const formData = new FormData();
+    const normalizedVideoResolution =
+      videoResolution === "Source"
+        ? ""
+        : videoResolution === "4K"
+        ? "2160p"
+        : videoResolution;
 
-      const res = await fetch(`${API_URL}/convert`, {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
+    formData.append("file", inputFile);
+    formData.append("target", targetFormat);
 
-      if (!res.ok) {
-        let message = "Server conversion failed.";
-        try {
-          const data = await res.json();
-          if (data?.error) message = data.error;
-        } catch {}
-        throw new Error(message);
-      }
+    formData.append("trimEnabled", String(trimEnabled));
 
-      const blob = await res.blob();
-      return URL.createObjectURL(blob);
-    } catch (error: any) {
-      if (error?.name === "AbortError") {
-        throw new Error("Conversion timed out. Please try a smaller file.");
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeout);
+    if (trimEnabled) {
+      formData.append("trimStart", trimStart.toFixed(2));
+      formData.append("trimEnd", trimEnd.toFixed(2));
     }
-  };
 
-  const pickFile = (f: File) => {
+    formData.append("audioBitrate", audioBitrate || "");
+    formData.append("audioSampleRate", audioSampleRate || "");
+    formData.append("audioChannels", audioChannels || "");
+
+    formData.append("videoResolution", normalizedVideoResolution || "");
+    formData.append("videoQuality", videoQuality || "");
+    formData.append("videoFps", videoFps || "");
+    formData.append("videoCodec", videoCodec || "");
+
+    formData.append("muteAudio", String(Boolean(muteAudio)));
+
+    if (targetFormat.toLowerCase() === "ico") {
+    formData.append("iconSize", iconSize || "");
+    formData.append("iconBitDepth", iconBitDepth || "");
+}
+
+    formData.append("imageWidth", imageWidth || "");
+    formData.append("imageHeight", imageHeight || "");
+    if (["jpg", "webp", "avif"].includes(targetFormat.toLowerCase())) {
+    formData.append("imageQuality", String(imageQuality ?? ""));
+}
+
+    const res = await fetch(`${API_URL}/convert`, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+      headers: {
+        "x-user-id": user?.id ?? "",
+      },
+    });
+
+    if (!res.ok) {
+      let message = "Server conversion failed.";
+
+      try {
+        const data = await res.json();
+        if (data?.error) {
+          message = data.error;
+        }
+      } catch {}
+
+      throw new Error(message);
+    }
+
+    const blob = await res.blob();
+
+    if (!blob || blob.size === 0) {
+      throw new Error("Converted file is empty.");
+    }
+
+    return URL.createObjectURL(blob);
+  } catch (error: any) {
+    if (error?.name === "AbortError") {
+      throw new Error("Conversion timed out. Please try a smaller file.");
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+  const pickFile = async (f: File) => {
     const err = validateFile(f);
 
     if (err) {
@@ -1156,6 +1665,22 @@ if (typeof window !== "undefined") {
     revokeResult();
 
     setTarget(nextTarget);
+
+    const isMedia = detected && (isAudioFmt(detected) || isVideoFmt(detected));
+
+    if (isMedia) {
+      const duration = await readMediaDuration(f);
+      setMediaDuration(duration);
+      setTrimEnabled(false);
+      setTrimStart(0);
+      setTrimEnd(duration > 0 ? duration : 0);
+    } else {
+      setMediaDuration(0);
+      setTrimEnabled(false);
+      setTrimStart(0);
+      setTrimEnd(0);
+    }
+
     setActualProgress(0);
     setDisplayProgress(0);
     setProgressLabel("Preparing file...");
@@ -1165,6 +1690,26 @@ if (typeof window !== "undefined") {
 
   const startConvert = async () => {
     if (!file) return;
+
+    if (trimEnabled) {
+      if (!mediaDuration || mediaDuration <= 0) {
+        setErrorMsg("Trim is not available because media duration could not be detected.");
+        setStatus("error");
+        return;
+      }
+
+      if (trimEnd <= trimStart) {
+        setErrorMsg("Trim end must be greater than trim start.");
+        setStatus("error");
+        return;
+      }
+
+      if (trimEnd - trimStart < 0.25) {
+        setErrorMsg("Selected trim range is too short.");
+        setStatus("error");
+        return;
+      }
+    }
 
     let fakeTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -1214,12 +1759,166 @@ if (typeof window !== "undefined") {
     }
   };
 
+  // ── Batch helpers ─────────────────────────────────────────────────────────
+
+  const addBatchFiles = (incoming: File[]) => {
+    setBatchFiles((prev) => {
+      const existingNames = new Set(prev.map((f) => f.name));
+      const fresh = incoming.filter((f) => !existingNames.has(f.name));
+      return [...prev, ...fresh].slice(0, 25);
+    });
+    setBatchStatus("idle");
+    setBatchError(null);
+    setBatchResultUrl(null);
+  };
+
+  const removeBatchFile = (index: number) => {
+    setBatchFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const resetBatch = () => {
+    revokeUrl(batchResultUrl);
+    setBatchFiles([]);
+    setBatchStatus("idle");
+    setBatchProgress(0);
+    setBatchResultUrl(null);
+    setBatchResultName("converto_batch.zip");
+    setBatchError(null);
+  };
+
+  const startBatchConvert = async () => {
+    if (!batchFiles.length) return;
+
+    // ── Free quota check ──────────────────────────────────────────────────
+    if (!isPro) {
+      const currentQuota = getBatchQuota();
+      const wouldUse = currentQuota.used + batchFiles.length;
+
+      if (wouldUse > FREE_BATCH_DAILY_LIMIT) {
+        const remaining = Math.max(0, FREE_BATCH_DAILY_LIMIT - currentQuota.used);
+        if (remaining === 0) {
+          // Already exhausted — banner will show
+          setBatchQuotaUsed(currentQuota.used);
+          return;
+        }
+        // Would exceed: block and let banner show
+        setBatchQuotaUsed(FREE_BATCH_DAILY_LIMIT);
+        setBatchError(
+          `You can only convert ${remaining} more file${remaining !== 1 ? "s" : ""} today on the free plan. Remove some files or upgrade to Pro.`
+        );
+        return;
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
+    if (!API_URL) {
+      setBatchError("Server conversion is not configured.");
+      setBatchStatus("error");
+      return;
+    }
+
+    setBatchStatus("processing");
+    setBatchProgress(5);
+    setBatchError(null);
+    revokeUrl(batchResultUrl);
+    setBatchResultUrl(null);
+
+    // Fake progress ticker
+    const fakeTimer = setInterval(() => {
+      setBatchProgress((prev) => {
+        if (prev >= 88) return prev;
+        if (prev < 20) return prev + 6;
+        if (prev < 50) return prev + 4;
+        if (prev < 75) return prev + 2;
+        return prev + 1;
+      });
+    }, 400);
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 1000 * 60 * 15);
+
+      const formData = new FormData();
+      batchFiles.forEach((f) => formData.append("files", f));
+      formData.append("target", target);
+
+      // Pass through the same audio/video/image options
+      const normalizedVideoResolution =
+        videoResolution === "Source" ? "" : videoResolution === "4K" ? "2160p" : videoResolution;
+
+      formData.append("audioBitrate", audioBitrate || "");
+      formData.append("audioSampleRate", audioSampleRate || "");
+      formData.append("audioChannels", audioChannels || "");
+      formData.append("videoResolution", normalizedVideoResolution || "");
+      formData.append("videoQuality", videoQuality || "");
+      formData.append("videoFps", videoFps || "");
+      formData.append("videoCodec", videoCodec || "");
+      formData.append("muteAudio", String(Boolean(muteAudio)));
+      formData.append("imageWidth", imageWidth || "");
+      formData.append("imageHeight", imageHeight || "");
+      if (["jpg", "webp", "avif"].includes(target.toLowerCase())) {
+        formData.append("imageQuality", String(imageQuality ?? ""));
+      }
+
+      const res = await fetch(`${API_URL}/convert/batch`, {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+        headers: {
+          "x-user-id": user?.id ?? "",
+        },
+      });
+
+      clearTimeout(timeout);
+      clearInterval(fakeTimer);
+
+      if (!res.ok) {
+        let message = "Batch conversion failed.";
+        try {
+          const data = await res.json();
+          if (data?.error) message = data.error;
+        } catch {}
+        throw new Error(message);
+      }
+
+      const blob = await res.blob();
+      if (!blob || blob.size === 0) throw new Error("Batch output is empty.");
+
+      // ── Increment quota after successful conversion ──────────────────────
+      if (!isPro) {
+        const updatedQuota = incrementBatchQuota(batchFiles.length);
+        setBatchQuotaUsed(updatedQuota.used);
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
+      const stamp = new Date().toISOString().slice(0, 10);
+      const zipName = `converto_batch_${target.toLowerCase()}_${stamp}.zip`;
+
+      setBatchResultUrl(URL.createObjectURL(blob));
+      setBatchResultName(zipName);
+      setBatchProgress(100);
+      setBatchStatus("done");
+    } catch (err: any) {
+      clearInterval(fakeTimer);
+      setBatchError(
+        err?.name === "AbortError"
+          ? "Batch conversion timed out. Try fewer or smaller files."
+          : err?.message ?? "Batch conversion failed."
+      );
+      setBatchStatus("error");
+      setBatchProgress(0);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     return () => {
       revokeUrl(resultUrl);
       revokeUrl(previewUrl);
+      revokeUrl(batchResultUrl);
     };
-  }, [resultUrl, previewUrl]);
+  }, [resultUrl, previewUrl, batchResultUrl]);
 
   const activeInputForTargets = fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel;
   const availableTargets = useMemo(() => getAvailableTargets(activeInputForTargets), [activeInputForTargets]);
@@ -1238,6 +1937,15 @@ if (typeof window !== "undefined") {
       else setRouteOutput(fallback);
     }
   }, [availableTargets, target]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!showTrimControls) {
+      setTrimEnabled(false);
+      setTrimStart(0);
+      setTrimEnd(0);
+      setMediaDuration(0);
+    }
+  }, [showTrimControls]);
 
   const sameFormatSelected = !!fromFmt && fromFmt === target;
   const formatFlowText = fromFmt ? `${fromFmt} → ${target}` : `${routeInput ?? "INPUT"} → ${target}`;
@@ -1374,6 +2082,356 @@ if (typeof window !== "undefined") {
                   <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-violet-500/16 via-fuchsia-500/8 to-sky-500/16" />
 
                   <div className="relative p-5 sm:p-6 md:p-7">
+
+                    {/* ── Single / Batch mode toggle ── */}
+                    <div className="mb-6 flex items-center gap-1 rounded-2xl bg-black/25 p-1 ring-1 ring-white/10 w-fit">
+                      <button
+                        type="button"
+                        onClick={() => setBatchMode(false)}
+                        className={cx(
+                          "inline-flex h-8 items-center gap-1.5 rounded-xl px-4 text-xs font-semibold transition",
+                          !batchMode
+                            ? "bg-white text-black shadow-sm"
+                            : "text-white/60 hover:text-white"
+                        )}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" />
+                        </svg>
+                        Single
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBatchMode(true)}
+                        className={cx(
+                          "inline-flex h-8 items-center gap-1.5 rounded-xl px-4 text-xs font-semibold transition",
+                          batchMode
+                            ? "bg-white text-black shadow-sm"
+                            : "text-white/60 hover:text-white"
+                        )}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                          <rect x="2" y="7" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                          <path d="M8 7V5a2 2 0 012-2h9a2 2 0 012 2v9a2 2 0 01-2 2h-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        Batch
+                        {!isPro && (
+                          <span className="inline-flex h-4 items-center rounded-full border border-white/15 bg-white/10 px-1.5 text-[9px] font-bold uppercase tracking-wide text-white/60">
+                            Free
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* ════════════════════════════════════════════════════
+                        BATCH MODE UI
+                    ════════════════════════════════════════════════════ */}
+                    {batchMode ? (
+                      <div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                              Batch Converter
+                            </div>
+                            <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+                              Convert multiple files
+                            </h2>
+                            <p className="mt-1 text-sm text-white/60">
+                              Upload up to{" "}
+                              <span className="font-semibold text-white">
+                                {isPro ? "25" : FREE_BATCH_DAILY_LIMIT}
+                              </span>{" "}
+                              files and convert them all to{" "}
+                              <span className="font-semibold text-white">{target}</span> at once.
+                              Results are delivered as a ZIP archive.
+                            </p>
+
+                            {/* Quota badge */}
+                            <div className="mt-3">
+                              <BatchQuotaBadge
+                                used={batchQuotaUsed}
+                                limit={FREE_BATCH_DAILY_LIMIT}
+                                isPro={isPro}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Target format selector (shared with single mode) */}
+                          <div ref={targetWrapRef} className="relative self-start">
+                            <button
+                              type="button"
+                              onClick={() => setTargetOpen((v) => !v)}
+                              className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                              aria-haspopup="listbox"
+                              aria-expanded={targetOpen}
+                            >
+                              <span className="text-xs font-medium text-white/60">Convert to</span>
+                              <span>{target}</span>
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                className={cx("transition", targetOpen ? "rotate-180" : "")}
+                              >
+                                <path
+                                  d="M6 9l6 6 6-6"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+
+                            {targetOpen ? (
+                              <div
+                                role="listbox"
+                                className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                              >
+                                <div ref={targetListRef} className="max-h-64 overflow-auto">
+                                  {ALL_TARGET_OPTIONS.map((fmt) => (
+                                    <button
+                                      key={fmt}
+                                      type="button"
+                                      onClick={() => {
+                                        setTarget(fmt);
+                                        setTargetOpen(false);
+                                      }}
+                                      className={cx(
+                                        "flex w-full items-center justify-between px-4 py-3 text-sm transition",
+                                        fmt === target
+                                          ? "bg-white/10 text-white"
+                                          : "text-white/80 hover:bg-white/10"
+                                      )}
+                                    >
+                                      <span className="font-semibold">{fmt}</span>
+                                      {fmt === target ? (
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                          <path
+                                            d="M20 6L9 17l-5-5"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                        </svg>
+                                      ) : (
+                                        <span className="w-4" />
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+
+                        {/* ── Quota exhausted banner ── */}
+                        {batchQuotaExhausted ? (
+                          <BatchQuotaExhaustedBanner
+                            countdown={midnightCountdown}
+                            onUpgrade={() => setShowUpgradePanel(true)}
+                          />
+                        ) : (
+                          <>
+                            {/* Drop zone */}
+                            <div
+                              className={cx(
+                                "relative rounded-[26px] border border-dashed p-7 text-center transition",
+                                batchDragOver
+                                  ? "border-white/45 bg-white/6"
+                                  : "border-white/20 bg-black/20 hover:bg-white/6"
+                              )}
+                              onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setBatchDragOver(true); }}
+                              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setBatchDragOver(true); }}
+                              onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setBatchDragOver(false); }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setBatchDragOver(false);
+                                const dropped = Array.from(e.dataTransfer.files);
+                                if (dropped.length) addBatchFiles(dropped);
+                              }}
+                            >
+                              <input
+                                id="batchFileInput"
+                                type="file"
+                                multiple
+                                className="hidden"
+                                accept={getAcceptForInput()}
+                                onChange={(e) => {
+                                  const picked = Array.from(e.target.files ?? []);
+                                  if (picked.length) addBatchFiles(picked);
+                                  e.target.value = "";
+                                }}
+                              />
+
+                              <div className="mx-auto grid h-[72px] w-[72px] place-items-center rounded-[24px] bg-white/10 ring-1 ring-white/10">
+                                <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                                  <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                  <path d="M7 9L12 4L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                  <path d="M4 20H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                              </div>
+
+                              <p className="mt-5 text-lg font-semibold">
+                                {batchFiles.length
+                                  ? `${batchFiles.length} file${batchFiles.length > 1 ? "s" : ""} selected`
+                                  : "Drop files here"}
+                              </p>
+                              <p className="mt-2 text-sm text-white/60">
+                                {isPro
+                                  ? "Up to 25 files • Unlimited daily conversions"
+                                  : `Up to ${FREE_BATCH_DAILY_LIMIT} files per day free • ${batchQuotaRemaining} remaining today`}
+                              </p>
+
+                              <div className="mt-6 flex items-center justify-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => document.getElementById("batchFileInput")?.click()}
+                                  className="h-11 rounded-2xl bg-white/10 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                                >
+                                  {batchFiles.length ? "Add more files" : "Choose files"}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* File list */}
+                            {batchFiles.length > 0 && (
+                              <div className="mt-5 space-y-2">
+                                {batchFiles.map((f, i) => (
+                                  <div
+                                    key={`${f.name}-${i}`}
+                                    className="flex items-center justify-between gap-3 rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10"
+                                  >
+                                    <div className="flex min-w-0 items-center gap-3">
+                                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white/70">
+                                        {i + 1}
+                                      </span>
+                                      <span className="truncate text-sm text-white/80">{f.name}</span>
+                                      <span className="shrink-0 text-xs text-white/40">
+                                        {(f.size / (1024 * 1024)).toFixed(1)}MB
+                                      </span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeBatchFile(i)}
+                                      disabled={batchStatus === "processing"}
+                                      className="shrink-0 rounded-full p-1 text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
+                                      aria-label="Remove file"
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                ))}
+
+                                {/* Warn if selection exceeds remaining quota */}
+                                {!isPro && batchFiles.length > batchQuotaRemaining && (
+                                  <div className="flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-500/8 px-4 py-3 text-xs text-amber-200/80">
+                                    <span className="mt-0.5 shrink-0 text-amber-300">⚠️</span>
+                                    <span>
+                                      You have selected {batchFiles.length} files but only{" "}
+                                      <strong>{batchQuotaRemaining}</strong> free conversion
+                                      {batchQuotaRemaining !== 1 ? "s" : ""} remaining today.
+                                      Remove {batchFiles.length - batchQuotaRemaining} file
+                                      {batchFiles.length - batchQuotaRemaining !== 1 ? "s" : ""} or{" "}
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowUpgradePanel(true)}
+                                        className="underline underline-offset-2 hover:text-amber-100"
+                                      >
+                                        upgrade to Pro
+                                      </button>
+                                      .
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Progress bar */}
+                            {batchStatus === "processing" && (
+                              <div className="mt-5">
+                                <div className="mb-2 flex items-center justify-between text-xs text-white/55">
+                                  <span>Converting {batchFiles.length} file{batchFiles.length > 1 ? "s" : ""}…</span>
+                                  <span>{batchProgress}%</span>
+                                </div>
+                                <div className="h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                                  <div
+                                    className={cx(
+                                      "h-full bg-white/40 transition-[width] duration-200",
+                                      batchProgress >= 88 ? "animate-pulse" : ""
+                                    )}
+                                    style={{ width: `${batchProgress}%` }}
+                                  />
+                                </div>
+                                <p className="mt-2 text-[11px] text-white/45">
+                                  Please keep this tab open until all files are converted.
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Done state */}
+                            {batchStatus === "done" && batchResultUrl && (
+                              <div className="mt-6 flex flex-col items-center gap-3">
+                                <a
+                                  href={batchResultUrl}
+                                  download={batchResultName}
+                                  className="inline-flex h-11 items-center gap-2 justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 4v12M6 14l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                  Download ZIP
+                                </a>
+                                <div className="text-xs text-white/50">{batchResultName}</div>
+                              </div>
+                            )}
+
+                            {/* Error state */}
+                            {batchStatus === "error" && batchError && (
+                              <p className="mt-4 text-sm text-rose-200">{batchError}</p>
+                            )}
+
+                            {/* Action buttons */}
+                            {batchFiles.length > 0 && (
+                              <div className="mt-6 flex items-center justify-end gap-3">
+                                <button
+                                  type="button"
+                                  onClick={resetBatch}
+                                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
+                                >
+                                  Reset
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={startBatchConvert}
+                                  disabled={
+                                    batchStatus === "processing" ||
+                                    !batchFiles.length ||
+                                    (!isPro && batchFiles.length > batchQuotaRemaining)
+                                  }
+                                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {batchStatus === "processing"
+                                    ? "Converting…"
+                                    : `Convert ${batchFiles.length} file${batchFiles.length > 1 ? "s" : ""}`}
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                    /* ════════════════════════════════════════════════════
+                        SINGLE MODE UI  (original, unchanged)
+                    ════════════════════════════════════════════════════ */
+                    <>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
@@ -1643,45 +2701,667 @@ if (typeof window !== "undefined") {
                           ) : null}
                         </div>
 
-                        {file ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <button
-                              type="button"
-                              disabled={sameFormatSelected || status === "processing"}
-                              onClick={() => {
-                                if (sameFormatSelected || status === "processing") return;
-                                startConvert();
-                              }}
-                              className={cx(
-                                "h-11 rounded-2xl px-6 text-sm font-semibold transition",
-                                sameFormatSelected || status === "processing"
-                                  ? "cursor-not-allowed bg-white/15 text-white/70 ring-1 ring-white/10"
-                                  : "bg-white text-black hover:bg-white/90"
-                              )}
-                            >
-                              {status === "processing"
-                                ? `${progressLabel} ${displayProgress}%`
-                                : sameFormatSelected
-                                ? "Same format selected"
-                                : "Convert"}
-                            </button>
+                        <div className="w-full max-w-3xl">
+                          <div className="mt-6 space-y-3">
+                            {showTrimControls && (
+                              <ProFeatureLock
+                                title="Trim"
+                                enabled={canUseTrim}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="space-y-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!canUseTrim) {
+                                        setShowUpgradePanel(true);
+                                        return;
+                                      }
 
-                            {sameFormatSelected ? (
-                              <p className="text-xs text-amber-200/90">
-                                Choose a different output format to start conversion.
-                              </p>
+                                      const next = !trimEnabled;
+                                      setTrimEnabled(next);
+
+                                      if (next && mediaDuration > 0) {
+                                        setTrimStart(0);
+                                        setTrimEnd(mediaDuration);
+                                      }
+                                    }}
+                                    className={cx(
+                                      "flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition",
+                                      trimEnabled
+                                        ? "border-fuchsia-400/40 bg-fuchsia-500/10"
+                                        : "border-white/10 bg-white/[0.03]"
+                                    )}
+                                  >
+                                    <div>
+                                      <div className="text-sm font-semibold text-white">Enable trim</div>
+                                      <div className="mt-1 text-xs text-white/55">
+                                        Cut the beginning and end before conversion.
+                                      </div>
+                                    </div>
+
+                                    <div
+                                      className={cx(
+                                        "relative h-6 w-11 rounded-full transition",
+                                        trimEnabled ? "bg-fuchsia-500" : "bg-white/15"
+                                      )}
+                                    >
+                                      <span
+                                        className={cx(
+                                          "absolute top-1 h-4 w-4 rounded-full bg-white transition",
+                                          trimEnabled ? "left-6" : "left-1"
+                                        )}
+                                      />
+                                    </div>
+                                  </button>
+
+                                  {trimEnabled && (
+                                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                                      {mediaDuration > 0 ? (
+                                        <>
+                                          <div className="mb-3 flex items-center justify-between gap-3">
+                                            <div>
+                                              <div className="text-sm font-semibold text-white">Trim range</div>
+                                              <div className="mt-1 text-xs text-white/55">
+                                                Selected: {formatTime(trimStart)} — {formatTime(trimEnd)}
+                                              </div>
+                                            </div>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setTrimStart(0);
+                                                setTrimEnd(mediaDuration);
+                                              }}
+                                              className="inline-flex h-9 items-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
+                                            >
+                                              Reset
+                                            </button>
+                                          </div>
+
+                                          <div className="relative mt-5 h-10">
+                                            <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
+
+                                            <div
+                                              className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-fuchsia-500"
+                                              style={{
+                                                left: `${(trimStart / mediaDuration) * 100}%`,
+                                                width: `${((trimEnd - trimStart) / mediaDuration) * 100}%`,
+                                              }}
+                                            />
+
+                                            <input
+                                              type="range"
+                                              min={0}
+                                              max={mediaDuration}
+                                              step={0.1}
+                                              value={trimStart}
+                                              onChange={(e) => {
+                                                const next = clamp(Number(e.target.value), 0, trimEnd - 0.1);
+                                                setTrimStart(next);
+                                              }}
+                                              className="pointer-events-none absolute left-0 top-1/2 h-2 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-white/20 [&::-webkit-slider-thumb]:bg-white"
+                                            />
+
+                                            <input
+                                              type="range"
+                                              min={0}
+                                              max={mediaDuration}
+                                              step={0.1}
+                                              value={trimEnd}
+                                              onChange={(e) => {
+                                                const next = clamp(Number(e.target.value), trimStart + 0.1, mediaDuration);
+                                                setTrimEnd(next);
+                                              }}
+                                              className="pointer-events-none absolute left-0 top-1/2 h-2 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-fuchsia-300/30 [&::-webkit-slider-thumb]:bg-fuchsia-300"
+                                            />
+                                          </div>
+
+                                          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                                              <div className="text-[11px] uppercase tracking-[0.16em] text-white/45">Start</div>
+                                              <div className="mt-1 text-sm font-semibold text-white">{formatTime(trimStart)}</div>
+                                            </div>
+
+                                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                                              <div className="text-[11px] uppercase tracking-[0.16em] text-white/45">End</div>
+                                              <div className="mt-1 text-sm font-semibold text-white">{formatTime(trimEnd)}</div>
+                                            </div>
+
+                                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                                              <div className="text-[11px] uppercase tracking-[0.16em] text-white/45">Length</div>
+                                              <div className="mt-1 text-sm font-semibold text-white">
+                                                {formatTime(trimEnd - trimStart)}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+                                          Media duration could not be detected for this file, so trim is unavailable.
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showBitrateControls ? (
+                              <ProFeatureLock
+                                title="Audio bitrate"
+                                enabled={canUseBitrate}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                                  {["64k", "128k", "192k", "256k", "320k"].map((option) => {
+                                    const active = audioBitrate === option;
+
+                                    return (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        disabled={!canUseBitrate}
+                                        onClick={() => {
+                                          if (!canUseBitrate) {
+                                            setShowUpgradePanel(true);
+                                            return;
+                                          }
+                                          setAudioBitrate(option);
+                                        }}
+                                        className={[
+                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                          active
+                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                          !canUseBitrate ? "cursor-not-allowed" : "",
+                                        ].join(" ")}
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-sm font-semibold">{option}</span>
+                                          {!canUseBitrate && <span className="text-xs text-white/40">🔒</span>}
+                                        </div>
+
+                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                          {option === "64k" && "Smallest size"}
+                                          {option === "128k" && "Balanced"}
+                                          {option === "192k" && "High quality"}
+                                          {option === "256k" && "Very high"}
+                                          {option === "320k" && "Maximum"}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </ProFeatureLock>
                             ) : null}
+
+                            {showSampleRateControls && (
+                              <ProFeatureLock
+                                title="Audio sample rate"
+                                enabled={canUseSampleRate}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                                  {["22050", "32000", "44100", "48000"].map((option) => {
+                                    const active = audioSampleRate === option;
+
+                                    return (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        disabled={!canUseSampleRate}
+                                        onClick={() => {
+                                          if (!canUseSampleRate) {
+                                            setShowUpgradePanel(true);
+                                            return;
+                                          }
+                                          setAudioSampleRate(option);
+                                        }}
+                                        className={[
+                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                          active
+                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                          !canUseSampleRate ? "cursor-not-allowed" : "",
+                                        ].join(" ")}
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-sm font-semibold">{option} Hz</span>
+                                          {!canUseSampleRate && <span className="text-xs text-white/40">🔒</span>}
+                                        </div>
+
+                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                          {option === "22050" && "Small size"}
+                                          {option === "32000" && "Lower bandwidth"}
+                                          {option === "44100" && "CD standard"}
+                                          {option === "48000" && "Video standard"}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showAudioChannelControls && (
+                              <ProFeatureLock
+                                title="Audio channels"
+                                enabled={canUseAudioChannels}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid grid-cols-2 gap-3">
+                                  {AUDIO_CHANNEL_OPTIONS.map((option) => {
+                                    const active = audioChannels === option;
+
+                                    return (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        disabled={!canUseAudioChannels}
+                                        onClick={() => {
+                                          if (!canUseAudioChannels) {
+                                            setShowUpgradePanel(true);
+                                            return;
+                                          }
+                                          setAudioChannels(option);
+                                        }}
+                                        className={[
+                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                          active
+                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                          !canUseAudioChannels ? "cursor-not-allowed" : "",
+                                        ].join(" ")}
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-sm font-semibold">{option === "1" ? "Mono" : "Stereo"}</span>
+                                          {!canUseAudioChannels && <span className="text-xs text-white/40">🔒</span>}
+                                        </div>
+
+                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                          {option === "1" ? "Smaller file" : "Full left/right channels"}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showVideoResolutionControls && (
+                              <ProFeatureLock
+                                title="Video resolution"
+                                enabled={canUseVideoResolution}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                                  {VIDEO_RESOLUTION_OPTIONS.map((option) => {
+                                    const active = videoResolution === option;
+
+                                    return (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        disabled={!canUseVideoResolution}
+                                        onClick={() => {
+                                          if (!canUseVideoResolution) {
+                                            setShowUpgradePanel(true);
+                                            return;
+                                          }
+                                          setVideoResolution(option);
+                                        }}
+                                        className={[
+                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                          active
+                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                          !canUseVideoResolution ? "cursor-not-allowed" : "",
+                                        ].join(" ")}
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-sm font-semibold">{option}</span>
+                                          {!canUseVideoResolution && <span className="text-xs text-white/40">🔒</span>}
+                                        </div>
+
+                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                          {option === "Source" ? "Keep current size" : "Resize output"}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showVideoQualityControls && (
+                              <ProFeatureLock
+                                title="Video quality"
+                                enabled={canUseVideoQuality}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                  {VIDEO_QUALITY_OPTIONS.map((option) => {
+                                    const active = videoQuality === option;
+
+                                    return (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        disabled={!canUseVideoQuality}
+                                        onClick={() => {
+                                          if (!canUseVideoQuality) {
+                                            setShowUpgradePanel(true);
+                                            return;
+                                          }
+                                          setVideoQuality(option);
+                                        }}
+                                        className={[
+                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                          active
+                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                          !canUseVideoQuality ? "cursor-not-allowed" : "",
+                                        ].join(" ")}
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-sm font-semibold capitalize">{option}</span>
+                                          {!canUseVideoQuality && <span className="text-xs text-white/40">🔒</span>}
+                                        </div>
+
+                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                          {option === "small" && "Smallest file size"}
+                                          {option === "balanced" && "Good size and quality"}
+                                          {option === "high" && "Best visual quality"}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showVideoFpsControls && (
+                              <ProFeatureLock
+                                title="Video FPS"
+                                enabled={canUseVideoFps}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid grid-cols-3 gap-3">
+                                  {["24", "30", "60"].map((option) => {
+                                    const active = videoFps === option;
+
+                                    return (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        disabled={!canUseVideoFps}
+                                        onClick={() => {
+                                          if (!canUseVideoFps) {
+                                            setShowUpgradePanel(true);
+                                            return;
+                                          }
+                                          setVideoFps(option);
+                                        }}
+                                        className={[
+                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                          active
+                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                          !canUseVideoFps ? "cursor-not-allowed" : "",
+                                        ].join(" ")}
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-sm font-semibold">{option} FPS</span>
+                                          {!canUseVideoFps && <span className="text-xs text-white/40">🔒</span>}
+                                        </div>
+
+                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                          {option === "24" && "Cinematic"}
+                                          {option === "30" && "Balanced"}
+                                          {option === "60" && "Very smooth"}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showMuteAudioControls && (
+                              <ProFeatureLock
+                                title="Audio in video"
+                                enabled={canUseMuteAudio}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <button
+                                  type="button"
+                                  disabled={!canUseMuteAudio}
+                                  onClick={() => {
+                                    if (!canUseMuteAudio) {
+                                      setShowUpgradePanel(true);
+                                      return;
+                                    }
+                                    setMuteAudio((prev) => !prev);
+                                  }}
+                                  className={[
+                                    "flex min-h-[72px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition",
+                                    muteAudio
+                                      ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                      : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                    !canUseMuteAudio ? "cursor-not-allowed" : "",
+                                  ].join(" ")}
+                                >
+                                  <div>
+                                    <div className="text-sm font-semibold">{muteAudio ? "Muted export" : "Keep audio track"}</div>
+                                    <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                      Remove the audio stream when you only need video.
+                                    </div>
+                                  </div>
+                                  {!canUseMuteAudio && <span className="text-xs text-white/40">🔒</span>}
+                                </button>
+                              </ProFeatureLock>
+                            )}
+
+                            {showIconControls && (
+                              <ProFeatureLock
+                                title="Icon export"
+                                enabled={canUseIconControls}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="space-y-3">
+                                  <div>
+                                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
+                                      Icon size
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                                      {ICO_SIZE_OPTIONS.map((option) => {
+                                        const active = iconSize === option;
+
+                                        return (
+                                          <button
+                                            key={option}
+                                            type="button"
+                                            disabled={!canUseIconControls}
+                                            onClick={() => {
+                                              if (!canUseIconControls) {
+                                                setShowUpgradePanel(true);
+                                                return;
+                                              }
+                                              setIconSize(option);
+                                            }}
+                                            className={[
+                                              "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                              active
+                                                ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                              !canUseIconControls ? "cursor-not-allowed" : "",
+                                            ].join(" ")}
+                                          >
+                                            <div className="flex items-center justify-between gap-2">
+                                              <span className="text-sm font-semibold">{option} px</span>
+                                              {!canUseIconControls && <span className="text-xs text-white/40">🔒</span>}
+                                            </div>
+                                            <div className="mt-1 text-[11px] leading-5 text-white/45">Single embedded icon size</div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
+                                      Bit depth
+                                    </span>
+                                    <div className="grid grid-cols-3 gap-3">
+                                      {ICO_BIT_DEPTH_OPTIONS.map((option) => {
+                                        const active = iconBitDepth === option;
+
+                                        return (
+                                          <button
+                                            key={option}
+                                            type="button"
+                                            disabled={!canUseIconControls}
+                                            onClick={() => {
+                                              if (!canUseIconControls) {
+                                                setShowUpgradePanel(true);
+                                                return;
+                                              }
+                                              setIconBitDepth(option);
+                                            }}
+                                            className={[
+                                              "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                              active
+                                                ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                              !canUseIconControls ? "cursor-not-allowed" : "",
+                                            ].join(" ")}
+                                          >
+                                            <div className="flex items-center justify-between gap-2">
+                                              <span className="text-sm font-semibold">{option}-bit</span>
+                                              {!canUseIconControls && <span className="text-xs text-white/40">🔒</span>}
+                                            </div>
+                                            <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                              {option === "8" && "Palette based"}
+                                              {option === "24" && "Full color"}
+                                              {option === "32" && "Alpha transparency"}
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showImageResizeControls && (
+                              <ProFeatureLock
+                                title="Image resize"
+                                enabled={canUseImageResize}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  <label className="block">
+                                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
+                                      Width
+                                    </span>
+                                    <input
+                                      type="number"
+                                      min={16}
+                                      max={8000}
+                                      value={imageWidth}
+                                      onChange={(e) => {
+                                        if (!canUseImageResize) return;
+                                        setImageWidth(e.target.value);
+                                      }}
+                                      placeholder="e.g. 1920"
+                                      disabled={!canUseImageResize}
+                                      onClick={() => {
+                                        if (!canUseImageResize) setShowUpgradePanel(true);
+                                      }}
+                                      className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-fuchsia-400/40 focus:bg-white/[0.07] disabled:cursor-not-allowed"
+                                    />
+                                  </label>
+
+                                  <label className="block">
+                                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
+                                      Height
+                                    </span>
+                                    <input
+                                      type="number"
+                                      min={16}
+                                      max={8000}
+                                      value={imageHeight}
+                                      onChange={(e) => {
+                                        if (!canUseImageResize) return;
+                                        setImageHeight(e.target.value);
+                                      }}
+                                      placeholder="e.g. 1080"
+                                      disabled={!canUseImageResize}
+                                      onClick={() => {
+                                        if (!canUseImageResize) setShowUpgradePanel(true);
+                                      }}
+                                      className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-fuchsia-400/40 focus:bg-white/[0.07] disabled:cursor-not-allowed"
+                                    />
+                                  </label>
+                                </div>
+                              </ProFeatureLock>
+                            )}
+
+                            {showImageQualityControls && (
+                              <ProFeatureLock
+                                title="Image quality"
+                                enabled={canUseImageQuality}
+                                onUpgrade={() => setShowUpgradePanel(true)}
+                              >
+                                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                  <div className="mb-3 flex items-center justify-between gap-4">
+                                    <span className="text-sm font-medium text-white/75">Export quality</span>
+                                    <span className="text-sm font-semibold text-white">{imageQuality}%</span>
+                                  </div>
+
+                                  <input
+                                    type="range"
+                                    min={40}
+                                    max={100}
+                                    step={1}
+                                    value={imageQuality}
+                                    disabled={!canUseImageQuality}
+                                    onClick={() => {
+                                      if (!canUseImageQuality) setShowUpgradePanel(true);
+                                    }}
+                                    onChange={(e) => {
+                                      if (!canUseImageQuality) return;
+                                      setImageQuality(Number(e.target.value));
+                                    }}
+                                    className="w-full cursor-pointer disabled:cursor-not-allowed"
+                                  />
+                                </div>
+                              </ProFeatureLock>
+                            )}
                           </div>
-                        ) : null}
+                        </div>
 
                         {file ? (
-                          <button
-                            type="button"
-                            onClick={resetConverter}
-                            className="h-11 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
-                          >
-                            Reset
-                          </button>
+                          <div className="mt-6 flex items-center justify-end gap-3">
+  <button
+    type="button"
+    onClick={resetConverter}
+    className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
+  >
+    Reset
+  </button>
+
+  <button
+    type="button"
+    onClick={startConvert}
+    disabled={!file || status === "processing" || status === "loading"}
+    className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    {status === "processing" || status === "loading" ? "Converting..." : "Convert"}
+  </button>
+</div>
                         ) : null}
                       </div>
 
@@ -1768,6 +3448,10 @@ if (typeof window !== "undefined") {
                         </div>
                       </div>
                     </div>
+                    </>
+                    )}
+                    {/* end single/batch conditional */}
+
                   </div>
                 </div>
               </section>
@@ -1889,6 +3573,8 @@ if (typeof window !== "undefined") {
           <div className="text-xs text-white/40">© 2026 NexviaSoft</div>
         </div>
       </footer>
+
+      <UpgradePrompt open={showUpgradePanel} onClose={() => setShowUpgradePanel(false)} />
     </div>
   );
 }

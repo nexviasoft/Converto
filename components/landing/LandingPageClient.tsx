@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AdSenseScript from "@/components/ads/AdsenseScript";
+import { Show, SignInButton, UserButton, useUser } from "@clerk/nextjs";
 
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
@@ -26,6 +27,8 @@ const popularConversions = [
 ];
 
 export default function LandingPageClient() {
+  const { user, isLoaded } = useUser();
+
   const googlePlayUrl: string | null = null;
   const onlineUrl = "/converter";
 
@@ -54,6 +57,12 @@ export default function LandingPageClient() {
 
   const [interstitialOpen, setInterstitialOpen] = useState(false);
   const pendingUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    console.log("USER:", user);
+    console.log("USER ID:", user?.id);
+  }, [isLoaded, user]);
 
   const showToast = (t: string, d?: string) => {
     setToastTitle(t);
@@ -212,10 +221,7 @@ export default function LandingPageClient() {
         sections={sections}
         activeId={activeId}
         isScrolled={isScrolled}
-        googlePlayUrl={googlePlayUrl}
         onlineUrl={onlineUrl}
-        onOpenInterstitial={openInterstitialFor}
-        onAndroidAppClick={onAndroidAppClick}
       />
 
       <main>
