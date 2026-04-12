@@ -6,10 +6,15 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const host = request.headers.get("host") ?? "";
 
-  const isLocalhost =
-    host.includes("localhost") || host.startsWith("127.0.0.1");
+  const allowedHosts = [
+    CANONICAL_HOST,
+    "localhost:3000",
+    "127.0.0.1:3000",
+  ];
 
-  if (!isLocalhost && host !== CANONICAL_HOST) {
+  const isPreview = host.endsWith(".vercel.app");
+
+  if (!allowedHosts.includes(host) && !isPreview) {
     url.protocol = "https";
     url.host = CANONICAL_HOST;
     return NextResponse.redirect(url, 301);
