@@ -155,6 +155,31 @@ export default function LandingPageClient() {
     return () => observerRef.current?.disconnect();
   }, [sections]);
 
+  useEffect(() => {
+    const scrollToEarlyAccess = () => {
+      if (window.location.hash !== "#early-access") return;
+
+      const el = document.getElementById("early-access");
+      if (!el) return;
+
+      requestAnimationFrame(() => {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+    };
+
+    const timeout = window.setTimeout(scrollToEarlyAccess, 80);
+
+    window.addEventListener("hashchange", scrollToEarlyAccess);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("hashchange", scrollToEarlyAccess);
+    };
+  }, []);
+
   const validateEmail = (v: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
@@ -243,14 +268,16 @@ export default function LandingPageClient() {
           showToast={showToast}
         />
 
-        <TrustWaitlistSection
-          email={email}
-          joined={joined}
-          emailError={emailError}
-          setEmail={setEmail}
-          onJoin={onJoin}
-          waitlistCount={waitlistCount}
-        />
+        <section id="early-access" className="scroll-mt-32">
+          <TrustWaitlistSection
+            email={email}
+            joined={joined}
+            emailError={emailError}
+            setEmail={setEmail}
+            onJoin={onJoin}
+            waitlistCount={waitlistCount}
+          />
+        </section>
 
         <FaqSection />
 

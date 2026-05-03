@@ -81,6 +81,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${siteUrl}/convert/pdf`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.88,
+    },
+    {
+      url: `${siteUrl}/convert/pdf/split`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    },
+    {
+      url: `${siteUrl}/convert/pdf/to-png`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    },
+    {
+      url: `${siteUrl}/convert/pdf/to-jpg`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    },
+    {
+      url: `${siteUrl}/convert/pdf/to-webp`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    },
+    {
       url: `${siteUrl}/formats`,
       lastModified: DEFAULT_LAST_MODIFIED,
       changeFrequency: "weekly",
@@ -135,10 +165,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  const batchConverterEntries: MetadataRoute.Sitemap = converterSlugs.map((slug) => ({
+    url: `${siteUrl}/convert/batch/${slug}`,
+    lastModified: DEFAULT_LAST_MODIFIED,
+    changeFrequency: "weekly",
+    priority: 0.76,
+  }));
+
   return [
     ...staticEntries,
     ...formatGuideEntries,
     ...compareEntries,
     ...converterEntries,
+    ...batchConverterEntries,
   ];
 }

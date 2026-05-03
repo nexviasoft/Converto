@@ -6,15 +6,11 @@ import Image from "next/image";
 
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
-import { getPaddle } from "@/lib/paddle";
 
 type BillingType = "monthly" | "yearly";
 
 const monthlyPrice = 4.99;
 const yearlyPrice = 39;
-
-const MONTHLY_PRICE_ID = "pri_01knyycyrts798858m7pd024s2";
-const YEARLY_PRICE_ID = "pri_01knyyt27hewsj7w20hns26agz";
 
 const proHighlights = [
   {
@@ -118,7 +114,7 @@ const faqs = [
   },
   {
     q: "Is checkout secure?",
-    a: "Yes. Payments are handled securely through Paddle checkout.",
+    a: "For now, early access signups are handled through the landing page waitlist while checkout is being finalized.",
   },
 ];
 
@@ -140,7 +136,6 @@ export default function ConvertoProPricingPage() {
   const [openedFaq, setOpenedFaq] = useState<number | null>(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeId, setActiveId] = useState<string>("features");
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -194,27 +189,8 @@ export default function ConvertoProPricingPage() {
     window.location.href = url;
   };
 
-  const handleCheckout = async () => {
-    try {
-      setIsCheckoutLoading(true);
-
-      const paddle = await getPaddle();
-      const priceId = billing === "monthly" ? MONTHLY_PRICE_ID : YEARLY_PRICE_ID;
-
-      paddle?.Checkout.open({
-        items: [
-          {
-            priceId,
-            quantity: 1,
-          },
-        ],
-      });
-    } catch (error) {
-      console.error("Paddle checkout error:", error);
-      window.alert("Could not open checkout.");
-    } finally {
-      setIsCheckoutLoading(false);
-    }
+  const handleCheckout = () => {
+    window.location.href = "/#early-access";
   };
 
   return (
@@ -349,10 +325,15 @@ export default function ConvertoProPricingPage() {
                     <button
                       type="button"
                       onClick={handleCheckout}
-                      disabled={isCheckoutLoading}
-                      className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="group relative mt-5 inline-flex w-full items-center justify-center overflow-hidden rounded-full bg-white px-4 py-3 text-sm font-semibold text-black shadow-[0_12px_30px_rgba(255,255,255,0.18)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_18px_40px_rgba(255,255,255,0.22)] active:translate-y-[1px] active:scale-[0.985] active:bg-white/90 active:shadow-[inset_0_3px_10px_rgba(0,0,0,0.18),0_8px_18px_rgba(255,255,255,0.10)]"
                     >
-                      {isCheckoutLoading ? "Opening checkout..." : "Unlock Pro"}
+                      <span className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.45)_35%,transparent_70%)] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                      <span className="relative z-10 flex items-center gap-2">
+                        Join Early Access
+                        <span className="transition-transform duration-150 group-hover:translate-x-0.5 group-active:translate-x-0">
+                          ↗
+                        </span>
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -526,9 +507,9 @@ export default function ConvertoProPricingPage() {
               </p>
 
               <div className="mt-6 space-y-3 text-sm text-white/70">
-                <div>• Secure checkout</div>
-                <div>• Cancel anytime</div>
-                <div>• Instant Pro access after payment</div>
+                <div>• Early access signup</div>
+                <div>• Launch updates</div>
+                <div>• Priority interest tracking</div>
                 <div>• Great fit for heavier usage</div>
               </div>
 
@@ -586,9 +567,9 @@ export default function ConvertoProPricingPage() {
               </div>
 
               <div className="mt-5 rounded-[20px] bg-white/5 p-5 ring-1 ring-white/10">
-                <div className="text-sm font-semibold text-white">Secure Paddle checkout</div>
+                <div className="text-sm font-semibold text-white">Join early access</div>
                 <div className="mt-2 text-sm leading-6 text-white/60">
-                  Click below to continue to the secure checkout for your selected plan.
+                  Click below to join the early access waitlist for your selected plan while checkout is being finalized.
                 </div>
 
                 <div className="mt-4 rounded-[16px] bg-white/[0.04] p-4 ring-1 ring-white/10">
@@ -611,14 +592,19 @@ export default function ConvertoProPricingPage() {
                 <button
                   type="button"
                   onClick={handleCheckout}
-                  disabled={isCheckoutLoading}
-                  className="mt-5 h-12 w-full rounded-full bg-white text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group relative mt-5 h-12 w-full overflow-hidden rounded-full bg-white text-sm font-semibold text-black shadow-[0_12px_30px_rgba(255,255,255,0.18)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_18px_40px_rgba(255,255,255,0.22)] active:translate-y-[1px] active:scale-[0.985] active:bg-white/90 active:shadow-[inset_0_3px_10px_rgba(0,0,0,0.18),0_8px_18px_rgba(255,255,255,0.10)]"
                 >
-                  {isCheckoutLoading ? "Opening checkout..." : "Unlock Pro"}
+                  <span className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.45)_35%,transparent_70%)] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                  <span className="relative z-10 flex h-full items-center justify-center gap-2">
+                    Join Early Access
+                    <span className="transition-transform duration-150 group-hover:translate-x-0.5 group-active:translate-x-0">
+                      ↗
+                    </span>
+                  </span>
                 </button>
 
                 <p className="mt-3 text-xs text-white/45">
-                  Payments handled securely through Paddle.
+                  You’ll be redirected to the landing page early access section.
                 </p>
               </div>
             </div>
