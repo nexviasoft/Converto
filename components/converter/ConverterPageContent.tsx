@@ -1599,7 +1599,6 @@ function PostConvertSuggestionRail({
   );
 }
 
-
 function PdfWorkflowProgressBar({
   status,
   progress,
@@ -1633,7 +1632,7 @@ function PdfWorkflowProgressBar({
           : idleLabel;
 
   return (
-    <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.045] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.18)] ring-1 ring-white/10">
+    <div className="mt-6 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.045] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.18)] ring-1 ring-white/10">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="text-sm font-semibold text-white">{title}</div>
@@ -1668,7 +1667,7 @@ function PdfWorkflowProgressBar({
         </div>
       </div>
 
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/25 ring-1 ring-white/10">
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/42 ring-1 ring-white/10">
         <div
           className={cx(
             "h-full rounded-full transition-all duration-500",
@@ -1676,25 +1675,31 @@ function PdfWorkflowProgressBar({
               ? "bg-rose-300/80"
               : status === "done"
                 ? "bg-emerald-300/90"
-                : "bg-white/85",
+                : "bg-[linear-gradient(90deg,rgba(139,92,246,0.95),rgba(96,165,250,0.92))]",
           )}
           style={{ width: `${visibleProgress}%` }}
         />
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-4">
-        <div className="rounded-2xl bg-black/20 px-4 py-3 text-xs font-semibold text-white/60 ring-1 ring-white/10">
-          Upload files
-        </div>
-        <div className="rounded-2xl bg-black/20 px-4 py-3 text-xs font-semibold text-white/60 ring-1 ring-white/10">
-          Prepare request
-        </div>
-        <div className="rounded-2xl bg-black/20 px-4 py-3 text-xs font-semibold text-white/60 ring-1 ring-white/10">
-          Backend processing
-        </div>
-        <div className="rounded-2xl bg-black/20 px-4 py-3 text-xs font-semibold text-white/60 ring-1 ring-white/10">
-          Download result
-        </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+        {[
+          ["Upload files", "Waiting"],
+          ["Prepare request", "Pending"],
+          ["Backend processing", "Pending"],
+          ["Download result", "Pending"],
+        ].map(([stepTitle, stepState]) => (
+          <div
+            key={stepTitle}
+            className="flex items-center gap-3 rounded-2xl bg-black/18 px-4 py-3 text-xs text-white/58 ring-1 ring-white/10"
+          >
+            <span>
+              <span className="block font-semibold text-white/78">
+                {stepTitle}
+              </span>
+              <span className="mt-0.5 block text-white/45">{stepState}</span>
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1849,7 +1854,7 @@ function UpgradePrompt({
           <div className="flex flex-wrap gap-3">
             <Link
               href="/#pricing"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/22"
             >
               View Pro plans
             </Link>
@@ -2096,7 +2101,9 @@ export default function ConverterPageContent({
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [toPdfMode, setToPdfMode] = useState<ToPdfMode>("images_to_pdf");
   const [pdfDragOver, setPdfDragOver] = useState(false);
-  const [pdfOrderDragIndex, setPdfOrderDragIndex] = useState<number | null>(null);
+  const [pdfOrderDragIndex, setPdfOrderDragIndex] = useState<number | null>(
+    null,
+  );
   useEffect(() => {
     setBatchMode(seoMode === "batch");
     setPdfMode(seoMode === "pdf");
@@ -2200,6 +2207,7 @@ export default function ConverterPageContent({
   const MAX_FREE_MB = isPro ? 1000 : 50;
   const MAX_BYTES = MAX_FREE_MB * 1024 * 1024;
 
+  const converterSectionRef = useRef<HTMLElement | null>(null);
   const targetWrapRef = useRef<HTMLDivElement | null>(null);
   const targetListRef = useRef<HTMLDivElement | null>(null);
 
@@ -2209,10 +2217,18 @@ export default function ConverterPageContent({
     FREE_BATCH_DAILY_LIMIT - batchQuotaUsed,
   );
   const batchQuotaExhausted = !isPro && batchQuotaRemaining === 0;
-  const batchTotalBytes = batchFiles.reduce((total, item) => total + item.size, 0);
+  const batchTotalBytes = batchFiles.reduce(
+    (total, item) => total + item.size,
+    0,
+  );
   const batchTotalMb = batchTotalBytes / (1024 * 1024);
-  const batchLimitUsedPercent = Math.min(100, (batchTotalMb / MAX_FREE_MB) * 100);
-  const batchOverFileSizeLimit = batchFiles.some((item) => item.size > MAX_BYTES);
+  const batchLimitUsedPercent = Math.min(
+    100,
+    (batchTotalMb / MAX_FREE_MB) * 100,
+  );
+  const batchOverFileSizeLimit = batchFiles.some(
+    (item) => item.size > MAX_BYTES,
+  );
   const pdfFileLimit = FREE_TO_PDF_LIMIT;
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -3178,7 +3194,6 @@ export default function ConverterPageContent({
     setPdfResultUrl(null);
   };
 
-
   const reorderPdfFiles = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
 
@@ -3795,21 +3810,36 @@ export default function ConverterPageContent({
     router.replace(nextPath, { scroll: false });
   };
 
+  const scrollToConverter = () => {
+    if (typeof window === "undefined") return;
+
+    window.requestAnimationFrame(() => {
+      converterSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    });
+  };
+
   const handlePdfDiscoverySelect = (href: string) => {
     if (!href.startsWith("/convert/pdf")) {
       navigateIfNeeded(href);
+      scrollToConverter();
       return;
     }
 
     if (href === "/convert/pdf") {
       setPdfToolTab("to_pdf");
       navigateIfNeeded(href);
+      scrollToConverter();
       return;
     }
 
     if (href === "/convert/pdf/split") {
       setPdfToolTab("split_pdf");
       navigateIfNeeded(href);
+      scrollToConverter();
       return;
     }
 
@@ -3817,6 +3847,7 @@ export default function ConverterPageContent({
       setPdfToolTab("pdf_to_image");
       setPdfToImageTarget("JPG");
       navigateIfNeeded(href);
+      scrollToConverter();
       return;
     }
 
@@ -3824,6 +3855,7 @@ export default function ConverterPageContent({
       setPdfToolTab("pdf_to_image");
       setPdfToImageTarget("WEBP");
       navigateIfNeeded(href);
+      scrollToConverter();
       return;
     }
 
@@ -3831,10 +3863,12 @@ export default function ConverterPageContent({
       setPdfToolTab("pdf_to_image");
       setPdfToImageTarget("PNG");
       navigateIfNeeded(href);
+      scrollToConverter();
       return;
     }
 
     navigateIfNeeded(href);
+    scrollToConverter();
   };
 
   const activeInputLabel = useMemo(
@@ -3844,7 +3878,11 @@ export default function ConverterPageContent({
         : effectiveSeoMode === "batch" && activeBatchInputLabel
           ? activeBatchInputLabel
           : normalizeFmtLabel(
-              fromFmt ?? routeInput ?? suggestedInput ?? rawInputLabel ?? "file",
+              fromFmt ??
+                routeInput ??
+                suggestedInput ??
+                rawInputLabel ??
+                "file",
             ),
     [
       effectiveSeoMode,
@@ -4089,7 +4127,7 @@ export default function ConverterPageContent({
 
           <section className="min-w-0">
             <div className={cx("mx-auto w-full", CENTER_MAX)}>
-              <section className="mx-auto max-w-[1100px]">
+              <section ref={converterSectionRef} className="scroll-mt-24 mx-auto max-w-[1100px]">
                 <div className="relative rounded-[30px] bg-white/10 ring-1 ring-white/10 shadow-[0_35px_95px_rgba(0,0,0,0.42)]">
                   <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-violet-500/16 via-fuchsia-500/8 to-sky-500/16" />
 
@@ -4219,8 +4257,8 @@ export default function ConverterPageContent({
                       </button>
                     </div>
 
-                    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.16),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.14),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.28)] ring-1 ring-white/10 sm:p-5 md:p-6">
-                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),transparent_45%,rgba(255,255,255,0.03))]" />
+                    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-4 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10 sm:p-5 md:p-6">
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.045),transparent_46%,rgba(96,165,250,0.035))]" />
                       <div
                         className={cx(
                           "relative transition-all duration-300 ease-out",
@@ -4273,7 +4311,7 @@ export default function ConverterPageContent({
                                 <button
                                   type="button"
                                   onClick={() => setTargetOpen((v) => !v)}
-                                  className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                                  className="inline-flex h-12 items-center gap-2 rounded-[18px] bg-white/12 px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/10 transition hover:bg-white/18"
                                   aria-haspopup="listbox"
                                   aria-expanded={targetOpen}
                                 >
@@ -4354,7 +4392,7 @@ export default function ConverterPageContent({
                               </div>
                             </div>
 
-                            <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                            <div className="my-7 h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                             {/* ── Quota exhausted banner ── */}
                             {batchQuotaExhausted ? (
@@ -4367,10 +4405,10 @@ export default function ConverterPageContent({
                                 {/* Drop zone */}
                                 <div
                                   className={cx(
-                                    "relative flex min-h-[260px] flex-col items-center justify-center rounded-[26px] border border-dashed p-10 text-center transition",
+                                    "relative flex min-h-[292px] flex-col items-center justify-center overflow-hidden rounded-[24px] border border-dashed p-10 text-center transition-all duration-200",
                                     batchDragOver
-                                      ? "border-white/45 bg-white/6"
-                                      : "border-white/20 bg-black/20 hover:bg-white/6",
+                                      ? "border-[#a78bfa]/70 bg-[#7c3aed]/12 shadow-[0_0_35px_rgba(139,92,246,0.20)]"
+                                      : "border-[#8b5cf6]/32 bg-[#231d52]/34",
                                   )}
                                   onDragEnter={(e) => {
                                     e.preventDefault();
@@ -4412,10 +4450,10 @@ export default function ConverterPageContent({
                                     }}
                                   />
 
-                                  <div className="mx-auto grid h-[72px] w-[72px] place-items-center rounded-[24px] bg-white/10 ring-1 ring-white/10">
+                                  <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-[linear-gradient(135deg,rgba(139,92,246,0.72),rgba(96,165,250,0.28))] text-white shadow-[0_14px_34px_rgba(124,58,237,0.24)] ring-1 ring-white/15">
                                     <svg
-                                      width="30"
-                                      height="30"
+                                      width="28"
+                                      height="28"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                     >
@@ -4440,7 +4478,7 @@ export default function ConverterPageContent({
                                     </svg>
                                   </div>
 
-                                  <p className="mt-5 text-lg font-semibold">
+                                  <p className="mt-4 text-lg font-semibold text-white">
                                     {batchFiles.length
                                       ? `${batchFiles.length} file${batchFiles.length > 1 ? "s" : ""} selected`
                                       : "Drop files here"}
@@ -4459,7 +4497,7 @@ export default function ConverterPageContent({
                                           .getElementById("batchFileInput")
                                           ?.click()
                                       }
-                                      className="h-11 rounded-2xl bg-white/10 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                                      className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#6d4ee8,#5169d8)] px-5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(96,70,210,0.24)] transition hover:brightness-110"
                                     >
                                       {batchFiles.length
                                         ? "Add more files"
@@ -4474,7 +4512,7 @@ export default function ConverterPageContent({
                                     {batchFiles.map((f, i) => (
                                       <div
                                         key={`${f.name}-${i}`}
-                                        className="flex items-center justify-between gap-3 rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10"
+                                        className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.07] px-4 py-3 ring-1 ring-white/10"
                                       >
                                         <div className="flex min-w-0 items-center gap-3">
                                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white/70">
@@ -4655,7 +4693,7 @@ export default function ConverterPageContent({
                                   </div>
                                 )}
 
-                                <div className="relative mt-7 rounded-[22px] bg-black/25 p-4 ring-1 ring-white/10">
+                                <div className="relative mt-7 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,rgba(28,21,58,0.66),rgba(37,73,110,0.42))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-white/10">
                                   <div className="flex items-center justify-between text-xs text-white/60">
                                     <span>Batch free limit</span>
                                     <span>
@@ -4665,29 +4703,33 @@ export default function ConverterPageContent({
                                     </span>
                                   </div>
 
-                                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/34 ring-1 ring-white/10">
                                     <div
                                       className={cx(
                                         "h-full transition-[width] duration-300",
                                         batchOverFileSizeLimit
                                           ? "bg-rose-400"
-                                          : "bg-white/40",
+                                          : "bg-[linear-gradient(90deg,rgba(168,85,247,0.95),rgba(96,165,250,0.92))]",
                                       )}
-                                      style={{ width: `${batchLimitUsedPercent}%` }}
+                                      style={{
+                                        width: `${batchLimitUsedPercent}%`,
+                                      }}
                                     />
                                   </div>
 
                                   <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
-                                    <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                                      Server-assisted batch conversion for ZIP delivery.
+                                    <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
+                                      Server-assisted batch conversion for ZIP
+                                      delivery.
                                     </div>
-                                    <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                                    <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                       50MB max per file on the free plan.
                                     </div>
-                                    <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
-                                      Up to {FREE_BATCH_DAILY_LIMIT} files per day during beta.
+                                    <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
+                                      Up to {FREE_BATCH_DAILY_LIMIT} files per
+                                      day during beta.
                                     </div>
-                                    <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                                    <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                       Best for quick multi-file conversions.
                                     </div>
                                   </div>
@@ -4697,14 +4739,15 @@ export default function ConverterPageContent({
                           </div>
                         ) : pdfMode ? (
                           <div>
-                            <div className="flex flex-col gap-4">
-                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-6 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10">
+                              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.035),transparent_48%,rgba(96,165,250,0.03))]" />
+                              <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
                                   <div className="flex flex-wrap items-center gap-2">
                                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                                       PDF Tools
                                     </div>
-                                    <span className="inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-200">
+                                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/72">
                                       Beta
                                     </span>
                                   </div>
@@ -4727,7 +4770,7 @@ export default function ConverterPageContent({
                                 </span>
                               </div>
 
-                              <div className="flex w-fit items-center gap-1 rounded-2xl bg-black/25 p-1 ring-1 ring-white/10">
+                              <div className="relative mt-5 flex w-fit items-center gap-1 rounded-2xl bg-black/28 p-1 ring-1 ring-white/10">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -4742,7 +4785,7 @@ export default function ConverterPageContent({
                                   className={cx(
                                     "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
                                     pdfToolTab === "to_pdf"
-                                      ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(226,232,240,0.92))] text-black shadow-[0_12px_28px_rgba(255,255,255,0.16)]"
+                                      ? "bg-[linear-gradient(135deg,rgba(239,236,255,0.98),rgba(203,213,255,0.94))] text-[#35206d] shadow-[0_12px_30px_rgba(139,92,246,0.28)] ring-1 ring-white/40"
                                       : "text-white/68 hover:bg-white/8 hover:text-white",
                                   )}
                                 >
@@ -4782,7 +4825,7 @@ export default function ConverterPageContent({
                                   className={cx(
                                     "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
                                     pdfToolTab === "split_pdf"
-                                      ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(226,232,240,0.92))] text-black shadow-[0_12px_28px_rgba(255,255,255,0.16)]"
+                                      ? "bg-[linear-gradient(135deg,rgba(239,236,255,0.98),rgba(203,213,255,0.94))] text-[#35206d] shadow-[0_12px_30px_rgba(139,92,246,0.28)] ring-1 ring-white/40"
                                       : "text-white/68 hover:bg-white/8 hover:text-white",
                                   )}
                                 >
@@ -4834,7 +4877,7 @@ export default function ConverterPageContent({
                                   className={cx(
                                     "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
                                     pdfToolTab === "pdf_to_image"
-                                      ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(226,232,240,0.92))] text-black shadow-[0_12px_28px_rgba(255,255,255,0.16)]"
+                                      ? "bg-[linear-gradient(135deg,rgba(239,236,255,0.98),rgba(203,213,255,0.94))] text-[#35206d] shadow-[0_12px_30px_rgba(139,92,246,0.28)] ring-1 ring-white/40"
                                       : "text-white/68 hover:bg-white/8 hover:text-white",
                                   )}
                                 >
@@ -4875,8 +4918,8 @@ export default function ConverterPageContent({
                             <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
                             {pdfToolTab === "to_pdf" ? (
-                              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.14),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.24)]">
-                                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.14),transparent_40%)]" />
+                              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-6 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10">
+                                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.035),transparent_48%,rgba(96,165,250,0.03))]" />
 
                                 <div className="relative">
                                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -4897,13 +4940,13 @@ export default function ConverterPageContent({
                                       </p>
 
                                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
+                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/12">
                                           PNG/JPG · PDFs · Mixed
                                         </span>
-                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
+                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/12">
                                           Max files: {pdfFileLimit}
                                         </span>
-                                        <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-200">
+                                        <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/72">
                                           Beta · free for now
                                         </span>
                                       </div>
@@ -4947,12 +4990,12 @@ export default function ConverterPageContent({
 
                                   <div className="mt-6">
                                     <div className="space-y-4">
-                                      <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/10">
+                                      <div className="rounded-[24px] bg-transparent p-0">
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                           <label className="block text-sm font-semibold text-white">
                                             Build mode
                                           </label>
-                                          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+                                          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white/72">
                                             {toPdfMode === "images_to_pdf"
                                               ? "Images to PDF"
                                               : toPdfMode === "merge_pdfs"
@@ -4989,13 +5032,18 @@ export default function ConverterPageContent({
                                                 resetPdfBuilder();
                                               }}
                                               className={cx(
-                                                "rounded-2xl p-4 text-left transition ring-1",
+                                                "relative min-h-[112px] rounded-[20px] p-4 text-left transition-all duration-200 ring-1",
                                                 toPdfMode === option.value
-                                                  ? "bg-white text-black ring-white shadow-[0_10px_25px_rgba(255,255,255,0.12)]"
-                                                  : "bg-black/20 text-white/75 ring-white/10 hover:bg-white/10 hover:text-white",
+                                                  ? "bg-[linear-gradient(135deg,rgba(124,58,237,0.20),rgba(28,22,62,0.58))] text-white ring-[#8b5cf6]/55 shadow-[0_0_0_1px_rgba(139,92,246,0.28),0_14px_36px_rgba(76,29,149,0.20)]"
+                                                  : "bg-black/16 text-white/75 ring-white/12 hover:bg-white/[0.07] hover:text-white",
                                               )}
                                             >
-                                              <div className="text-xs font-semibold uppercase tracking-[0.18em] opacity-60">
+                                              {toPdfMode === option.value ? (
+                                                <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[linear-gradient(135deg,#f4efff,#c7d2fe)] text-[#5b21b6] shadow-[0_8px_22px_rgba(139,92,246,0.35)]">
+                                                  ✓
+                                                </span>
+                                              ) : null}
+                                              <div className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
                                                 Mode
                                               </div>
                                               <div className="mt-2 text-base font-semibold">
@@ -5005,7 +5053,7 @@ export default function ConverterPageContent({
                                                 className={cx(
                                                   "mt-1 text-xs",
                                                   toPdfMode === option.value
-                                                    ? "text-black/65"
+                                                    ? "text-white/68"
                                                     : "text-white/45",
                                                 )}
                                               >
@@ -5018,10 +5066,10 @@ export default function ConverterPageContent({
 
                                       <div
                                         className={cx(
-                                          "overflow-hidden rounded-[24px] border border-dashed p-4",
+                                          "overflow-hidden rounded-[24px] border border-dashed p-5 transition-all duration-200",
                                           pdfDragOver
-                                            ? "border-white/35 bg-white/[0.07]"
-                                            : "border-white/15 bg-white/[0.03]",
+                                            ? "border-[#a78bfa]/70 bg-[#7c3aed]/12 shadow-[0_0_35px_rgba(139,92,246,0.20)]"
+                                            : "border-[#8b5cf6]/32 bg-[#231d52]/34",
                                         )}
                                         onDragEnter={(e) => {
                                           e.preventDefault();
@@ -5070,7 +5118,7 @@ export default function ConverterPageContent({
                                         />
 
                                         <div className="py-6">
-                                          <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-white/10 ring-1 ring-white/10">
+                                          <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-[linear-gradient(135deg,rgba(139,92,246,0.72),rgba(96,165,250,0.28))] text-white shadow-[0_14px_34px_rgba(124,58,237,0.24)] ring-1 ring-white/15">
                                             <svg
                                               width="28"
                                               height="28"
@@ -5125,7 +5173,7 @@ export default function ConverterPageContent({
                                                   .getElementById("pdfInput")
                                                   ?.click()
                                               }
-                                              className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
+                                              className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#6d4ee8,#5169d8)] px-5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(96,70,210,0.24)] transition hover:brightness-110"
                                             >
                                               {toPdfMode === "images_to_pdf"
                                                 ? "Choose images"
@@ -5142,11 +5190,11 @@ export default function ConverterPageContent({
                                                 pdfStatus === "processing"
                                               }
                                               className={cx(
-                                                "inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition",
+                                                "inline-flex h-11 items-center justify-center rounded-[14px] px-5 text-sm font-semibold transition",
                                                 !pdfFiles.length ||
                                                   pdfStatus === "processing"
-                                                  ? "cursor-not-allowed bg-white/15 text-white/45 ring-1 ring-white/10"
-                                                  : "bg-white/90 text-black hover:bg-white",
+                                                  ? "cursor-not-allowed bg-white/10 text-white/45 ring-1 ring-white/10"
+                                                  : "bg-white/12 text-white ring-1 ring-white/14 hover:bg-white/18",
                                               )}
                                             >
                                               {pdfStatus === "processing"
@@ -5158,10 +5206,20 @@ export default function ConverterPageContent({
                                                     : "Merge files"}
                                             </button>
 
+                                            {pdfStatus === "done" && pdfResultUrl ? (
+                                              <a
+                                                href={pdfResultUrl}
+                                                download={pdfResultName}
+                                                className="inline-flex h-11 items-center justify-center rounded-[14px] bg-white/15 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/22"
+                                              >
+                                                Download PDF
+                                              </a>
+                                            ) : null}
+
                                             <button
                                               type="button"
                                               onClick={resetPdfBuilder}
-                                              className="inline-flex h-11 items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
+                                              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/8 px-5 text-sm font-semibold text-white/75 transition hover:bg-white/12 hover:text-white"
                                             >
                                               Clear
                                             </button>
@@ -5176,120 +5234,147 @@ export default function ConverterPageContent({
                                       ) : null}
                                     </div>
 
-                                  {pdfFiles.length ? (
-                                    <div className="mt-5 overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.065),rgba(255,255,255,0.025))] p-5 ring-1 ring-white/10">
-                                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                                        <div>
-                                          <div className="inline-flex rounded-full border border-white/10 bg-white/8 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55">
-                                            File order
+                                    {pdfFiles.length ? (
+                                      <div className="mt-5 overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.065),rgba(255,255,255,0.025))] p-5 ring-1 ring-white/10">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                          <div>
+                                            <div className="inline-flex rounded-full border border-white/10 bg-white/8 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55">
+                                              File order
+                                            </div>
+                                            <h3 className="mt-3 text-lg font-semibold text-white">
+                                              Arrange the final PDF order
+                                            </h3>
+                                            <p className="mt-1 text-sm leading-6 text-white/55">
+                                              The final PDF follows this list
+                                              from top to bottom. Move files
+                                              before creating the output.
+                                            </p>
                                           </div>
-                                          <h3 className="mt-3 text-lg font-semibold text-white">
-                                            Arrange the final PDF order
-                                          </h3>
-                                          <p className="mt-1 text-sm leading-6 text-white/55">
-                                            The final PDF follows this list from top to bottom. Move files before creating the output.
-                                          </p>
+
+                                          <div className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-100">
+                                            {pdfFiles.length} / {pdfFileLimit}{" "}
+                                            files
+                                          </div>
                                         </div>
 
-                                        <div className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-100">
-                                          {pdfFiles.length} / {pdfFileLimit} files
-                                        </div>
-                                      </div>
+                                        <div className="mt-4 space-y-3">
+                                          {pdfFiles.map((pdfFile, index) => (
+                                            <div
+                                              key={`${pdfFile.name}-${pdfFile.size}-${index}`}
+                                              draggable={
+                                                pdfStatus !== "processing"
+                                              }
+                                              onDragStart={() =>
+                                                setPdfOrderDragIndex(index)
+                                              }
+                                              onDragOver={(event) =>
+                                                event.preventDefault()
+                                              }
+                                              onDrop={(event) => {
+                                                event.preventDefault();
+                                                handlePdfOrderDrop(index);
+                                              }}
+                                              onDragEnd={() =>
+                                                setPdfOrderDragIndex(null)
+                                              }
+                                              className={cx(
+                                                "group cursor-grab rounded-[22px] bg-black/24 p-4 ring-1 ring-white/10 transition hover:bg-black/30 hover:ring-white/15 active:cursor-grabbing",
+                                                pdfOrderDragIndex === index
+                                                  ? "scale-[0.99] opacity-70 ring-cyan-300/30"
+                                                  : "",
+                                              )}
+                                            >
+                                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sm font-bold text-white ring-1 ring-white/10">
+                                                    {index + 1}
+                                                  </div>
 
-                                      <div className="mt-4 space-y-3">
-                                        {pdfFiles.map((pdfFile, index) => (
-                                          <div
-                                            key={`${pdfFile.name}-${pdfFile.size}-${index}`}
-                                            draggable={pdfStatus !== "processing"}
-                                            onDragStart={() => setPdfOrderDragIndex(index)}
-                                            onDragOver={(event) => event.preventDefault()}
-                                            onDrop={(event) => {
-                                              event.preventDefault();
-                                              handlePdfOrderDrop(index);
-                                            }}
-                                            onDragEnd={() => setPdfOrderDragIndex(null)}
-                                            className={cx(
-                                              "group cursor-grab rounded-[22px] bg-black/24 p-4 ring-1 ring-white/10 transition hover:bg-black/30 hover:ring-white/15 active:cursor-grabbing",
-                                              pdfOrderDragIndex === index
-                                                ? "scale-[0.99] opacity-70 ring-cyan-300/30"
-                                                : "",
-                                            )}
-                                          >
-                                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                              <div className="flex min-w-0 items-center gap-3">
-                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sm font-bold text-white ring-1 ring-white/10">
-                                                  {index + 1}
+                                                  <div className="min-w-0">
+                                                    <div className="truncate text-sm font-semibold text-white">
+                                                      {pdfFile.name}
+                                                    </div>
+                                                    <div className="mt-1 text-xs text-white/45">
+                                                      {(
+                                                        pdfFile.size /
+                                                        (1024 * 1024)
+                                                      ).toFixed(1)}{" "}
+                                                      MB · drag to reorder
+                                                    </div>
+                                                  </div>
                                                 </div>
 
-                                                <div className="min-w-0">
-                                                  <div className="truncate text-sm font-semibold text-white">
-                                                    {pdfFile.name}
-                                                  </div>
-                                                  <div className="mt-1 text-xs text-white/45">
-                                                    {(pdfFile.size / (1024 * 1024)).toFixed(1)} MB · drag to reorder
-                                                  </div>
+                                                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      movePdfFile(index, "up")
+                                                    }
+                                                    disabled={index === 0}
+                                                    className={cx(
+                                                      "inline-flex h-8 items-center justify-center rounded-full border px-3 text-xs font-semibold transition",
+                                                      index === 0
+                                                        ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/30"
+                                                        : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white",
+                                                    )}
+                                                  >
+                                                    Up
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      movePdfFile(index, "down")
+                                                    }
+                                                    disabled={
+                                                      index ===
+                                                      pdfFiles.length - 1
+                                                    }
+                                                    className={cx(
+                                                      "inline-flex h-8 items-center justify-center rounded-full border px-3 text-xs font-semibold transition",
+                                                      index ===
+                                                        pdfFiles.length - 1
+                                                        ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/30"
+                                                        : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white",
+                                                    )}
+                                                  >
+                                                    Down
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      removePdfFile(index)
+                                                    }
+                                                    className="inline-flex h-8 items-center justify-center rounded-full border border-rose-400/20 bg-rose-500/10 px-3 text-xs font-semibold text-rose-100 transition hover:bg-rose-500/15"
+                                                  >
+                                                    Remove
+                                                  </button>
                                                 </div>
-                                              </div>
-
-                                              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                                                <button
-                                                  type="button"
-                                                  onClick={() => movePdfFile(index, "up")}
-                                                  disabled={index === 0}
-                                                  className={cx(
-                                                    "inline-flex h-8 items-center justify-center rounded-full border px-3 text-xs font-semibold transition",
-                                                    index === 0
-                                                      ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/30"
-                                                      : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white",
-                                                  )}
-                                                >
-                                                  Up
-                                                </button>
-                                                <button
-                                                  type="button"
-                                                  onClick={() => movePdfFile(index, "down")}
-                                                  disabled={index === pdfFiles.length - 1}
-                                                  className={cx(
-                                                    "inline-flex h-8 items-center justify-center rounded-full border px-3 text-xs font-semibold transition",
-                                                    index === pdfFiles.length - 1
-                                                      ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-white/30"
-                                                      : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white",
-                                                  )}
-                                                >
-                                                  Down
-                                                </button>
-                                                <button
-                                                  type="button"
-                                                  onClick={() => removePdfFile(index)}
-                                                  className="inline-flex h-8 items-center justify-center rounded-full border border-rose-400/20 bg-rose-500/10 px-3 text-xs font-semibold text-rose-100 transition hover:bg-rose-500/15"
-                                                >
-                                                  Remove
-                                                </button>
                                               </div>
                                             </div>
-                                          </div>
-                                        ))}
+                                          ))}
+                                        </div>
                                       </div>
-                                    </div>
-                                  ) : null}
+                                    ) : null}
 
-
-                                  <PdfWorkflowProgressBar
-                                    status={pdfStatus}
-                                    progress={pdfProgress}
-                                    title="PDF build progress"
-                                    subtitle="A clearer build bar for image-to-PDF, PDF merge, and mixed PDF jobs."
-                                    idleLabel={pdfFiles.length ? "Ready to build" : "Waiting for files"}
-                                    processingLabel={`Building PDF • ${pdfProgress}%`}
-                                    doneLabel="PDF ready"
-                                    errorLabel="Needs attention"
-                                  />
-
+                                    <PdfWorkflowProgressBar
+                                      status={pdfStatus}
+                                      progress={pdfProgress}
+                                      title="PDF build progress"
+                                      subtitle="A clearer build bar for image-to-PDF, PDF merge, and mixed PDF jobs."
+                                      idleLabel={
+                                        pdfFiles.length
+                                          ? "Ready to build"
+                                          : "Waiting for files"
+                                      }
+                                      processingLabel={`Building PDF • ${pdfProgress}%`}
+                                      doneLabel="PDF ready"
+                                      errorLabel="Needs attention"
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                            </div>
                             ) : pdfToolTab === "pdf_to_image" ? (
-                              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.24)]">
+                              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-6 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10">
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.12),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.14),transparent_34%)]" />
                                 <div className="relative">
                                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -5308,10 +5393,10 @@ export default function ConverterPageContent({
                                       </p>
 
                                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
+                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/12">
                                           Targets: PNG · JPG · WEBP
                                         </span>
-                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/10">
+                                        <span className="inline-flex items-center rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/75 ring-1 ring-white/12">
                                           Backend export
                                         </span>
                                       </div>
@@ -5377,7 +5462,12 @@ export default function ConverterPageContent({
                                           setPdfToImageProgress(0);
                                           setPdfToImageResultUrl(null);
                                         }}
-                                        className="overflow-hidden rounded-[24px] border border-dashed border-white/15 bg-white/[0.03] p-4"
+                                        className={cx(
+                                          "relative overflow-hidden rounded-[24px] border border-dashed border-[#8b5cf6]/32 bg-[#231d52]/34 transition-all duration-200 hover:border-[#a78bfa]/55 hover:bg-[#2d225f]/40",
+                                          pdfToImageFile
+                                            ? "p-4"
+                                            : "flex min-h-[292px] flex-col items-center justify-center p-10 text-center",
+                                        )}
                                       >
                                         {pdfToImageFile ? (
                                           <div>
@@ -5444,7 +5534,7 @@ export default function ConverterPageContent({
                                           </div>
                                         ) : (
                                           <div className="py-6">
-                                            <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-white/10 ring-1 ring-white/10">
+                                            <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-[linear-gradient(135deg,rgba(139,92,246,0.72),rgba(96,165,250,0.28))] text-white shadow-[0_14px_34px_rgba(124,58,237,0.24)] ring-1 ring-white/15">
                                               <svg
                                                 width="28"
                                                 height="28"
@@ -5490,7 +5580,7 @@ export default function ConverterPageContent({
                                             </div>
 
                                             <div className="mt-5 flex justify-center">
-                                              <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90">
+                                              <label className="inline-flex cursor-pointer items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#6d4ee8,#5169d8)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(96,70,210,0.24)] transition hover:brightness-110">
                                                 Choose PDF
                                                 <input
                                                   type="file"
@@ -5532,12 +5622,12 @@ export default function ConverterPageContent({
                                         )}
                                       </div>
 
-                                      <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/10">
+                                      <div className="rounded-[24px] bg-transparent p-0">
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                           <label className="block text-sm font-semibold text-white">
                                             Output format
                                           </label>
-                                          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+                                          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white/72">
                                             {pdfToImageTarget} export
                                           </div>
                                         </div>
@@ -5559,13 +5649,18 @@ export default function ConverterPageContent({
                                                 }
                                               }}
                                               className={cx(
-                                                "rounded-2xl p-4 text-left transition ring-1",
+                                                "relative min-h-[112px] rounded-[20px] p-4 text-left transition-all duration-200 ring-1",
                                                 pdfToImageTarget === fmt
-                                                  ? "bg-white text-black ring-white shadow-[0_10px_25px_rgba(255,255,255,0.12)]"
-                                                  : "bg-black/20 text-white/75 ring-white/10 hover:bg-white/10 hover:text-white",
+                                                  ? "bg-[linear-gradient(135deg,rgba(124,58,237,0.20),rgba(28,22,62,0.58))] text-white ring-[#8b5cf6]/55 shadow-[0_0_0_1px_rgba(139,92,246,0.28),0_14px_36px_rgba(76,29,149,0.20)]"
+                                                  : "bg-black/16 text-white/75 ring-white/12 hover:bg-white/[0.07] hover:text-white",
                                               )}
                                             >
-                                              <div className="text-xs font-semibold uppercase tracking-[0.18em] opacity-60">
+                                              {pdfToImageTarget === fmt ? (
+                                                <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[linear-gradient(135deg,#f4efff,#c7d2fe)] text-[#5b21b6] shadow-[0_8px_22px_rgba(139,92,246,0.35)]">
+                                                  ✓
+                                                </span>
+                                              ) : null}
+                                              <div className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
                                                 Format
                                               </div>
                                               <div className="mt-2 text-base font-semibold">
@@ -5575,7 +5670,7 @@ export default function ConverterPageContent({
                                                 className={cx(
                                                   "mt-1 text-xs",
                                                   pdfToImageTarget === fmt
-                                                    ? "text-black/65"
+                                                    ? "text-white/68"
                                                     : "text-white/45",
                                                 )}
                                               >
@@ -5603,7 +5698,7 @@ export default function ConverterPageContent({
                                           <a
                                             href={pdfToImageResultUrl}
                                             download={pdfToImageResultName}
-                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
+                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/22"
                                           >
                                             Download result
                                           </a>
@@ -5620,10 +5715,15 @@ export default function ConverterPageContent({
                                           <button
                                             type="button"
                                             onClick={startPdfToImage}
-                                            disabled={!pdfToImageFile || pdfToImageStatus === "processing"}
-                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                            disabled={
+                                              !pdfToImageFile ||
+                                              pdfToImageStatus === "processing"
+                                            }
+                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/22 disabled:cursor-not-allowed disabled:opacity-50"
                                           >
-                                            {pdfToImageStatus === "processing" ? "Exporting..." : "Convert PDF"}
+                                            {pdfToImageStatus === "processing"
+                                              ? "Exporting..."
+                                              : "Convert PDF"}
                                           </button>
                                           <button
                                             type="button"
@@ -5635,22 +5735,25 @@ export default function ConverterPageContent({
                                         </div>
                                       )}
                                     </div>
-                                  <PdfWorkflowProgressBar
-                                    status={pdfToImageStatus}
-                                    progress={pdfToImageProgress}
-                                    title="PDF to image progress"
-                                    subtitle="Shows upload, page rendering, backend processing, and final download preparation."
-                                    idleLabel={pdfToImageFile ? "Ready to export" : "Waiting for PDF"}
-                                    processingLabel={`Exporting pages • ${pdfToImageProgress}%`}
-                                    doneLabel="Image export ready"
-                                    errorLabel="Export needs attention"
-                                  />
-
+                                    <PdfWorkflowProgressBar
+                                      status={pdfToImageStatus}
+                                      progress={pdfToImageProgress}
+                                      title="PDF to image progress"
+                                      subtitle="Shows upload, page rendering, backend processing, and final download preparation."
+                                      idleLabel={
+                                        pdfToImageFile
+                                          ? "Ready to export"
+                                          : "Waiting for PDF"
+                                      }
+                                      processingLabel={`Exporting pages • ${pdfToImageProgress}%`}
+                                      doneLabel="Image export ready"
+                                      errorLabel="Export needs attention"
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                            </div>
                             ) : (
-                              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.14),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.24)]">
+                              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-6 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10">
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.14),transparent_40%)]" />
 
                                 <div className="relative">
@@ -5729,7 +5832,12 @@ export default function ConverterPageContent({
                                           setSplitPdfProgress(0);
                                           setSplitPdfResultUrl(null);
                                         }}
-                                        className="overflow-hidden rounded-[24px] border border-dashed border-white/15 bg-white/[0.03] p-4"
+                                        className={cx(
+                                          "relative overflow-hidden rounded-[24px] border border-dashed border-[#8b5cf6]/32 bg-[#231d52]/34 transition-all duration-200 hover:border-[#a78bfa]/55 hover:bg-[#2d225f]/40",
+                                          splitPdfFile
+                                            ? "p-4"
+                                            : "flex min-h-[292px] flex-col items-center justify-center p-10 text-center",
+                                        )}
                                       >
                                         {splitPdfFile ? (
                                           <div>
@@ -5794,7 +5902,7 @@ export default function ConverterPageContent({
                                           </div>
                                         ) : (
                                           <div className="py-6">
-                                            <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-white/10 ring-1 ring-white/10">
+                                            <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-[linear-gradient(135deg,rgba(139,92,246,0.72),rgba(96,165,250,0.28))] text-white shadow-[0_14px_34px_rgba(124,58,237,0.24)] ring-1 ring-white/15">
                                               <svg
                                                 width="28"
                                                 height="28"
@@ -5832,7 +5940,7 @@ export default function ConverterPageContent({
                                             </div>
 
                                             <div className="mt-5 flex justify-center">
-                                              <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90">
+                                              <label className="inline-flex cursor-pointer items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#6d4ee8,#5169d8)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(96,70,210,0.24)] transition hover:brightness-110">
                                                 Choose PDF
                                                 <input
                                                   type="file"
@@ -5877,7 +5985,7 @@ export default function ConverterPageContent({
                                           <label className="block text-sm font-semibold text-white">
                                             Page range
                                           </label>
-                                          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+                                          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white/72">
                                             {splitPdfRange || "Select pages"}
                                           </div>
                                         </div>
@@ -6003,7 +6111,7 @@ export default function ConverterPageContent({
                                           <a
                                             href={splitPdfResultUrl}
                                             download={splitPdfResultName}
-                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
+                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/22"
                                           >
                                             Download PDF
                                           </a>
@@ -6020,10 +6128,15 @@ export default function ConverterPageContent({
                                           <button
                                             type="button"
                                             onClick={startSplitPdf}
-                                            disabled={!splitPdfFile || splitPdfStatus === "processing"}
-                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                            disabled={
+                                              !splitPdfFile ||
+                                              splitPdfStatus === "processing"
+                                            }
+                                            className="inline-flex h-11 items-center justify-center rounded-full bg-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/22 disabled:cursor-not-allowed disabled:opacity-50"
                                           >
-                                            {splitPdfStatus === "processing" ? "Splitting..." : "Split PDF"}
+                                            {splitPdfStatus === "processing"
+                                              ? "Splitting..."
+                                              : "Split PDF"}
                                           </button>
                                           <button
                                             type="button"
@@ -6035,20 +6148,23 @@ export default function ConverterPageContent({
                                         </div>
                                       )}
                                     </div>
-                                  <PdfWorkflowProgressBar
-                                    status={splitPdfStatus}
-                                    progress={splitPdfProgress}
-                                    title="Split PDF progress"
-                                    subtitle="A visible status bar for page selection, backend split work, and download preparation."
-                                    idleLabel={splitPdfFile ? "Ready to split" : "Waiting for PDF"}
-                                    processingLabel={`Splitting PDF • ${splitPdfProgress}%`}
-                                    doneLabel="Split PDF ready"
-                                    errorLabel="Split needs attention"
-                                  />
-
+                                    <PdfWorkflowProgressBar
+                                      status={splitPdfStatus}
+                                      progress={splitPdfProgress}
+                                      title="Split PDF progress"
+                                      subtitle="A visible status bar for page selection, backend split work, and download preparation."
+                                      idleLabel={
+                                        splitPdfFile
+                                          ? "Ready to split"
+                                          : "Waiting for PDF"
+                                      }
+                                      processingLabel={`Splitting PDF • ${splitPdfProgress}%`}
+                                      doneLabel="Split PDF ready"
+                                      errorLabel="Split needs attention"
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                            </div>
                             )}
                           </div>
                         ) : (
@@ -6125,10 +6241,10 @@ export default function ConverterPageContent({
 
                               <div
                                 className={cx(
-                                  "relative rounded-[26px] border border-dashed p-7 text-center transition sm:p-9",
+                                  "relative overflow-hidden rounded-[24px] border border-dashed p-7 text-center transition-all duration-200 sm:p-9",
                                   dragOver
-                                    ? "border-white/45 bg-white/6"
-                                    : "border-white/20 bg-black/20 hover:bg-white/6",
+                                    ? "border-[#a78bfa]/70 bg-[#7c3aed]/12 shadow-[0_0_35px_rgba(139,92,246,0.20)]"
+                                    : "border-[#8b5cf6]/32 bg-[#231d52]/34",
                                 )}
                                 onDragEnter={(e) => {
                                   e.preventDefault();
@@ -6164,10 +6280,10 @@ export default function ConverterPageContent({
                                   }}
                                 />
 
-                                <div className="mx-auto grid h-[72px] w-[72px] place-items-center rounded-[24px] bg-white/10 ring-1 ring-white/10">
+                                <div className="mx-auto grid h-[64px] w-[64px] place-items-center rounded-[20px] bg-[linear-gradient(135deg,rgba(139,92,246,0.72),rgba(96,165,250,0.28))] text-white shadow-[0_14px_34px_rgba(124,58,237,0.24)] ring-1 ring-white/15">
                                   <svg
-                                    width="30"
-                                    height="30"
+                                    width="28"
+                                    height="28"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                   >
@@ -6192,7 +6308,7 @@ export default function ConverterPageContent({
                                   </svg>
                                 </div>
 
-                                <p className="mt-5 text-lg font-semibold">
+                                <p className="mt-4 text-lg font-semibold text-white">
                                   <span className="mx-auto block max-w-[56ch] truncate">
                                     {file ? file.name : "Drop a file here"}
                                   </span>
@@ -6274,7 +6390,7 @@ export default function ConverterPageContent({
                                         .getElementById("fileInput")
                                         ?.click()
                                     }
-                                    className="h-11 rounded-2xl bg-white/10 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                                    className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#6d4ee8,#5169d8)] px-5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(96,70,210,0.24)] transition hover:brightness-110"
                                   >
                                     Choose file
                                   </button>
@@ -6283,7 +6399,7 @@ export default function ConverterPageContent({
                                     <button
                                       type="button"
                                       onClick={() => setTargetOpen((v) => !v)}
-                                      className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white/10 px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+                                      className="inline-flex h-12 items-center gap-2 rounded-[18px] bg-white/12 px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/10 transition hover:bg-white/18"
                                       aria-haspopup="listbox"
                                       aria-expanded={targetOpen}
                                     >
@@ -7375,7 +7491,7 @@ export default function ConverterPageContent({
                               ) : null}
                             </div>
 
-                            <div className="relative mt-7 rounded-[22px] bg-black/25 p-4 ring-1 ring-white/10">
+                            <div className="relative mt-7 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,rgba(28,21,58,0.66),rgba(37,73,110,0.42))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-white/10">
                               <div className="flex items-center justify-between text-xs text-white/60">
                                 <span>Free limit</span>
                                 <span>
@@ -7385,7 +7501,7 @@ export default function ConverterPageContent({
                                 </span>
                               </div>
 
-                              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+                              <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/34 ring-1 ring-white/10">
                                 <div
                                   className={cx(
                                     "h-full transition-[width] duration-300",
@@ -7402,17 +7518,17 @@ export default function ConverterPageContent({
                               </div>
 
                               <div className="mt-4 grid gap-3 text-xs text-white/60 sm:grid-cols-2">
-                                <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                                <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                   Hybrid conversion flow for better reliability.
                                 </div>
-                                <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                                <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                   50MB free limit for the demo.
                                 </div>
-                                <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                                <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                   Audio, video, GIF, and image targets
                                   supported.
                                 </div>
-                                <div className="rounded-2xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                                <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                   Good for quick everyday conversions.
                                 </div>
                               </div>
@@ -7438,8 +7554,8 @@ export default function ConverterPageContent({
                   />
 
                   <div className="mx-auto mt-4 max-w-[1100px] px-1 text-center text-xs font-medium tracking-[0.08em] text-white/38">
-                    Not sure which format fits best? The notes below make the route
-                    easier to judge before you convert again.
+                    Not sure which format fits best? The notes below make the
+                    route easier to judge before you convert again.
                   </div>
 
                   <SeoInfoSection
