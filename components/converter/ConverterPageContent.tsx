@@ -4257,7 +4257,7 @@ export default function ConverterPageContent({
                       </button>
                     </div>
 
-                    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-4 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10 sm:p-5 md:p-6">
+                    <div className="relative overflow-visible rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_42%),linear-gradient(135deg,rgba(74,58,116,0.64),rgba(47,43,82,0.72)_46%,rgba(37,72,112,0.64))] p-4 shadow-[0_22px_70px_rgba(8,6,28,0.38)] ring-1 ring-white/10 sm:p-5 md:p-6">
                       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.045),transparent_46%,rgba(96,165,250,0.035))]" />
                       <div
                         className={cx(
@@ -6241,7 +6241,7 @@ export default function ConverterPageContent({
 
                               <div
                                 className={cx(
-                                  "relative overflow-hidden rounded-[24px] border border-dashed p-7 text-center transition-all duration-200 sm:p-9",
+                                  "relative overflow-visible rounded-[24px] border border-dashed p-7 text-center transition-all duration-200 sm:p-9",
                                   dragOver
                                     ? "border-[#a78bfa]/70 bg-[#7c3aed]/12 shadow-[0_0_35px_rgba(139,92,246,0.20)]"
                                     : "border-[#8b5cf6]/32 bg-[#231d52]/34",
@@ -6430,11 +6430,11 @@ export default function ConverterPageContent({
                                     {targetOpen ? (
                                       <div
                                         role="listbox"
-                                        className="absolute left-1/2 z-30 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                                        className="absolute left-1/2 top-full z-50 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
                                       >
                                         <div
                                           ref={targetListRef}
-                                          className="max-h-64 overflow-auto"
+                                          className="max-h-44 overflow-auto"
                                         >
                                           {availableTargets.map((fmt) => (
                                             <button
