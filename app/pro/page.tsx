@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ConvertoProPricingPage from "@/components/pro/ConvertoProPricingPage";
 import { PRO_PUBLIC } from "@/lib/siteReadiness";
+import { redirect } from "next/navigation";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -25,5 +26,6 @@ export const metadata: Metadata = {
 };
 
 export default function ProPage() {
+  if (!PRO_PUBLIC) redirect("/converter");
   return <ConvertoProPricingPage />;
 }

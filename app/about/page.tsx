@@ -80,6 +80,16 @@ export default function AboutPage() {
             </section>
 
             <section className="rounded-3xl bg-white/6 p-6 ring-1 ring-white/10">
+              <h2 className="text-xl font-semibold text-white">Editorial approach</h2>
+              <p className="mt-3 text-sm leading-7 text-white/70">
+                Converto's practical guides are written and maintained by NexviaSoft to help users make informed choices about privacy, compression, quality, and compatibility. We separate hand-written editorial resources from automatically generated route labels and review guide content when the product changes.
+              </p>
+              <Link href="/guides" className="mt-4 inline-flex text-sm font-semibold text-violet-200 transition hover:text-white">
+                Browse practical guides →
+              </Link>
+            </section>
+
+            <section className="rounded-3xl bg-white/6 p-6 ring-1 ring-white/10">
               <h2 className="text-xl font-semibold text-white">Privacy and simplicity</h2>
               <p className="mt-3 text-sm leading-7 text-white/70">
                 We aim to keep the service simple and transparent. Related

@@ -5,6 +5,7 @@ const EXACT_CONTENT_PATHS = new Set([
   "/converter",
   "/formats",
   "/compare",
+  "/guides",
   "/convert/pdf",
 ]);
 
@@ -19,6 +20,7 @@ export function isAdsensePathEligible(pathname?: string | null): boolean {
   if (EXACT_CONTENT_PATHS.has(path)) return true;
   if (/^\/formats\/[^/]+\/?$/.test(path)) return true;
   if (/^\/compare\/[^/]+\/?$/.test(path)) return true;
+  if (/^\/guides\/[^/]+\/?$/.test(path)) return true;
   if (/^\/convert\/pdf\/[^/]+\/?$/.test(path)) return true;
 
   const converterMatch = path.match(/^\/convert\/([^/]+)\/?$/);

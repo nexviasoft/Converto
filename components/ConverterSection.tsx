@@ -489,7 +489,7 @@ export default function ConverterSection() {
         <div className="text-center">
           <p className="text-xs font-semibold tracking-widest text-white/60">ONLINE CONVERTER</p>
           <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Convert files online</h1>
-          <p className="mt-3 text-sm text-white/70">Browser demo (FFmpeg WASM) • Free: {MAX_FREE_MB}MB</p>
+          <p className="mt-3 text-sm text-white/70">Browser conversion (FFmpeg WASM) • Free: {MAX_FREE_MB}MB</p>
         </div>
 
         <div className="relative mt-10 overflow-visible rounded-3xl bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">

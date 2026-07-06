@@ -107,3 +107,17 @@ No Pro component, route, billing dependency, entitlement logic, or advanced-cont
 ```env
 NEXT_PUBLIC_ENABLE_PRO=true
 ```
+
+## 2026-07-06 editorial-value update
+
+- Preserved every converter, PDF, batch, Pro, account, payment, Android and waitlist feature file.
+- Disabled public Pro and sign-in routes now redirect to the finished converter while their feature switches are false. Setting the matching environment variable to `true` restores the original route.
+- Closed interstitial content no longer remains hidden in rendered HTML, and sponsor/development wording was replaced with a neutral external-link notice.
+- Added a hand-written Guides hub and three substantial editorial guides:
+  - How Converto handles uploaded files
+  - How to choose audio bitrate and sample rate
+  - JPG, PNG, WEBP and AVIF image compression guide
+- Added guide metadata, Article/Breadcrumb/FAQ structured data, internal navigation, sitemap entries and AdSense eligibility.
+- Updated homepage and footer links so the editorial guides are easy to discover.
+- Kept the 15 hand-written converter routes as the only indexable programmatic converter pages.
+

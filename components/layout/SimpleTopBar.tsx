@@ -9,6 +9,7 @@ const cx = (...c: Array<string | false | null | undefined>) =>
 const navItems = [
   { href: "/formats", label: "Formats" },
   { href: "/compare", label: "Compare" },
+  { href: "/guides", label: "Guides" },
   { href: "/terms", label: "Terms" },
   { href: "/privacy", label: "Privacy" },
   { href: "/contact", label: "Contact" },

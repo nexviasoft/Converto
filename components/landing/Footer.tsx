@@ -16,10 +16,10 @@ const groups = [
   {
     title: "Resources",
     links: [
-      { href: "/formats/mp4", label: "MP4 guide" },
-      { href: "/compare/mp4-vs-webm", label: "MP4 vs WEBM" },
-      { href: "/contact", label: "Support" },
-      { href: "/about", label: "About" },
+      { href: "/guides", label: "Practical guides" },
+      { href: "/guides/how-converto-handles-files", label: "File privacy guide" },
+      { href: "/guides/audio-bitrate-sample-rate", label: "Audio settings guide" },
+      { href: "/guides/image-compression-formats", label: "Image compression guide" },
     ],
   },
   {

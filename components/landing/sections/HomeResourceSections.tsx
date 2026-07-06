@@ -6,8 +6,8 @@ import React from "react";
 
 const popularConversions = [
   { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
-  { href: "/convert/mp3-to-wav", label: "MP3 to WAV" },
-  { href: "/convert/webm-to-mp4", label: "WEBM to MP4" },
+  { href: "/convert/wav-to-mp3", label: "WAV to MP3" },
+  { href: "/convert/webm-to-mp3", label: "WEBM to MP3" },
   { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
   { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
   { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
@@ -191,6 +191,41 @@ export default function HomeResourceSections() {
           imageAlt="Purple format comparison visual"
         />
       </div>
+
+      <section className="group relative mt-5 overflow-hidden rounded-[32px] border border-violet-300/16 bg-[#1f1b43]/70 p-6 shadow-[0_24px_90px_rgba(14,11,38,0.38)] backdrop-blur transition duration-300 hover:border-violet-300/28 hover:bg-[#251f4f]/78 sm:p-7 lg:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(168,85,247,0.22),transparent_30%),radial-gradient(circle_at_10%_100%,rgba(59,130,246,0.12),transparent_34%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:radial-gradient(rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:22px_22px]" />
+
+        <div className="relative">
+          <Kicker
+            iconSrc="/images/vnext/section-icons/about-converto.png"
+            iconAlt="Practical conversion guides icon"
+            tooltip="Independent practical guides covering privacy, audio quality settings, and image compression choices."
+          >
+            Practical guides
+          </Kicker>
+          <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-[28px]">Make better choices before you convert</h2>
+              <p className="mt-4 max-w-[62ch] text-sm leading-7 text-white/66">Read clear, hand-written guides about file handling, audio bitrate and sample rate, and modern image compression. Each guide includes practical recommendations rather than generic format definitions.</p>
+              <div className="mt-5"><PillLink href="/guides" primary>Open all guides</PillLink></div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { href: "/guides/how-converto-handles-files", title: "How files are handled", desc: "Browser vs server processing and safer upload choices." },
+                { href: "/guides/audio-bitrate-sample-rate", title: "Audio settings", desc: "Choose sensible bitrate and sample-rate values." },
+                { href: "/guides/image-compression-formats", title: "Image compression", desc: "JPG, PNG, WEBP, and AVIF explained." },
+              ].map((guide, index) => (
+                <Link key={guide.href} href={guide.href} className="rounded-2xl border border-white/10 bg-white/[0.055] p-4 transition hover:-translate-y-0.5 hover:border-violet-200/25 hover:bg-violet-400/[0.10]">
+                  <div className="text-xs font-semibold text-violet-200">0{index + 1}</div>
+                  <div className="mt-3 text-sm font-semibold text-white">{guide.title}</div>
+                  <div className="mt-2 text-xs leading-5 text-white/52">{guide.desc}</div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="group relative mt-5 overflow-hidden rounded-[32px] border border-violet-300/16 bg-[#1f1b43]/70 p-6 shadow-[0_24px_90px_rgba(14,11,38,0.38)] backdrop-blur transition duration-300 hover:border-violet-300/28 hover:bg-[#251f4f]/78 sm:p-7 lg:p-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_50%,rgba(139,92,246,0.24),transparent_28%),radial-gradient(circle_at_20%_100%,rgba(59,130,246,0.12),transparent_36%)]" />

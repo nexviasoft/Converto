@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import { redirect } from "next/navigation";
+import { SIGN_IN_PUBLIC } from "@/lib/siteReadiness";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -25,6 +27,8 @@ export const metadata: Metadata = {
 };
 
 export default function SignInPage() {
+  if (!SIGN_IN_PUBLIC) redirect("/converter");
+
   return (
     <>
       <SimpleTopBar shellMax="max-w-[1320px]" />

@@ -3,6 +3,7 @@ import { allFormats } from "@/lib/formatData";
 import { allCompareItems } from "@/lib/compareData";
 import { INDEXABLE_CONVERTER_SLUGS } from "@/lib/indexingPolicy";
 import { PRO_PUBLIC } from "@/lib/siteReadiness";
+import { allEditorialGuides } from "@/lib/editorialGuides";
 
 const DEFAULT_LAST_MODIFIED = new Date("2026-07-06");
 
@@ -67,6 +68,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
+      url: `${siteUrl}/guides`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "monthly",
+      priority: 0.78,
+    },
+    {
       url: `${siteUrl}/about`,
       lastModified: DEFAULT_LAST_MODIFIED,
       changeFrequency: "monthly",
@@ -122,6 +129,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  const editorialGuideEntries: MetadataRoute.Sitemap = allEditorialGuides.map((guide) => ({
+    url: `${siteUrl}/guides/${guide.slug}`,
+    lastModified: DEFAULT_LAST_MODIFIED,
+    changeFrequency: "monthly",
+    priority: 0.78,
+  }));
+
   const converterEntries: MetadataRoute.Sitemap =
     INDEXABLE_CONVERTER_SLUGS.map((slug) => ({
       url: `${siteUrl}/convert/${slug}`,
@@ -134,6 +148,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...staticEntries,
     ...formatGuideEntries,
     ...compareEntries,
+    ...editorialGuideEntries,
     ...converterEntries,
   ];
 }
