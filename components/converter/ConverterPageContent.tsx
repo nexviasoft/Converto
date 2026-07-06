@@ -19,6 +19,7 @@ import {
 import { PDFDocument } from "pdf-lib";
 import RouteAwareContentSections from "@/components/converter/sections/RouteAwareContentSections";
 import type { ConverterPageContentEntry } from "@/lib/converterContent";
+import { PRO_PUBLIC } from "@/lib/siteReadiness";
 
 type TargetFmt =
   | "MP3"
@@ -1792,6 +1793,11 @@ function ProFeatureLock({
   children: React.ReactNode;
   onUpgrade: () => void;
 }) {
+  // During AdSense review, keep all Pro code intact but do not publicly render
+  // locked controls or upgrade prompts. Setting NEXT_PUBLIC_ENABLE_PRO=true
+  // restores the original UI without any further code changes.
+  if (!PRO_PUBLIC && !enabled) return null;
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -1840,7 +1846,7 @@ function UpgradePrompt({
   open: boolean;
   onClose: () => void;
 }) {
-  if (!open) return null;
+  if (!PRO_PUBLIC || !open) return null;
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/65 px-4">
@@ -1985,26 +1991,36 @@ function BatchQuotaExhaustedBanner({
                 </div>
               </div>
 
-              <div className="text-xs text-white/40 leading-5">
-                Or upgrade to Pro for
-                <br />
-                unlimited batch conversions.
-              </div>
+              {PRO_PUBLIC ? (
+                <div className="text-xs text-white/40 leading-5">
+                  Or upgrade to Pro for
+                  <br />
+                  unlimited batch conversions.
+                </div>
+              ) : (
+                <div className="text-xs text-white/40 leading-5">
+                  Your free quota resets automatically
+                  <br />
+                  at the start of the next day.
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onUpgrade}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
-          >
-            <span className="inline-flex h-4 items-center rounded-full border border-fuchsia-400/50 bg-fuchsia-500/20 px-1.5 text-[9px] font-bold uppercase tracking-wide text-fuchsia-200">
-              Pro
-            </span>
-            Upgrade for unlimited
-          </button>
+          {PRO_PUBLIC ? (
+            <button
+              type="button"
+              onClick={onUpgrade}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+            >
+              <span className="inline-flex h-4 items-center rounded-full border border-fuchsia-400/50 bg-fuchsia-500/20 px-1.5 text-[9px] font-bold uppercase tracking-wide text-fuchsia-200">
+                Pro
+              </span>
+              Upgrade for unlimited
+            </button>
+          ) : null}
 
           <span className="text-[11px] text-white/35">
             Free quota resets daily at 00:00
@@ -3689,7 +3705,9 @@ export default function ConverterPageContent({
         // Would exceed: block and let banner show
         setBatchQuotaUsed(FREE_BATCH_DAILY_LIMIT);
         setBatchError(
-          `You can only convert ${remaining} more file${remaining !== 1 ? "s" : ""} today on the free plan. Remove some files or upgrade to Pro.`,
+          PRO_PUBLIC
+            ? `You can only convert ${remaining} more file${remaining !== 1 ? "s" : ""} today on the free plan. Remove some files or upgrade to Pro.`
+            : `You can only convert ${remaining} more file${remaining !== 1 ? "s" : ""} today on the free plan. Remove some files or try again after the daily quota resets.`,
         );
         return;
       }
@@ -4112,7 +4130,7 @@ export default function ConverterPageContent({
               },
               {
                 q: `Is ${activeInputLabel ?? "FILE"} to ${activeOutputLabel ?? "FILE"} conversion free?`,
-                a: `Yes. Converto currently offers free everyday conversion with a 50MB file limit for the demo workflow.`,
+                a: `Yes. Converto currently offers free everyday conversion with a practical 50MB file limit.`,
               },
             ],
     [
@@ -4692,17 +4710,23 @@ export default function ConverterPageContent({
                                             1
                                               ? "s"
                                               : ""}{" "}
-                                            or{" "}
-                                            <button
-                                              type="button"
-                                              onClick={() =>
-                                                setShowUpgradePanel(true)
-                                              }
-                                              className="underline underline-offset-2 hover:text-amber-100"
-                                            >
-                                              upgrade to Pro
-                                            </button>
-                                            .
+                                            {PRO_PUBLIC ? (
+                                              <>
+                                                or{" "}
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    setShowUpgradePanel(true)
+                                                  }
+                                                  className="underline underline-offset-2 hover:text-amber-100"
+                                                >
+                                                  upgrade to Pro
+                                                </button>
+                                                .
+                                              </>
+                                            ) : (
+                                              <>or wait for the daily quota to reset.</>
+                                            )}
                                           </span>
                                         </div>
                                       )}
@@ -7608,7 +7632,7 @@ export default function ConverterPageContent({
                                   Hybrid conversion flow for better reliability.
                                 </div>
                                 <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
-                                  50MB free limit for the demo.
+                                  50MB free file limit.
                                 </div>
                                 <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                   Audio, video, GIF, and image targets

@@ -97,3 +97,13 @@ AdSense onayı Google'ın manuel/otomatik incelemesine bağlıdır ve garanti ed
 - Practical-setting cards now use route-aware, varied icons and no decorative status dot.
 - Public-facing planned/beta wording was replaced with production-ready privacy and reliability wording.
 - No route, component, API, conversion mode, billing integration, or feature file was deleted.
+
+## Pro promotion visibility during review
+
+The converter's locked Pro controls, upgrade modal, and batch upgrade prompts are now conditionally hidden while `NEXT_PUBLIC_ENABLE_PRO=false`.
+
+No Pro component, route, billing dependency, entitlement logic, or advanced-control implementation was removed. Set the Vercel environment variable below and redeploy to restore the complete Pro promotion UI:
+
+```env
+NEXT_PUBLIC_ENABLE_PRO=true
+```
