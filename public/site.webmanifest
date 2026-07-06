@@ -1,0 +1,16 @@
+{
+  "name": "Converto",
+  "short_name": "Converto",
+  "description": "Free online file converter for audio, video, image, and PDF tasks.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#151233",
+  "theme_color": "#151233",
+  "icons": [
+    {
+      "src": "/brand/appicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

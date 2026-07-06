@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Converto.Features.Pro.ProPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#151233">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24,20,32" Spacing="16">
+            <Label Text="PRO"
+                   Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+            <Label Text="Upgrade for a bigger Converto experience"
+                   Style="{StaticResource PageTitleLabelStyle}" />
+
+            <Frame Style="{StaticResource CardFrameStyle}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Free vs Pro"
+                           Style="{StaticResource SectionTitleLabelStyle}" />
+
+                    <Label Text="Pro will unlock more conversions, better limits, and a smoother heavy-workflow experience."
+                           Style="{StaticResource BodyLabelStyle}" />
+
+                    <Button Text="Coming soon"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                </VerticalStackLayout>
+            </Frame>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

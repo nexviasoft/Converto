@@ -38,7 +38,7 @@ export default function PrivacySection() {
             {[
               "Mobile app (images/docs): processed on-device when possible.",
               "Online demo: runs in your browser; files stay in-memory and are cleared when you refresh.",
-              "Server beta (planned): uploads are temporary and auto-deleted after a short window.",
+              "Server-assisted conversions: uploads are temporary and auto-deleted after a short processing window.",
             ].map((x) => (
               <li key={x} className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-white/40" />

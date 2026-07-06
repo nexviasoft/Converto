@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 export default function PhoneMock() {
   return (
     <div className="relative mx-auto max-w-md rounded-[36px] bg-black/30 p-3 ring-1 ring-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
-      <div className="rounded-[30px] bg-[#0B0A14] ring-1 ring-white/10 overflow-hidden">
-        <div className="h-10 flex items-center justify-between px-4 text-xs text-white/60">
+      <div className="overflow-hidden rounded-[30px] bg-[#0B0A14] ring-1 ring-white/10">
+        <div className="flex h-10 items-center justify-between px-4 text-xs text-white/60">
           <span className="font-medium text-white/70">Converto</span>
 
           <img
@@ -17,7 +18,7 @@ export default function PhoneMock() {
 
           <span className="inline-flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Online 
+            Online
           </span>
         </div>
 
@@ -38,9 +39,12 @@ export default function PhoneMock() {
                 <div className="mt-1 text-sm font-semibold">WEBP</div>
               </div>
 
-              <button className="h-11 rounded-2xl bg-white px-4 text-sm font-semibold text-black hover:bg-white/90 transition">
+              <Link
+                href="/converter"
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+              >
                 Convert
-              </button>
+              </Link>
 
               <div className="rounded-2xl bg-black/20 p-3 ring-1 ring-white/10">
                 <div className="flex items-center justify-between text-[11px] text-white/60">

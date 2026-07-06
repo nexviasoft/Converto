@@ -198,22 +198,22 @@ function isImageFmt(fmt: string) {
 
 function buildMetaTitle(input: string, output: string) {
   if (isVideoFmt(input) && isAudioFmt(output)) {
-    return `Batch ${input} to ${output} Converter | Converto`;
+    return `Batch ${input} to ${output} Converter`;
   }
 
   if (isVideoFmt(input) && isVideoFmt(output)) {
-    return `Batch ${input} to ${output} Video Converter | Converto`;
+    return `Batch ${input} to ${output} Video Converter`;
   }
 
   if (isImageFmt(input) && isImageFmt(output)) {
-    return `Batch ${input} to ${output} Image Converter | Converto`;
+    return `Batch ${input} to ${output} Image Converter`;
   }
 
   if (isAudioFmt(input) && isAudioFmt(output)) {
-    return `Batch ${input} to ${output} Audio Converter | Converto`;
+    return `Batch ${input} to ${output} Audio Converter`;
   }
 
-  return `Batch ${input} to ${output} Converter | Converto`;
+  return `Batch ${input} to ${output} Converter`;
 }
 
 function buildMetaDescription(input: string, output: string) {
@@ -229,15 +229,9 @@ function buildSeoDescription(input: string, output: string) {
 }
 
 export function generateStaticParams() {
-  const slugs = unique([
-    ...buildPairSlugs(AUDIO_FORMATS, AUDIO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
-  ]);
-
-  return slugs.map((slug) => ({ slug }));
+  // Batch routes remain available on demand, but are intentionally not
+  // pre-rendered or indexed until each route has substantial unique content.
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -264,8 +258,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     robots: {
-      index: true,
+      index: false,
       follow: true,
+      googleBot: {
+        index: false,
+        follow: true,
+      },
     },
     alternates: {
       canonical: canonicalUrl,
@@ -311,6 +309,7 @@ export default async function ConvertBatchSlugPage({ params }: PageProps) {
       suggestedOutput={suggestedOutput}
       rawInputLabel={input}
       rawOutputLabel={output}
+      adsEligible={false}
     />
   );
 }

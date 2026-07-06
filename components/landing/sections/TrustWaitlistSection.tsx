@@ -10,6 +10,7 @@ export default function TrustWaitlistSection({
   setEmail,
   onJoin,
   waitlistCount,
+  inputRef,
 }: {
   email: string;
   joined: boolean;
@@ -17,6 +18,7 @@ export default function TrustWaitlistSection({
   setEmail: (v: string) => void;
   onJoin: (e: React.FormEvent) => void;
   waitlistCount: number;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
     <section className="mx-auto max-w-6xl px-4 py-10">
@@ -30,8 +32,7 @@ export default function TrustWaitlistSection({
               Built with privacy in mind
             </h3>
             <p className="mt-2 text-sm text-white/70">
-  Mobile conversions run locally for images & documents. Online
-  conversion will use strict limits and auto-deletion. 
+  Converto keeps the conversion flow clear: browser work where possible, short-lived server processing when needed, and limits that are easy to understand. 
   <span className="text-white/60">
     {" "}
     {waitlistCount > 0
@@ -42,9 +43,9 @@ export default function TrustWaitlistSection({
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {[
-                { t: "Local by default", d: "No upload needed for images/docs." },
-                { t: "Auto-delete", d: "Short retention on the web." },
-                { t: "Minimal logs", d: "Only what’s needed to run." },
+                { t: "Clear states", d: "Upload, process, download." },
+                { t: "Temporary flow", d: "Short-lived server work." },
+                { t: "Useful content", d: "Guides before converting." },
               ].map((x) => (
                 <div
                   key={x.t}
@@ -61,6 +62,8 @@ export default function TrustWaitlistSection({
             <form onSubmit={onJoin} className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1">
                 <input
+                  id="waitlist-email"
+                  ref={inputRef}
                   type="email"
                   value={email}
                   disabled={joined}

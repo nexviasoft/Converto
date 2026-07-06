@@ -3,14 +3,22 @@
 const MAINTENANCE_MODE = false;
 
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
+import Footer from "@/components/landing/Footer";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import AdSenseScript from "@/components/ads/AdsenseScript";
 import { getViewerEntitlement } from "@/lib/entitlements";
 import type { UserEntitlement } from "@/types/billing";
-import { useUser } from "@clerk/nextjs";
+import {
+  AD_SLOTS,
+  ADSENSE_CLIENT,
+  ADSENSE_ENABLED,
+  hasRailAdSlots,
+  isAdSlotReady,
+} from "@/components/ads/AdsenseScript";
 import { PDFDocument } from "pdf-lib";
+import RouteAwareContentSections from "@/components/converter/sections/RouteAwareContentSections";
+import type { ConverterPageContentEntry } from "@/lib/converterContent";
 
 type TargetFmt =
   | "MP3"
@@ -56,6 +64,8 @@ type ConverterPageContentProps = {
   rawOutputLabel?: string;
   seoMode?: SeoPageMode;
   pdfTool?: PdfSeoTool;
+  customContent?: ConverterPageContentEntry | null;
+  adsEligible?: boolean;
 };
 
 type ConvertStatus =
@@ -159,13 +169,6 @@ Q`;
   return new Blob([latin1StringToUint8Array(pdf)], { type: "application/pdf" });
 }
 
-/** Ad slots */
-const AD_SLOTS = {
-  LEFT_RAIL: "3456789012",
-  RIGHT_RAIL: "4567890123",
-} as const;
-
-const ADS_ENABLED = true;
 
 // ── Free batch quota helpers ──────────────────────────────────────────────────
 const FREE_BATCH_DAILY_LIMIT = 5;
@@ -218,7 +221,7 @@ function getMidnightCountdown(): string {
 function AdUnit({
   slot,
   className = "",
-  title = "Sponsored",
+  title = "Advertisement",
   sticky = false,
 }: {
   slot: string;
@@ -230,15 +233,15 @@ function AdUnit({
 
   useEffect(() => {
     try {
-      if (!ADS_ENABLED) return;
+      if (!ADSENSE_ENABLED || !isAdSlotReady(slot)) return;
       if (pushedRef.current) return;
       // @ts-ignore
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushedRef.current = true;
     } catch {}
-  }, []);
+  }, [slot]);
 
-  if (!ADS_ENABLED) return null;
+  if (!ADSENSE_ENABLED || !isAdSlotReady(slot)) return null;
 
   return (
     <div
@@ -254,9 +257,7 @@ function AdUnit({
           <div className="text-[11px] font-semibold tracking-wide text-white/55">
             {title}
           </div>
-          <div className="text-[11px] text-white/35">
-            Ads keep Converto free
-          </div>
+
         </div>
 
         <div className="rounded-2xl bg-black/25 p-3 ring-1 ring-white/10">
@@ -271,6 +272,7 @@ function AdUnit({
               display: "block",
               minHeight: 320,
             }}
+            data-ad-client={ADSENSE_CLIENT}
             data-ad-slot={slot}
             data-ad-format="auto"
             data-full-width-responsive="true"
@@ -647,6 +649,80 @@ function buildPdfToolPath(
     return `/convert/pdf/to-${String(imageTarget).toLowerCase()}`;
   }
   return "/convert/pdf";
+}
+
+function buildToPdfModePath(mode: ToPdfMode = "images_to_pdf") {
+  if (mode === "merge_pdfs") return "/convert/pdf?mode=merge-pdfs";
+  if (mode === "merge_mixed") return "/convert/pdf?mode=pdf-images";
+  return "/convert/pdf?mode=images-to-pdf";
+}
+
+function getToPdfModeFromUrl(): ToPdfMode {
+  if (typeof window === "undefined") return "images_to_pdf";
+
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode")?.toLowerCase();
+
+  if (mode === "merge-pdfs" || mode === "merge_pdf" || mode === "merge-pdf") {
+    return "merge_pdfs";
+  }
+
+  if (
+    mode === "pdf-images" ||
+    mode === "pdf-images-mixed" ||
+    mode === "mixed" ||
+    mode === "merge-mixed"
+  ) {
+    return "merge_mixed";
+  }
+
+  return "images_to_pdf";
+}
+
+function replaceUrlSilently(nextPath: string) {
+  if (typeof window === "undefined" || !nextPath) return;
+
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (current === nextPath) return;
+
+  window.history.replaceState(window.history.state, "", nextPath);
+}
+
+function getPdfToolFromPath(pathname: string): {
+  tool: PdfSeoTool;
+  imageTarget: PdfToImageTarget;
+} {
+  if (pathname.endsWith("/split")) {
+    return { tool: "split_pdf", imageTarget: "PNG" };
+  }
+
+  if (pathname.endsWith("/to-jpg")) {
+    return { tool: "pdf_to_image", imageTarget: "JPG" };
+  }
+
+  if (pathname.endsWith("/to-webp")) {
+    return { tool: "pdf_to_image", imageTarget: "WEBP" };
+  }
+
+  if (pathname.endsWith("/to-png")) {
+    return { tool: "pdf_to_image", imageTarget: "PNG" };
+  }
+
+  return { tool: "to_pdf", imageTarget: "PNG" };
+}
+
+function getPdfToolLabel(tool: PdfSeoTool, mode: ToPdfMode) {
+  if (tool === "split_pdf") return "Split PDF";
+  if (tool === "pdf_to_image") return "PDF to Image";
+
+  if (mode === "merge_pdfs") return "Merge PDFs";
+  if (mode === "merge_mixed") return "PDF + Images";
+  return "Images to PDF";
+}
+
+function getPdfToolPathForMode(tool: PdfSeoTool, mode: ToPdfMode) {
+  if (tool === "to_pdf") return buildToPdfModePath(mode);
+  return buildPdfToolPath(tool);
 }
 
 function getPdfOutputLabel(
@@ -1094,7 +1170,7 @@ function SeoInfoSection({
 
   return (
     <section className="mx-auto mt-6 max-w-[1100px]">
-      <div className="rounded-[26px] bg-white/10 p-5 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+      <div className="relative overflow-hidden rounded-[30px] border border-violet-300/18 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.14),transparent_30%),linear-gradient(135deg,rgba(45,38,91,0.94),rgba(35,29,73,0.92))] p-5 shadow-[0_24px_80px_rgba(18,14,45,0.32),inset_0_1px_0_rgba(255,255,255,0.05)]">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
@@ -1118,20 +1194,20 @@ function SeoInfoSection({
           <button
             type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-violet-200/16 bg-violet-400/10 px-4 text-sm font-semibold text-violet-100/78 transition hover:border-violet-200/28 hover:bg-violet-400/16 hover:text-white"
           >
             {isExpanded ? "Hide details" : "Read more"}
           </button>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="inline-flex rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-semibold text-white/65">
+          <span className="inline-flex rounded-full border border-violet-200/14 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold text-violet-100/68">
             {mode === "pdf"
               ? "PDF tool"
               : getFormatIntentLabel(normalizedInput)}{" "}
             {mode === "pdf" ? "mode" : "input"}
           </span>
-          <span className="inline-flex rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-semibold text-white/65">
+          <span className="inline-flex rounded-full border border-violet-200/14 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold text-violet-100/68">
             {mode === "pdf"
               ? pdfTool === "split_pdf"
                 ? "PDF output"
@@ -1155,7 +1231,7 @@ function SeoInfoSection({
         {isExpanded ? (
           <>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">
                   {mode === "pdf"
                     ? "Why use this PDF tool?"
@@ -1168,7 +1244,7 @@ function SeoInfoSection({
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">
                   {mode === "pdf"
                     ? "When to use this tool"
@@ -1181,7 +1257,7 @@ function SeoInfoSection({
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">
                   {mode === "pdf"
                     ? "Current PDF workflow"
@@ -1196,7 +1272,7 @@ function SeoInfoSection({
             </div>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">
                   Why this route works well
                 </h3>
@@ -1210,7 +1286,7 @@ function SeoInfoSection({
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">Best for</h3>
                 <ul className="mt-3 space-y-2 text-sm leading-6 text-white/60">
                   {seo.bestFor.map((item) => (
@@ -1222,7 +1298,7 @@ function SeoInfoSection({
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">
                   Things to keep in mind
                 </h3>
@@ -1246,7 +1322,7 @@ function SeoInfoSection({
                 {seo.steps.map((step, index) => (
                   <li
                     key={step}
-                    className="flex gap-3 rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10"
+                    className="flex gap-3 rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                   >
                     <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white ring-1 ring-white/10">
                       {index + 1}
@@ -1417,7 +1493,7 @@ function PopularEntrySection({
 
   return (
     <section className="mx-auto mt-6 max-w-[1100px]">
-      <div className="rounded-[28px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+      <div className="relative overflow-hidden rounded-[30px] border border-violet-300/18 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.16),transparent_30%),linear-gradient(135deg,rgba(47,39,94,0.94),rgba(36,30,76,0.92))] p-6 shadow-[0_24px_80px_rgba(18,14,45,0.34),inset_0_1px_0_rgba(255,255,255,0.05)]">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
@@ -1429,7 +1505,7 @@ function PopularEntrySection({
             </p>
           </div>
 
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white/58">
+          <div className="inline-flex items-center rounded-full border border-violet-200/16 bg-violet-400/10 px-3 py-1.5 text-[11px] font-semibold text-violet-100/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             Explore before you leave
           </div>
         </div>
@@ -1445,13 +1521,13 @@ function PopularEntrySection({
                   onPdfRouteSelect(item.href);
                 }
               }}
-              className="group rounded-[22px] bg-white/5 p-4 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:bg-white/[0.08] hover:ring-white/20"
+              className="group relative overflow-hidden rounded-[22px] border border-violet-200/14 bg-[#2b2558]/72 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-[#332b68]/78 hover:shadow-[0_0_28px_rgba(139,92,246,0.16)]"
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="inline-flex rounded-full border border-white/10 bg-white/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">
+                <span className="inline-flex rounded-full border border-violet-200/16 bg-violet-400/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-100/68">
                   {formatBadge(item.badge)}
                 </span>
-                <span className="text-white/30 transition group-hover:text-white/55">
+                <span className="grid h-7 w-7 place-items-center rounded-full border border-violet-200/12 bg-white/[0.055] text-violet-100/45 transition group-hover:border-violet-200/25 group-hover:bg-violet-400/14 group-hover:text-white">
                   ↗
                 </span>
               </div>
@@ -1472,7 +1548,7 @@ function PopularEntrySection({
           {mode !== "pdf" ? (
             <Link
               href="/formats"
-              className="group rounded-[22px] bg-white/5 p-4 text-white ring-1 ring-white/10 shadow-[0_14px_35px_rgba(0,0,0,0.25)] transition hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-[0_18px_45px_rgba(0,0,0,0.35)] hover:ring-white/20"
+              className="group rounded-[22px] border border-violet-200/14 bg-[#2b2558]/72 p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-[#332b68]/78 hover:shadow-[0_0_28px_rgba(139,92,246,0.16)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
@@ -2009,15 +2085,19 @@ export default function ConverterPageContent({
   rawOutputLabel,
   seoMode = "convert",
   pdfTool = "to_pdf",
+  customContent = null,
+  adsEligible = true,
 }: ConverterPageContentProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useUser();
+  const userId = "";
 
   const SHELL_MAX = "max-w-[1700px]";
   const CENTER_MAX = "max-w-[1100px]";
-  const GRID =
-    "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
+  const railsReady = adsEligible && hasRailAdSlots();
+  const GRID = railsReady
+    ? "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]"
+    : "";
 
   const initialSuggestedInput = toTargetFmt(
     suggestedInput ?? rawInputLabel ?? null,
@@ -2053,7 +2133,7 @@ export default function ConverterPageContent({
     initialSuggestedOutput,
   );
   const [entitlement, setEntitlement] = useState<UserEntitlement | null>(null);
-  const fallbackManualPro = user?.id === "user_3Bfa3QpE3MCJzYTIIvMkFJlFmwo";
+  const fallbackManualPro = false;
   const entitlementTier = String(
     (entitlement as any)?.tier || (entitlement as any)?.plan?.tier || "",
   ).toLowerCase();
@@ -2099,7 +2179,7 @@ export default function ConverterPageContent({
 
   // ── To PDF state ─────────────────────────────────────────────────────────
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
-  const [toPdfMode, setToPdfMode] = useState<ToPdfMode>("images_to_pdf");
+  const [toPdfMode, setToPdfMode] = useState<ToPdfMode>(() => getToPdfModeFromUrl());
   const [pdfDragOver, setPdfDragOver] = useState(false);
   const [pdfOrderDragIndex, setPdfOrderDragIndex] = useState<number | null>(
     null,
@@ -2114,6 +2194,25 @@ export default function ConverterPageContent({
       setPdfToolTab(pdfTool);
     }
   }, [seoMode, pdfTool]);
+
+  useEffect(() => {
+    if (seoMode !== "pdf" || typeof window === "undefined") return;
+
+    const syncPdfRouteState = () => {
+      const { tool, imageTarget } = getPdfToolFromPath(window.location.pathname);
+      setPdfToolTab(tool);
+      setPdfToImageTarget(imageTarget);
+
+      if (tool === "to_pdf") {
+        setToPdfMode(getToPdfModeFromUrl());
+      }
+    };
+
+    syncPdfRouteState();
+    window.addEventListener("popstate", syncPdfRouteState);
+
+    return () => window.removeEventListener("popstate", syncPdfRouteState);
+  }, [seoMode]);
 
   const [pdfStatus, setPdfStatus] = useState<PdfBuildStatus>("idle");
   const [pdfProgress, setPdfProgress] = useState(0);
@@ -2895,7 +2994,7 @@ export default function ConverterPageContent({
 
   const requestTier = isPro ? "pro" : "free";
   const requestHeaders = {
-    "x-user-id": user?.id ?? "",
+    "x-user-id": userId,
     "x-user-tier": requestTier,
     "x-user-pro": String(isPro),
   };
@@ -3122,7 +3221,7 @@ export default function ConverterPageContent({
 
     if (toPdfMode === "images_to_pdf") {
       if (!isPdfBuildImageInputFmt(detected)) {
-        return "Images to PDF currently supports PNG and JPG/JPEG files during beta.";
+        return "Images to PDF supports PNG and JPG/JPEG files.";
       }
       return null;
     }
@@ -3133,7 +3232,7 @@ export default function ConverterPageContent({
     }
 
     if (!isPdf && !isPdfBuildImageInputFmt(detected)) {
-      return "Mixed merge currently supports PDF, PNG, and JPG/JPEG files during beta.";
+      return "Mixed merge supports PDF, PNG, and JPG/JPEG files.";
     }
 
     return null;
@@ -3797,7 +3896,7 @@ export default function ConverterPageContent({
     if (!nextPath) return;
 
     if (typeof window !== "undefined") {
-      const currentPath = window.location.pathname;
+      const currentPath = `${window.location.pathname}${window.location.search}`;
       if (currentPath === nextPath) return;
 
       if (nextPath.startsWith("/convert/")) {
@@ -3831,7 +3930,8 @@ export default function ConverterPageContent({
 
     if (href === "/convert/pdf") {
       setPdfToolTab("to_pdf");
-      navigateIfNeeded(href);
+      setToPdfMode("images_to_pdf");
+      navigateIfNeeded(buildToPdfModePath("images_to_pdf"));
       scrollToConverter();
       return;
     }
@@ -3869,6 +3969,18 @@ export default function ConverterPageContent({
 
     navigateIfNeeded(href);
     scrollToConverter();
+  };
+
+  const handlePdfToolTabChange = (nextTool: PdfSeoTool) => {
+    setPdfToolTab(nextTool);
+    replaceUrlSilently(getPdfToolPathForMode(nextTool, toPdfMode));
+  };
+
+  const handleToPdfModeChange = (nextMode: ToPdfMode) => {
+    setPdfToolTab("to_pdf");
+    setToPdfMode(nextMode);
+    resetPdfBuilder();
+    replaceUrlSilently(buildToPdfModePath(nextMode));
   };
 
   const activeInputLabel = useMemo(
@@ -3933,7 +4045,7 @@ export default function ConverterPageContent({
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "https://converto.tools";
+    "https://www.converto.tools";
 
   const schemaTitle =
     seoTitle ||
@@ -4062,8 +4174,7 @@ export default function ConverterPageContent({
 
   if (MAINTENANCE_MODE) {
     return (
-      <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
-        <AdSenseScript />
+      <div className="min-h-screen bg-[#181337] bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.22),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.18),transparent_48%)] text-white selection:bg-white/20">
         <div className="flex min-h-screen items-center justify-center">
           Maintenance
         </div>
@@ -4072,9 +4183,7 @@ export default function ConverterPageContent({
   }
 
   return (
-    <div className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
-      <AdSenseScript />
-
+    <div className="min-h-screen bg-[#181337] bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.24),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.20),transparent_48%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent_46%)] text-white selection:bg-white/20">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
@@ -4085,8 +4194,8 @@ export default function ConverterPageContent({
       />
 
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.23),transparent_56%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_52%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.06),transparent_45%)]" />
-        <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:84px_84px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(168,85,247,0.18),transparent_56%),radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.16),transparent_52%)]" />
+        <div className="absolute inset-0 opacity-[0.16] [background:linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:84px_84px]" />
       </div>
 
       <SimpleTopBar shellMax={SHELL_MAX} />
@@ -4121,9 +4230,11 @@ export default function ConverterPageContent({
         </section>
 
         <div className={cx("grid items-start gap-6 xl:gap-8", GRID)}>
-          <aside className="hidden xl:block">
-            <AdUnit slot={AD_SLOTS.LEFT_RAIL} sticky className="w-full" />
-          </aside>
+          {railsReady ? (
+            <aside className="hidden xl:block">
+              <AdUnit slot={AD_SLOTS.LEFT_RAIL} sticky className="w-full" />
+            </aside>
+          ) : null}
 
           <section className="min-w-0">
             <div className={cx("mx-auto w-full", CENTER_MAX)}>
@@ -4133,9 +4244,15 @@ export default function ConverterPageContent({
 
                   <div className="relative p-5 sm:p-6 md:p-7">
                     {/* ── Single / Batch / PDF Tools mode toggle ── */}
-                    <div className="mb-6 inline-flex flex-wrap items-center gap-1 rounded-[22px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl ring-1 ring-white/10">
+                    <div
+                      className="mb-6 inline-flex flex-wrap items-center gap-1 rounded-[22px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl ring-1 ring-white/10"
+                      role="tablist"
+                      aria-label="Converter mode"
+                    >
                       <button
                         type="button"
+                        role="tab"
+                        aria-selected={!batchMode && !pdfMode}
                         onClick={() => {
                           setBatchMode(false);
                           setPdfMode(false);
@@ -4169,6 +4286,8 @@ export default function ConverterPageContent({
                       </button>
                       <button
                         type="button"
+                        role="tab"
+                        aria-selected={batchMode}
                         onClick={() => {
                           setBatchMode(true);
                           setPdfMode(false);
@@ -4206,20 +4325,17 @@ export default function ConverterPageContent({
                           />
                         </svg>
                         Batch
-                        <span className="inline-flex h-4 items-center rounded-full border border-cyan-400/25 bg-[linear-gradient(135deg,rgba(34,211,238,0.2),rgba(168,85,247,0.2))] px-1.5 text-[9px] font-bold uppercase tracking-wide text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.18)]">
-                          New
-                        </span>
                       </button>
                       <button
                         type="button"
+                        role="tab"
+                        aria-selected={pdfMode}
                         onClick={() => {
                           setBatchMode(false);
                           setPdfMode(true);
                           setPdfToolTab("to_pdf");
                           setTargetOpen(false);
-                          navigateIfNeeded(
-                            buildPdfToolPath("to_pdf", pdfToImageTarget),
-                          );
+                          navigateIfNeeded(buildToPdfModePath(toPdfMode));
                         }}
                         className={cx(
                           "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
@@ -4248,12 +4364,7 @@ export default function ConverterPageContent({
                           />
                         </svg>
                         PDF Tools
-                        <span className="inline-flex h-4 items-center rounded-full border border-cyan-400/25 bg-[linear-gradient(135deg,rgba(34,211,238,0.2),rgba(168,85,247,0.2))] px-1.5 text-[9px] font-bold uppercase tracking-wide text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.18)]">
-                          New
-                        </span>
-                        <span className="inline-flex h-4 items-center rounded-full border border-emerald-400/25 bg-emerald-500/12 px-1.5 text-[9px] font-bold uppercase tracking-wide text-emerald-100 shadow-[0_0_16px_rgba(52,211,153,0.14)]">
-                          Beta
-                        </span>
+
                       </button>
                     </div>
 
@@ -4727,7 +4838,7 @@ export default function ConverterPageContent({
                                     </div>
                                     <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                       Up to {FREE_BATCH_DAILY_LIMIT} files per
-                                      day during beta.
+                                      day on the free plan.
                                     </div>
                                     <div className="rounded-2xl bg-white/[0.075] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-white/10">
                                       Best for quick multi-file conversions.
@@ -4747,9 +4858,6 @@ export default function ConverterPageContent({
                                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                                       PDF Tools
                                     </div>
-                                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/72">
-                                      Beta
-                                    </span>
                                   </div>
                                   <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
                                     Convert, combine, split, and export PDF
@@ -4757,7 +4865,7 @@ export default function ConverterPageContent({
                                   </h2>
                                   <p className="mt-1 max-w-[70ch] text-sm text-white/60">
                                     Keep all PDF-related actions in one place.
-                                    PDF Tools are free during beta. Use To PDF
+                                    PDF Tools are free for everyday use. Use To PDF
                                     for PNG/JPG image-to-PDF creation, Split PDF
                                     for page extraction, or PDF to Image to
                                     export pages as PNG, JPG, or WEBP.
@@ -4766,22 +4874,14 @@ export default function ConverterPageContent({
 
                                 <span className="inline-flex items-center gap-2 self-start rounded-full bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/70 ring-1 ring-white/10">
                                   <span className="h-2 w-2 rounded-full bg-cyan-300" />
-                                  Free beta
+                                  Free to use
                                 </span>
                               </div>
 
                               <div className="relative mt-5 flex w-fit items-center gap-1 rounded-2xl bg-black/28 p-1 ring-1 ring-white/10">
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setPdfToolTab("to_pdf");
-                                    navigateIfNeeded(
-                                      buildPdfToolPath(
-                                        "to_pdf",
-                                        pdfToImageTarget,
-                                      ),
-                                    );
-                                  }}
+                                  onClick={() => handlePdfToolTabChange("to_pdf")}
                                   className={cx(
                                     "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
                                     pdfToolTab === "to_pdf"
@@ -4813,15 +4913,7 @@ export default function ConverterPageContent({
 
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setPdfToolTab("split_pdf");
-                                    navigateIfNeeded(
-                                      buildPdfToolPath(
-                                        "split_pdf",
-                                        pdfToImageTarget,
-                                      ),
-                                    );
-                                  }}
+                                  onClick={() => handlePdfToolTabChange("split_pdf")}
                                   className={cx(
                                     "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
                                     pdfToolTab === "split_pdf"
@@ -4865,15 +4957,7 @@ export default function ConverterPageContent({
 
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setPdfToolTab("pdf_to_image");
-                                    navigateIfNeeded(
-                                      buildPdfToolPath(
-                                        "pdf_to_image",
-                                        pdfToImageTarget,
-                                      ),
-                                    );
-                                  }}
+                                  onClick={() => handlePdfToolTabChange("pdf_to_image")}
                                   className={cx(
                                     "inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-xs font-semibold transition-all duration-200",
                                     pdfToolTab === "pdf_to_image"
@@ -4931,12 +5015,10 @@ export default function ConverterPageContent({
                                         Build one PDF from images, PDFs, or both
                                       </h2>
                                       <p className="mt-1 max-w-[72ch] text-sm text-white/60">
-                                        Keep the lighter PDF tools layout and
-                                        choose how the final PDF should be
-                                        built. During beta, image-to-PDF accepts
-                                        PNG and JPG/JPEG files. PDF merge and
-                                        mixed merge are connected to the
-                                        backend.
+                                        Choose how the final PDF should be built.
+                                        Image-to-PDF accepts PNG and JPG/JPEG
+                                        files, while PDF merge and mixed merge
+                                        use secure server-assisted processing.
                                       </p>
 
                                       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -4947,7 +5029,7 @@ export default function ConverterPageContent({
                                           Max files: {pdfFileLimit}
                                         </span>
                                         <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/72">
-                                          Beta · free for now
+                                          Free for everyday use
                                         </span>
                                       </div>
                                     </div>
@@ -5009,7 +5091,7 @@ export default function ConverterPageContent({
                                             {
                                               value: "images_to_pdf",
                                               title: "Images to PDF",
-                                              desc: "PNG and JPG/JPEG during beta",
+                                              desc: "PNG and JPG/JPEG supported",
                                             },
                                             {
                                               value: "merge_pdfs",
@@ -5021,23 +5103,26 @@ export default function ConverterPageContent({
                                               title: "PDF + Images",
                                               desc: "Combine PDFs and images",
                                             },
-                                          ].map((option) => (
-                                            <button
-                                              key={option.value}
-                                              type="button"
-                                              onClick={() => {
-                                                setToPdfMode(
-                                                  option.value as ToPdfMode,
-                                                );
-                                                resetPdfBuilder();
-                                              }}
-                                              className={cx(
-                                                "relative min-h-[112px] rounded-[20px] p-4 text-left transition-all duration-200 ring-1",
-                                                toPdfMode === option.value
-                                                  ? "bg-[linear-gradient(135deg,rgba(124,58,237,0.20),rgba(28,22,62,0.58))] text-white ring-[#8b5cf6]/55 shadow-[0_0_0_1px_rgba(139,92,246,0.28),0_14px_36px_rgba(76,29,149,0.20)]"
-                                                  : "bg-black/16 text-white/75 ring-white/12 hover:bg-white/[0.07] hover:text-white",
-                                              )}
-                                            >
+                                          ].map((option) => {
+                                            const modeValue = option.value as ToPdfMode;
+                                            const modeHref = buildToPdfModePath(modeValue);
+
+                                            return (
+                                              <Link
+                                                key={option.value}
+                                                href={modeHref}
+                                                scroll={false}
+                                                onClick={(event) => {
+                                                  event.preventDefault();
+                                                  handleToPdfModeChange(modeValue);
+                                                }}
+                                                className={cx(
+                                                  "relative min-h-[112px] rounded-[20px] p-4 text-left transition-all duration-200 ring-1",
+                                                  toPdfMode === option.value
+                                                    ? "bg-[linear-gradient(135deg,rgba(124,58,237,0.20),rgba(28,22,62,0.58))] text-white ring-[#8b5cf6]/55 shadow-[0_0_0_1px_rgba(139,92,246,0.28),0_14px_36px_rgba(76,29,149,0.20)]"
+                                                    : "bg-black/16 text-white/75 ring-white/12 hover:bg-white/[0.07] hover:text-white",
+                                                )}
+                                              >
                                               {toPdfMode === option.value ? (
                                                 <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[linear-gradient(135deg,#f4efff,#c7d2fe)] text-[#5b21b6] shadow-[0_8px_22px_rgba(139,92,246,0.35)]">
                                                   ✓
@@ -5059,8 +5144,9 @@ export default function ConverterPageContent({
                                               >
                                                 {option.desc}
                                               </div>
-                                            </button>
-                                          ))}
+                                              </Link>
+                                            );
+                                          })}
                                         </div>
                                       </div>
 
@@ -7558,21 +7644,35 @@ export default function ConverterPageContent({
                     route easier to judge before you convert again.
                   </div>
 
-                  <SeoInfoSection
-                    input={activeInputLabel}
-                    output={activeOutputLabel}
-                    mode={effectiveSeoMode}
-                    pdfTool={effectivePdfToolTab}
-                    pdfImageTarget={pdfToImageTarget}
-                  />
+                  {customContent && effectiveSeoMode === "convert" ? (
+                    <RouteAwareContentSections
+                      family={getRouteFamily(
+                        activeInputLabel,
+                        activeOutputLabel,
+                      )}
+                      customContent={customContent}
+                      activeInputLabel={activeInputLabel}
+                      activeOutputLabel={activeOutputLabel}
+                    />
+                  ) : (
+                    <SeoInfoSection
+                      input={activeInputLabel}
+                      output={activeOutputLabel}
+                      mode={effectiveSeoMode}
+                      pdfTool={effectivePdfToolTab}
+                      pdfImageTarget={pdfToImageTarget}
+                    />
+                  )}
                 </>
               ) : null}
             </div>
           </section>
 
-          <aside className="hidden xl:block">
-            <AdUnit slot={AD_SLOTS.RIGHT_RAIL} sticky className="w-full" />
-          </aside>
+          {railsReady ? (
+            <aside className="hidden xl:block">
+              <AdUnit slot={AD_SLOTS.RIGHT_RAIL} sticky className="w-full" />
+            </aside>
+          ) : null}
         </div>
       </main>
 
@@ -7586,42 +7686,7 @@ export default function ConverterPageContent({
         downloadName={successDownloadName}
       />
 
-      <footer className="border-t border-white/10">
-        <div
-          className={cx(
-            "mx-auto flex flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-5 xl:px-6",
-            SHELL_MAX,
-          )}
-        >
-          <div className="text-sm text-white/70">
-            <span className="font-semibold text-white">Converto</span>{" "}
-            <span className="text-white/50">•</span> by NexviaSoft
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-white/60">
-            <Link className="transition hover:text-white" href="/">
-              Home
-            </Link>
-            <Link className="transition hover:text-white" href="/formats">
-              Formats
-            </Link>
-            <Link className="transition hover:text-white" href="/privacy">
-              Privacy
-            </Link>
-            <Link className="transition hover:text-white" href="/terms">
-              Terms
-            </Link>
-            <a
-              className="transition hover:text-white"
-              href="mailto:support@converto.tools"
-            >
-              Support
-            </a>
-          </div>
-
-          <div className="text-xs text-white/40">© 2026 NexviaSoft</div>
-        </div>
-      </footer>
+      <Footer />
 
       <UpgradePrompt
         open={showUpgradePanel}

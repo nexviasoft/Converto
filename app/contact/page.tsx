@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SimpleTopBar from "@/components/layout/SimpleTopBar";
+import Footer from "@/components/landing/Footer";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://converto.tools";
+  "https://www.converto.tools";
 
 export const metadata: Metadata = {
   title: "Contact Converto",
@@ -30,7 +32,9 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-[#151233] px-4 py-16 text-white">
+    <>
+      <SimpleTopBar shellMax="max-w-[1320px]" />
+      <main className="min-h-screen bg-[#151233] px-4 py-16 text-white">
       <div className="mx-auto max-w-4xl">
         <Link
           href="/"
@@ -114,6 +118,8 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

@@ -1,0 +1,13 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" fill="none">
+  <g filter="url(#g)">
+    <path d="M42 72C42 61 51 52 62 52H102L126 76H130C141 76 150 85 150 96V120C150 131 141 140 130 140H62C51 140 42 131 42 120V72Z" stroke="#d9b4ff" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M102 52V76H126" stroke="#d9b4ff" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M85 98L112 112L85 126V98Z" stroke="#d9b4ff" stroke-width="10" stroke-linejoin="round"/>
+  </g>
+  <defs>
+    <filter id="g" x="30" y="40" width="132" height="112" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#b983ff" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+</svg>

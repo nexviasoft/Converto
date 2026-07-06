@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Converto.Features.Converter.ConverterPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    BackgroundColor="#151233">
+
+    <Grid>
+        <BoxView
+            Color="#2EA855F7"
+            WidthRequest="320"
+            HeightRequest="320"
+            CornerRadius="160"
+            HorizontalOptions="Start"
+            VerticalOptions="Start"
+            Margin="-120,-70,0,0"
+            Opacity="0.75" />
+
+        <BoxView
+            Color="#243B82F6"
+            WidthRequest="280"
+            HeightRequest="280"
+            CornerRadius="140"
+            HorizontalOptions="End"
+            VerticalOptions="Start"
+            Margin="0,120,-100,0"
+            Opacity="0.65" />
+
+        <BoxView
+            Color="#12FFFFFF"
+            WidthRequest="220"
+            HeightRequest="220"
+            CornerRadius="110"
+            HorizontalOptions="Center"
+            VerticalOptions="Start"
+            Margin="0,40,0,0"
+            Opacity="0.35" />
+
+        <ScrollView>
+            <VerticalStackLayout Padding="20,24,20,34" Spacing="18">
+
+                <Frame
+                    CornerRadius="32"
+                    Padding="22"
+                    BackgroundColor="#1CFFFFFF"
+                    BorderColor="#24FFFFFF"
+                    HasShadow="False">
+
+                    <VerticalStackLayout Spacing="16">
+
+                        <Label
+                            Text="CONVERTO"
+                            Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+                        <Label
+                            Text="Premium file conversion, built for cleaner results"
+                            Style="{StaticResource PageTitleLabelStyle}" />
+
+                        <Label
+                            Text="Choose a category, pick a file, preview the selected input, then convert and download only when you are ready."
+                            Style="{StaticResource BodyLabelStyle}" />
+
+                        <HorizontalStackLayout Spacing="10">
+                            <Frame
+                                Padding="12,7"
+                                CornerRadius="999"
+                                BackgroundColor="#12FFFFFF"
+                                BorderColor="#20FFFFFF"
+                                HasShadow="False">
+                                <Label
+                                    Text="Live preview"
+                                    TextColor="#DDFFFFFF"
+                                    FontSize="12"
+                                    FontAttributes="Bold" />
+                            </Frame>
+
+                            <Frame
+                                Padding="12,7"
+                                CornerRadius="999"
+                                BackgroundColor="#12FFFFFF"
+                                BorderColor="#20FFFFFF"
+                                HasShadow="False">
+                                <Label
+                                    Text="Manual download"
+                                    TextColor="#DDFFFFFF"
+                                    FontSize="12"
+                                    FontAttributes="Bold" />
+                            </Frame>
+
+                            <Frame
+                                Padding="12,7"
+                                CornerRadius="999"
+                                BackgroundColor="#12FFFFFF"
+                                BorderColor="#20FFFFFF"
+                                HasShadow="False">
+                                <Label
+                                    Text="Backend powered"
+                                    TextColor="#DDFFFFFF"
+                                    FontSize="12"
+                                    FontAttributes="Bold" />
+                            </Frame>
+                        </HorizontalStackLayout>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame
+                    CornerRadius="28"
+                    Padding="20"
+                    BackgroundColor="#17FFFFFF"
+                    BorderColor="#20FFFFFF"
+                    HasShadow="False">
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <Label
+                            Text="CATEGORY"
+                            Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+                        <Label
+                            Text="Choose the kind of file you want to convert"
+                            Style="{StaticResource SectionTitleLabelStyle}" />
+
+                        <Grid
+                            ColumnDefinitions="*,*"
+                            RowDefinitions="Auto,Auto"
+                            ColumnSpacing="12"
+                            RowSpacing="12">
+
+                            <Button
+                                x:Name="VideoCategoryButton"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Text="Video"
+                                HeightRequest="56"
+                                Style="{StaticResource ChipButtonStyle}"
+                                Clicked="OnVideoCategoryClicked" />
+
+                            <Button
+                                x:Name="AudioCategoryButton"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Text="Audio"
+                                HeightRequest="56"
+                                Style="{StaticResource ChipButtonStyle}"
+                                Clicked="OnAudioCategoryClicked" />
+
+                            <Button
+                                x:Name="ImageCategoryButton"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Text="Image"
+                                HeightRequest="56"
+                                Style="{StaticResource ChipButtonStyle}"
+                                Clicked="OnImageCategoryClicked" />
+
+                            <Button
+                                x:Name="DocumentCategoryButton"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Text="Document"
+                                HeightRequest="56"
+                                Style="{StaticResource ChipButtonStyle}"
+                                Clicked="OnDocumentCategoryClicked" />
+
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame
+                    CornerRadius="28"
+                    Padding="20"
+                    BackgroundColor="#17FFFFFF"
+                    BorderColor="#20FFFFFF"
+                    HasShadow="False">
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <Label
+                            Text="INPUT"
+                            Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+                        <Label
+                            Text="Select the file you want to convert"
+                            Style="{StaticResource SectionTitleLabelStyle}" />
+
+                        <Button
+                            Text="Pick file"
+                            HeightRequest="56"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Clicked="OnPickFileClicked" />
+
+                        <Frame
+                            CornerRadius="20"
+                            Padding="14"
+                            BackgroundColor="#10FFFFFF"
+                            BorderColor="#20FFFFFF"
+                            HasShadow="False">
+
+                            <VerticalStackLayout Spacing="8">
+                                <Label
+                                    Text="Selected file"
+                                    TextColor="#73FFFFFF"
+                                    FontSize="12"
+                                    FontAttributes="Bold" />
+
+                                <Label
+                                    x:Name="SelectedFileNameLabel"
+                                    Text="No file selected."
+                                    TextColor="White"
+                                    FontSize="15"
+                                    LineBreakMode="TailTruncation" />
+
+                                <BoxView
+                                    HeightRequest="1"
+                                    Color="#14FFFFFF" />
+
+                                <Label
+                                    x:Name="DetectedInputLabel"
+                                    Text="Detected input: -"
+                                    Style="{StaticResource MutedLabelStyle}" />
+                            </VerticalStackLayout>
+                        </Frame>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame
+                    CornerRadius="28"
+                    Padding="20"
+                    BackgroundColor="#17FFFFFF"
+                    BorderColor="#20FFFFFF"
+                    HasShadow="False">
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <Label
+                            Text="PREVIEW"
+                            Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+                        <Label
+                            Text="Preview the current selection before converting"
+                            Style="{StaticResource SectionTitleLabelStyle}" />
+
+                        <Frame
+                            CornerRadius="22"
+                            Padding="0"
+                            HeightRequest="190"
+                            BackgroundColor="#0FFFFFFF"
+                            BorderColor="#22FFFFFF"
+                            HasShadow="False">
+
+                            <Grid>
+                                <Image
+                                    x:Name="PreviewImage"
+                                    Aspect="AspectFill"
+                                    IsVisible="False" />
+
+                                <toolkit:MediaElement
+                                    x:Name="PreviewMedia"
+                                    Aspect="AspectFit"
+                                    AutoPlay="False"
+                                    ShouldShowPlaybackControls="True"
+                                    IsVisible="False" />
+
+                                <VerticalStackLayout
+                                    x:Name="PreviewPlaceholder"
+                                    Spacing="8"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center">
+                                    <Label
+                                        Text="No preview yet"
+                                        TextColor="White"
+                                        FontSize="18"
+                                        FontAttributes="Bold"
+                                        HorizontalTextAlignment="Center" />
+                                    <Label
+                                        Text="Pick an image, audio, or video file to preview it here."
+                                        TextColor="#A6FFFFFF"
+                                        FontSize="13"
+                                        HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                        </Frame>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame
+                    CornerRadius="28"
+                    Padding="20"
+                    BackgroundColor="#17FFFFFF"
+                    BorderColor="#20FFFFFF"
+                    HasShadow="False">
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <Label
+                            Text="OUTPUT"
+                            Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+                        <Label
+                            Text="Choose the format you want back"
+                            Style="{StaticResource SectionTitleLabelStyle}" />
+
+                        <FlexLayout
+                            x:Name="TargetsLayout"
+                            Wrap="Wrap"
+                            Direction="Row"
+                            JustifyContent="Start"
+                            AlignItems="Start" />
+
+                        <Frame
+                            CornerRadius="18"
+                            Padding="13,11"
+                            BackgroundColor="#10FFFFFF"
+                            BorderColor="#20FFFFFF"
+                            HasShadow="False">
+                            <Label
+                                x:Name="SelectedTargetLabel"
+                                Text="Selected target: -"
+                                TextColor="#D9FFFFFF"
+                                FontSize="13"
+                                FontAttributes="Bold" />
+                        </Frame>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame
+                    CornerRadius="30"
+                    Padding="20"
+                    BackgroundColor="#1DFFFFFF"
+                    BorderColor="#28FFFFFF"
+                    HasShadow="False">
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <Label
+                            Text="CONVERT"
+                            Style="{StaticResource SectionEyebrowLabelStyle}" />
+
+                        <Label
+                            Text="Convert first, then choose what to do with the result"
+                            Style="{StaticResource SectionTitleLabelStyle}" />
+
+                        <Button
+                            x:Name="ConvertButton"
+                            Text="Convert now"
+                            HeightRequest="60"
+                            CornerRadius="20"
+                            BackgroundColor="White"
+                            TextColor="Black"
+                            FontAttributes="Bold"
+                            FontSize="15"
+                            IsEnabled="False"
+                            Clicked="OnConvertClicked" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Button
+                                x:Name="DownloadButton"
+                                Grid.Column="0"
+                                Text="Download"
+                                HeightRequest="54"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                IsEnabled="False"
+                                Clicked="OnDownloadClicked" />
+
+                            <Button
+                                x:Name="ShareButton"
+                                Grid.Column="1"
+                                Text="Share"
+                                HeightRequest="54"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                IsEnabled="False"
+                                Clicked="OnShareClicked" />
+                        </Grid>
+
+                        <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+
+                            <ProgressBar
+                                x:Name="ConvertProgressBar"
+                                Grid.Row="0"
+                                Progress="0"
+                                HeightRequest="10"
+                                ProgressColor="White"
+                                BackgroundColor="#18FFFFFF" />
+
+                            <Frame
+                                Grid.Row="1"
+                                CornerRadius="18"
+                                Padding="13,11"
+                                BackgroundColor="#10FFFFFF"
+                                BorderColor="#20FFFFFF"
+                                HasShadow="False">
+                                <Label
+                                    x:Name="StatusLabel"
+                                    Text="Ready."
+                                    TextColor="#D9FFFFFF"
+                                    FontSize="13" />
+                            </Frame>
+
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -264,15 +264,15 @@ export default function ConverterSection() {
   const msg = String(raw?.message ?? raw ?? "").toLowerCase();
 
   if (msg.includes("unknown encoder") || msg.includes("encoder") || msg.includes("not found")) {
-    return "This format isn’t available in the browser demo build. Try MP3 or MP4, or use the server beta.";
+    return "This format isn’t available for browser conversion. Try MP3 or MP4, or choose another supported output.";
   }
 
   if (msg.includes("memory") || msg.includes("out of bounds")) {
-    return "Browser memory limit reached. Try a smaller file or use the server beta.";
+    return "Browser memory limit reached. Try a smaller file or a more compact output format.";
   }
 
   if (msg.includes("abort")) {
-    return "Browser conversion failed for this file or format. Try MP3/MP4, another source file, or use the server beta.";
+    return "Browser conversion failed for this file or format. Try MP3 or MP4, or choose another source file.";
   }
 
   if (

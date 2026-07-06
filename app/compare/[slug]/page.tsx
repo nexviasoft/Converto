@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { allCompareItems, compareData } from "@/lib/compareData";
+import AdUnit from "@/components/ads/AdUnit";
+import SimpleTopBar from "@/components/layout/SimpleTopBar";
+import Footer from "@/components/landing/Footer";
+import { AD_SLOTS, hasRailAdSlots } from "@/lib/adsConfig";
 
 type PageProps = {
   params: Promise<{
@@ -88,28 +92,8 @@ function practicalDecision(left: string, right: string) {
   return `Choose ${left} when its strengths match your workflow. Choose ${right} when portability, compatibility, editing fit, compression, or delivery needs point the other way.`;
 }
 
-function AdRailShell() {
-  return (
-    <div className="sticky top-[92px] overflow-hidden rounded-[28px] bg-white/8 ring-1 ring-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.34)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.14),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.10),transparent_55%)]" />
-      <div className="relative p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-[11px] font-semibold tracking-wide text-white/60">
-            Sponsored
-          </div>
-          <div className="text-[11px] text-white/35">Ads keep Converto free</div>
-        </div>
-
-        <div className="rounded-[22px] bg-black/20 p-4 ring-1 ring-white/10">
-          <div className="mb-4 space-y-2">
-            <div className="h-2.5 w-24 rounded-full bg-white/10" />
-            <div className="h-2.5 w-14 rounded-full bg-white/5" />
-          </div>
-          <div className="min-h-[560px] rounded-[18px] border border-dashed border-white/10 bg-white/[0.03]" />
-        </div>
-      </div>
-    </div>
-  );
+function AdRailShell({ slot }: { slot: string }) {
+  return <AdUnit slot={slot} sticky className="w-full" density="normal" />;
 }
 
 export default async function CompareDetailPage({ params }: PageProps) {
@@ -151,32 +135,41 @@ export default async function CompareDetailPage({ params }: PageProps) {
 
   const overall = pickWinner(data.rows);
   const decisionText = practicalDecision(data.left, data.right);
+  const railsReady = hasRailAdSlots();
 
   return (
-    <main className="min-h-screen bg-[#151233] text-white">
+    <>
+      <SimpleTopBar shellMax="max-w-[1320px]" />
+      <main className="relative isolate min-h-screen overflow-x-hidden bg-[#181337] bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.22),transparent_52%),radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.22),transparent_48%)] pt-4 text-white selection:bg-violet-300/25">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.22),transparent_60%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_55%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_45%)]" />
-        <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:72px_72px]" />
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.22),transparent_52%),radial-gradient(ellipse_at_bottom_right,rgba(59,130,246,0.22),transparent_48%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent_46%)]" />
+        <div className="absolute inset-0 opacity-[0.14] [background:linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:72px_72px]" />
       </div>
 
-      <div className="mx-auto max-w-[1750px] px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid items-start gap-6 xl:grid-cols-[270px_minmax(0,1fr)_270px] 2xl:grid-cols-[300px_minmax(0,1fr)_300px] xl:gap-8">
-          <aside className="hidden xl:block">
-            <AdRailShell />
-          </aside>
+      <div className="relative z-10 mx-auto max-w-[1750px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <div className={
+          railsReady
+            ? "grid items-start gap-6 xl:grid-cols-[270px_minmax(0,1fr)_270px] 2xl:grid-cols-[300px_minmax(0,1fr)_300px] xl:gap-8"
+            : "grid items-start gap-6 xl:gap-8"
+        }>
+          {railsReady ? (
+            <aside className="hidden xl:block">
+              <AdRailShell slot={AD_SLOTS.LEFT_RAIL} />
+            </aside>
+          ) : null}
 
           <section className="min-w-0">
             <div className="mx-auto w-full max-w-[1120px]">
-              <div className="relative overflow-hidden rounded-[34px] bg-white/10 p-8 ring-1 ring-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.28)] sm:p-10">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.15),transparent_32%)]" />
+              <div className="relative overflow-hidden rounded-[34px] border border-violet-300/18 bg-[#282151]/72 p-8 shadow-[0_32px_110px_rgba(18,14,45,0.38)] sm:p-10">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.28),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.20),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.06),transparent_45%)]" />
 
                 <div className="relative">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/58">
                     Compare formats
                   </div>
 
@@ -189,13 +182,13 @@ export default async function CompareDetailPage({ params }: PageProps) {
                   </p>
 
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <span className="rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+                    <span className="rounded-full border border-violet-200/14 bg-violet-400/10 px-4 py-2 text-sm text-white/80">
                       Practical decision guide
                     </span>
-                    <span className="rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+                    <span className="rounded-full border border-violet-200/14 bg-violet-400/10 px-4 py-2 text-sm text-white/80">
                       Workflow-first comparison
                     </span>
-                    <span className="rounded-full bg-white/8 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+                    <span className="rounded-full border border-violet-200/14 bg-violet-400/10 px-4 py-2 text-sm text-white/80">
                       Direct conversion links
                     </span>
                   </div>
@@ -205,7 +198,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                        className="inline-flex rounded-full bg-gradient-to-r from-violet-500 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(99,102,241,0.24)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_34px_rgba(139,92,246,0.38)]"
                       >
                         {item.label}
                       </Link>
@@ -213,7 +206,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
 
                     <Link
                       href="/compare"
-                      className="inline-flex rounded-full bg-white/8 px-5 py-2.5 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                      className="inline-flex rounded-full border border-violet-200/14 bg-white/[0.07] px-5 py-2.5 text-sm font-medium text-white/85 transition duration-300 hover:-translate-y-0.5 hover:border-violet-200/30 hover:bg-violet-400/14 hover:text-white"
                     >
                       Back to compare hub
                     </Link>
@@ -222,7 +215,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
               </div>
 
               <section className="mt-10 grid gap-6 md:grid-cols-2">
-                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
                   <h2 className="text-2xl font-semibold tracking-tight">
                     {data.leftSummaryTitle}
                   </h2>
@@ -234,7 +227,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     {data.leftBullets.map((item) => (
                       <li
                         key={item}
-                        className="rounded-[20px] bg-white/8 px-4 py-3 text-sm leading-6 text-white/70 ring-1 ring-white/10"
+                        className="rounded-[20px] border border-violet-200/12 bg-[#33296b]/55 px-4 py-3 text-sm leading-6 text-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                       >
                         {item}
                       </li>
@@ -242,7 +235,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                   </ul>
                 </div>
 
-                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
                   <h2 className="text-2xl font-semibold tracking-tight">
                     {data.rightSummaryTitle}
                   </h2>
@@ -254,7 +247,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     {data.rightBullets.map((item) => (
                       <li
                         key={item}
-                        className="rounded-[20px] bg-white/8 px-4 py-3 text-sm leading-6 text-white/70 ring-1 ring-white/10"
+                        className="rounded-[20px] border border-violet-200/12 bg-[#33296b]/55 px-4 py-3 text-sm leading-6 text-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                       >
                         {item}
                       </li>
@@ -264,13 +257,13 @@ export default async function CompareDetailPage({ params }: PageProps) {
               </section>
 
               <section className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
                   <h2 className="text-2xl font-semibold tracking-tight">
                     {data.left} vs {data.right}: key differences
                   </h2>
 
-                  <div className="mt-6 overflow-hidden rounded-[22px] border border-white/10">
-                    <div className="grid grid-cols-3 bg-white/10 text-sm font-semibold">
+                  <div className="mt-6 overflow-hidden rounded-[22px] border border-violet-200/14 bg-[#211b45]/55">
+                    <div className="grid grid-cols-3 bg-violet-400/12 text-sm font-semibold text-violet-50">
                       <div className="p-4">Feature</div>
                       <div className="p-4">{data.left}</div>
                       <div className="p-4">{data.right}</div>
@@ -288,8 +281,8 @@ export default async function CompareDetailPage({ params }: PageProps) {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/58">
                       Quick verdict
                     </div>
                     <h2 className="mt-3 text-2xl font-semibold tracking-tight">
@@ -303,8 +296,8 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     </p>
                   </div>
 
-                  <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/58">
                       Fast path
                     </div>
                     <h2 className="mt-3 text-2xl font-semibold tracking-tight">
@@ -316,7 +309,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                          className="rounded-full bg-gradient-to-r from-violet-500 to-blue-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(99,102,241,0.22)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(139,92,246,0.34)]"
                         >
                           {item.label}
                         </Link>
@@ -327,7 +320,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
               </section>
 
               <section className="mt-10 grid gap-6 md:grid-cols-2">
-                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
                   <h2 className="text-xl font-semibold tracking-tight">
                     When to use {data.left}
                   </h2>
@@ -336,7 +329,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                   </p>
                 </div>
 
-                <div className="rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+                <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
                   <h2 className="text-xl font-semibold tracking-tight">
                     When to use {data.right}
                   </h2>
@@ -346,8 +339,8 @@ export default async function CompareDetailPage({ params }: PageProps) {
                 </div>
               </section>
 
-              <section className="mt-10 rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              <section className="mt-10 rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/58">
                   Decision help
                 </div>
 
@@ -356,7 +349,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                 </h2>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                  <div className="rounded-[22px] border border-violet-200/12 bg-[#33296b]/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                     <div className="text-base font-semibold text-white">
                       Pick based on destination
                     </div>
@@ -366,7 +359,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     </p>
                   </div>
 
-                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                  <div className="rounded-[22px] border border-violet-200/12 bg-[#33296b]/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                     <div className="text-base font-semibold text-white">
                       Think about trade-offs
                     </div>
@@ -376,7 +369,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     </p>
                   </div>
 
-                  <div className="rounded-[22px] bg-white/8 p-4 ring-1 ring-white/10">
+                  <div className="rounded-[22px] border border-violet-200/12 bg-[#33296b]/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                     <div className="text-base font-semibold text-white">
                       Convert only when needed
                     </div>
@@ -388,7 +381,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                 </div>
               </section>
 
-              <section className="mt-10 rounded-[30px] bg-white/10 p-6 ring-1 ring-white/10 shadow-[0_18px_55px_rgba(0,0,0,0.25)]">
+              <section className="mt-10 rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Convert between {data.left} and {data.right}
                 </h2>
@@ -404,7 +397,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                      className="rounded-full bg-gradient-to-r from-violet-500 to-blue-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(99,102,241,0.22)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(139,92,246,0.34)]"
                     >
                       {item.label}
                     </Link>
@@ -414,7 +407,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                      className="rounded-full border border-violet-200/14 bg-white/[0.07] px-5 py-2 text-sm font-medium text-white/85 transition duration-300 hover:-translate-y-0.5 hover:border-violet-200/30 hover:bg-violet-400/14 hover:text-white"
                     >
                       {item.label}
                     </Link>
@@ -424,12 +417,16 @@ export default async function CompareDetailPage({ params }: PageProps) {
             </div>
           </section>
 
-          <aside className="hidden xl:block">
-            <AdRailShell />
-          </aside>
+          {railsReady ? (
+            <aside className="hidden xl:block">
+              <AdRailShell slot={AD_SLOTS.RIGHT_RAIL} />
+            </aside>
+          ) : null}
         </div>
       </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }
 
@@ -443,7 +440,7 @@ function FragmentRow({
   rightValue: string;
 }) {
   return (
-    <div className="grid grid-cols-3 border-t border-white/10 text-sm">
+    <div className="grid grid-cols-3 border-t border-violet-200/10 text-sm">
       <div className="p-4 text-white/85">{feature}</div>
       <div className="p-4 text-white/70">{leftValue}</div>
       <div className="p-4 text-white/70">{rightValue}</div>

@@ -1,12 +1,28 @@
 "use client";
 
 import Script from "next/script";
+import { usePathname } from "next/navigation";
+import { isAdsensePathEligible } from "@/lib/adsEligibility";
+import {
+  AD_SLOTS,
+  ADSENSE_CLIENT,
+  ADSENSE_ENABLED,
+  hasRailAdSlots,
+  isAdSlotReady,
+} from "@/lib/adsConfig";
 
-const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "";
-const ADSENSE_ENABLED = ADSENSE_CLIENT.startsWith("ca-pub-");
+export {
+  AD_SLOTS,
+  ADSENSE_CLIENT,
+  ADSENSE_ENABLED,
+  hasRailAdSlots,
+  isAdSlotReady,
+};
 
 export default function AdsenseScript() {
-  if (!ADSENSE_ENABLED) return null;
+  const pathname = usePathname();
+
+  if (!ADSENSE_ENABLED || !isAdsensePathEligible(pathname)) return null;
 
   return (
     <Script
@@ -24,5 +40,3 @@ export default function AdsenseScript() {
     />
   );
 }
-
-export { ADSENSE_CLIENT, ADSENSE_ENABLED };

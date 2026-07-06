@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="Converto.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:home="clr-namespace:Converto.Features.Home"
+    xmlns:converter="clr-namespace:Converto.Features.Converter"
+    xmlns:pro="clr-namespace:Converto.Features.Pro"
+    xmlns:settings="clr-namespace:Converto.Features.Settings"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#151233">
+
+    <TabBar>
+        <ShellContent
+            Title="Home"
+            ContentTemplate="{DataTemplate home:HomePage}"
+            Route="home" />
+
+        <ShellContent
+            Title="Convert"
+            ContentTemplate="{DataTemplate converter:ConverterPage}"
+            Route="converter" />
+
+        <ShellContent
+            Title="Pro"
+            ContentTemplate="{DataTemplate pro:ProPage}"
+            Route="pro" />
+
+        <ShellContent
+            Title="Settings"
+            ContentTemplate="{DataTemplate settings:SettingsPage}"
+            Route="settings" />
+    </TabBar>
+</Shell>

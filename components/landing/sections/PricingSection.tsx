@@ -9,12 +9,14 @@ export default function PricingSection({
   onOpenInterstitial,
   onAndroidAppClick,
   showToast,
+  onNotifyMe,
 }: {
   googlePlayUrl: string | null;
   onlineUrl: string;
   onOpenInterstitial: (url: string) => void;
   onAndroidAppClick: () => void;
   showToast: (t: string, d?: string) => void;
+  onNotifyMe: () => void;
 }) {
   return (
     <section id="pricing" className="mx-auto max-w-6xl px-4 py-14">
@@ -54,7 +56,7 @@ export default function PricingSection({
               href={onlineUrl}
               className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white/10 px-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
             >
-              Try online (beta)
+              Try online
             </a>
           </div>
         </div>
@@ -108,9 +110,7 @@ export default function PricingSection({
 
             <button
               type="button"
-              onClick={() =>
-                showToast("Pro is coming!", "We’ll enable Pro after beta stability is confirmed.")
-              }
+              onClick={onNotifyMe}
               className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
             >
               Notify me

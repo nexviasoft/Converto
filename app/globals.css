@@ -19,9 +19,46 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  zoom: 0.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* Desktop density tune: keeps the old compact feel without using CSS zoom.
+   Zoom can break click/dropdown coordinates; root font-size keeps layout natural. */
+@media (min-width: 1024px) {
+  html {
+    font-size: 84%;
+  }
+
+  :root {
+    /* Tailwind spacing density: affects p-*, m-*, gap-*, h-*, w-* across every route. */
+    --spacing: 0.235rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  html {
+    font-size: 82%;
+  }
+
+  :root {
+    --spacing: 0.225rem;
+  }
 }

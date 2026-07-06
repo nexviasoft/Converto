@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-import Header from "@/components/landing/Header";
+import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 
 type BillingType = "monthly" | "yearly";
@@ -35,41 +35,49 @@ const proFeatures = [
     title: "Trim before export",
     desc: "Cut unnecessary parts before downloading.",
     badge: "Editing",
+    icon: "/images/vnext/pro-icons/trim.png",
   },
   {
     title: "Audio bitrate selection",
     desc: "Choose lighter or higher-quality output.",
     badge: "Audio",
+    icon: "/images/vnext/pro-icons/audio-bitrate.png",
   },
   {
     title: "Sample rate presets",
     desc: "Useful for cleaner compatibility and export control.",
     badge: "Audio",
+    icon: "/images/vnext/pro-icons/sample-rate.png",
   },
   {
     title: "Mono / stereo selection",
     desc: "Adjust channel output for your use case.",
     badge: "Channels",
+    icon: "/images/vnext/pro-icons/mono-stereo.png",
   },
   {
     title: "Batch conversion",
     desc: "Convert multiple files in one go.",
     badge: "Workflow",
+    icon: "/images/vnext/pro-icons/batch-conversion.png",
   },
   {
     title: "Priority workflow",
     desc: "A smoother experience for repeat usage.",
     badge: "Speed",
+    icon: "/images/vnext/pro-icons/priority-workflow.png",
   },
   {
     title: "Higher file limits",
     desc: "More room for heavier files and larger jobs.",
     badge: "Limits",
+    icon: "/images/vnext/pro-icons/higher-limits.png",
   },
   {
     title: "Priority support",
     desc: "Faster help when you actually need it.",
     badge: "Support",
+    icon: "/images/vnext/pro-icons/priority-support.png",
   },
 ];
 
@@ -88,14 +96,23 @@ const useCases = [
   {
     title: "For heavier workflows",
     text: "Useful when you convert often, deal with bigger files, or want to stop repeating the same steps every day.",
+    image: "/images/vnext/pro-heavy-workflows.png",
+    stats: ["Large files", "Batch jobs", "Daily saves"],
+    values: ["Up to 8GB", "Unlimited", "Hours saved"],
   },
   {
     title: "For cleaner exports",
     text: "Tune output settings instead of settling for one default path every time.",
+    image: "/images/vnext/pro-cleaner-exports.png",
+    stats: ["MP4", "MP3", "WAV"],
+    values: ["Video", "Audio", "Quality"],
   },
   {
     title: "For teams and repeat use",
     text: "A better fit when Converto becomes part of your regular workflow rather than a one-off tool.",
+    image: "/images/vnext/pro-teams-repeat.png",
+    stats: ["Saved flow", "Repeat tasks", "Team-ready"],
+    values: ["Reusable", "Faster", "Cleaner"],
   },
 ];
 
@@ -200,12 +217,7 @@ export default function ConvertoProPricingPage() {
         <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:72px_72px]" />
       </div>
 
-      <Header
-        sections={sections}
-        activeId={activeId}
-        isScrolled={isScrolled}
-        onlineUrl={onlineUrl}
-      />
+      <SimpleTopBar shellMax="max-w-6xl" />
 
       <main>
         <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-6 lg:px-8 lg:pt-14">
@@ -235,13 +247,13 @@ export default function ConvertoProPricingPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <a
                   href="#checkout"
-                  className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                  className="inline-flex rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/90"
                 >
                   Get Pro
                 </a>
                 <Link
                   href="/converter"
-                  className="inline-flex rounded-full bg-white/8 px-5 py-3 text-sm font-semibold text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
+                  className="inline-flex rounded-full bg-white/8 px-4 py-2.5 text-[13px] font-semibold text-white/80 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-white"
                 >
                   Try free converter
                 </Link>
@@ -384,56 +396,77 @@ export default function ConvertoProPricingPage() {
           </div>
         </section>
 
-        <section id="how" className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <section id="how" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-violet-200/70">
               What Pro adds
             </div>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Extra tools that fit naturally into Converto.
             </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-white/65">
+            <p className="mx-auto mt-4 max-w-3xl text-sm leading-6 text-white/65 sm:text-[15px]">
               Not a bloated dashboard. Just practical upgrades that make sense for frequent conversion work.
             </p>
           </div>
 
-          <div className="mt-7 grid items-stretch gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="flex h-full flex-col rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.07))] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.25)] backdrop-blur-sm">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
+          <div className="mt-9 grid items-stretch gap-5 lg:grid-cols-[0.98fr_1.02fr]">
+            <div className="relative flex h-full flex-col overflow-hidden rounded-[32px] border border-violet-300/18 bg-[#1f1b43]/72 p-6 shadow-[0_26px_95px_rgba(13,10,35,0.38)] backdrop-blur sm:p-7">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_100%_20%,rgba(139,92,246,0.18),transparent_34%)]" />
+              <div className="pointer-events-none absolute inset-0 opacity-[0.15] [background-image:radial-gradient(rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:22px_22px]" />
+
+              <div className="relative shrink-0">
+                <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.20em] text-white/60 sm:text-[12px]">
+                  <span className="grid h-8 w-8 place-items-center rounded-full border border-violet-200/28 bg-violet-400/18 shadow-[0_0_26px_rgba(139,92,246,0.25)]">
+                    <Image
+                      src="/images/vnext/section-icons/included-pro.png"
+                      alt="Included in Pro icon"
+                      width={22}
+                      height={22}
+                      className="h-[22px] w-[22px] object-contain brightness-110"
+                      unoptimized
+                    />
+                  </span>
                   Included in Pro
                 </div>
 
-                <h3 className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                   Built for users who convert more often
                 </h3>
 
-                <p className="mt-2 max-w-xl text-sm leading-6 text-white/62">
+                <p className="mt-3 max-w-xl text-sm leading-6 text-white/64">
                   Better export control, less repetitive work, and a smoother overall flow.
                 </p>
 
-                <div className="mt-3 inline-block rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
+                <div className="mt-5 inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300 shadow-[0_0_18px_rgba(16,185,129,0.10)]">
                   8 Pro upgrades
                 </div>
               </div>
 
-              <div className="mt-5 grid flex-1 gap-3 sm:grid-cols-2">
+              <div className="relative mt-6 grid flex-1 auto-rows-fr content-stretch gap-3 sm:grid-cols-2">
                 {proFeatures.map((feature) => (
                   <div
                     key={feature.title}
-                    className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition duration-300 hover:-translate-y-1 hover:border-violet-300/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05))] hover:shadow-[0_14px_30px_rgba(88,28,135,0.18)]"
+                    className="group flex h-full flex-col rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.045))] px-4 py-[18px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-300 hover:-translate-y-1 hover:border-violet-300/24 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.055))] hover:shadow-[0_18px_42px_rgba(88,28,135,0.22)]"
                   >
-                    <div className="flex justify-end">
-                      <div className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="shrink-0 transition duration-300 group-hover:scale-105">
+                        <Image
+                          src={feature.icon}
+                          alt={feature.title}
+                          width={36}
+                          height={36}
+                          className="h-9 w-9 object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="shrink-0 rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55">
                         {feature.badge}
                       </div>
                     </div>
-
-                    <div className="mt-3 text-[15px] font-semibold tracking-tight text-white">
+                    <div className="mt-3 text-[15px] font-semibold leading-[1.22] tracking-tight text-white sm:text-[16px] md:text-[17px]">
                       {feature.title}
                     </div>
-
-                    <div className="mt-2 text-[13px] leading-6 text-white/58">
+                    <div className="mt-2.5 text-[13px] leading-5 text-white/66 sm:text-[14px] sm:leading-6">
                       {feature.desc}
                     </div>
                   </div>
@@ -441,17 +474,50 @@ export default function ConvertoProPricingPage() {
               </div>
             </div>
 
-            <div className="flex h-full flex-col gap-4">
-              {useCases.map((item) => (
+            <div className="grid gap-5">
+              {useCases.map((item, index) => (
                 <div
                   key={item.title}
-                  className="flex-1 rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.08))] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.25)] backdrop-blur-sm transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.09))] hover:shadow-[0_20px_60px_rgba(88,28,135,0.22)]"
+                  className="group relative overflow-hidden rounded-[30px] border border-violet-300/16 bg-[#1f1b43]/72 p-6 shadow-[0_26px_95px_rgba(13,10,35,0.34)] backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-violet-300/28 hover:bg-[#251f4f]/78 sm:p-6.5"
                 >
-                  <div className="text-lg font-semibold tracking-tight text-white sm:text-xl">
-                    {item.title}
-                  </div>
-                  <div className="mt-3 text-sm leading-7 text-white/68">
-                    {item.text}
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_50%,rgba(139,92,246,0.24),transparent_30%),radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.06),transparent_28%)]" />
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.15] [background-image:radial-gradient(rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:22px_22px]" />
+
+                  <div className="relative grid gap-5 md:grid-cols-[minmax(0,1fr)_205px] md:items-center lg:grid-cols-[minmax(0,1fr)_235px]">
+                    <div>
+                      <h3 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                        {item.title}
+                      </h3>
+                      <p className="mt-3 max-w-lg text-sm leading-7 text-white/66">
+                        {item.text}
+                      </p>
+
+                      <div className="mt-5 flex max-w-md flex-wrap gap-1.5">
+                        {item.stats.map((stat, statIndex) => (
+                          <div
+                            key={stat}
+                            className="min-w-[74px] flex-1 rounded-[14px] border border-white/10 bg-white/[0.055] px-2.5 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                          >
+                            <div className="text-[9px] leading-4 text-white/45">{stat}</div>
+                            <div className="mt-1 text-[11px] leading-4 font-semibold text-white/86 sm:text-[12px]">
+                              {item.values[statIndex]}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pointer-events-none relative hidden h-[168px] md:block lg:h-[190px]">
+                      <div className="absolute inset-6 rounded-full bg-violet-500/22 blur-3xl" />
+                      <Image
+                        src={item.image}
+                        alt="Converto Pro workflow illustration"
+                        width={720}
+                        height={480}
+                        className={index === 0 ? "relative h-full w-full scale-[1.12] object-contain drop-shadow-[0_24px_62px_rgba(93,63,211,0.30)]" : index === 1 ? "relative h-full w-full scale-[1.10] object-contain drop-shadow-[0_24px_62px_rgba(93,63,211,0.30)]" : "relative h-[92%] w-[92%] mx-auto my-auto object-contain drop-shadow-[0_22px_56px_rgba(93,63,211,0.28)]"}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                 </div>
               ))}

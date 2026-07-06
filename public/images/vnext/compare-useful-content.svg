@@ -1,0 +1,16 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" fill="none">
+  <g filter="url(#g)">
+    <path d="M56 44H102L128 70V128C128 139 119 148 108 148H56C45 148 36 139 36 128V64C36 53 45 44 56 44Z" stroke="#d9b4ff" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M102 44V70H128" stroke="#d9b4ff" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M62 84H94" stroke="#d9b4ff" stroke-width="10" stroke-linecap="round"/>
+    <path d="M62 104H90" stroke="#d9b4ff" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="116" cy="118" r="20" stroke="#d9b4ff" stroke-width="10"/>
+    <path d="M130 132L148 150" stroke="#d9b4ff" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <defs>
+    <filter id="g" x="24" y="32" width="136" height="130" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#b983ff" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+</svg>

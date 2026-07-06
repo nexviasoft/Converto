@@ -2,29 +2,28 @@
 
 import React, { useEffect, useRef } from "react";
 import Link from "next/link";
-import AdSenseScript from "@/components/ads/AdsenseScript";
 import {
   audioFormats,
   videoFormats,
   imageFormats,
   allFormats,
 } from "@/lib/formatData";
+import {
+  AD_SLOTS,
+  ADSENSE_CLIENT,
+  ADSENSE_ENABLED,
+  hasRailAdSlots,
+  isAdSlotReady,
+} from "@/components/ads/AdsenseScript";
 
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
 
-/** Ad slots */
-const AD_SLOTS = {
-  LEFT_RAIL: "3456789012",
-  RIGHT_RAIL: "4567890123",
-} as const;
-
-const ADS_ENABLED = true;
 
 function AdUnit({
   slot,
   className = "",
-  title = "Sponsored",
+  title = "Advertisement",
   sticky = false,
 }: {
   slot: string;
@@ -36,15 +35,15 @@ function AdUnit({
 
   useEffect(() => {
     try {
-      if (!ADS_ENABLED) return;
+      if (!ADSENSE_ENABLED || !isAdSlotReady(slot)) return;
       if (pushedRef.current) return;
       // @ts-ignore
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushedRef.current = true;
     } catch {}
-  }, []);
+  }, [slot]);
 
-  if (!ADS_ENABLED) return null;
+  if (!ADSENSE_ENABLED || !isAdSlotReady(slot)) return null;
 
   return (
     <div
@@ -60,7 +59,7 @@ function AdUnit({
           <div className="text-[11px] font-semibold tracking-wide text-white/55">
             {title}
           </div>
-          <div className="text-[11px] text-white/35">Ads keep Converto free</div>
+          
         </div>
 
         <div className="rounded-2xl bg-black/25 p-3 ring-1 ring-white/10">
@@ -75,6 +74,7 @@ function AdUnit({
               display: "block",
               minHeight: 320,
             }}
+            data-ad-client={ADSENSE_CLIENT}
             data-ad-slot={slot}
             data-ad-format="auto"
             data-full-width-responsive="true"
@@ -164,8 +164,10 @@ const popularConversions = [
 export default function FormatsPageClient() {
   const SHELL_MAX = "max-w-[1700px]";
   const CENTER_MAX = "max-w-[1100px]";
-  const GRID =
-    "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]";
+  const railsReady = hasRailAdSlots();
+  const GRID = railsReady
+    ? "xl:grid-cols-[260px_minmax(0,1fr)_260px] 2xl:grid-cols-[280px_minmax(0,1fr)_280px]"
+    : "";
 
   const formatGuides = allFormats.map((item) => ({
     href: `/formats/${item.slug}`,
@@ -175,8 +177,6 @@ export default function FormatsPageClient() {
 
   return (
     <main className="min-h-screen bg-[#151233] text-white selection:bg-white/20">
-      <AdSenseScript />
-
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.22),transparent_60%),radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.18),transparent_55%),radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_45%)]" />
         <div className="absolute inset-0 opacity-20 [background:linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:72px_72px]" />
@@ -184,9 +184,11 @@ export default function FormatsPageClient() {
 
       <div className={cx("mx-auto px-4 py-14 sm:px-6 lg:px-8", SHELL_MAX)}>
         <div className={cx("grid items-start gap-6 xl:gap-8", GRID)}>
-          <aside className="hidden xl:block">
-            <AdUnit slot={AD_SLOTS.LEFT_RAIL} sticky className="w-full" />
-          </aside>
+          {railsReady ? (
+            <aside className="hidden xl:block">
+              <AdUnit slot={AD_SLOTS.LEFT_RAIL} sticky className="w-full" />
+            </aside>
+          ) : null}
 
           <section className="min-w-0">
             <div className={cx("mx-auto w-full", CENTER_MAX)}>
@@ -449,9 +451,11 @@ export default function FormatsPageClient() {
             </div>
           </section>
 
-          <aside className="hidden xl:block">
-            <AdUnit slot={AD_SLOTS.RIGHT_RAIL} sticky className="w-full" />
-          </aside>
+          {railsReady ? (
+            <aside className="hidden xl:block">
+              <AdUnit slot={AD_SLOTS.RIGHT_RAIL} sticky className="w-full" />
+            </aside>
+          ) : null}
         </div>
       </div>
     </main>

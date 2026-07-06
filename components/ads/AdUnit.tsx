@@ -2,24 +2,27 @@
 
 import React, { useEffect, useRef } from "react";
 import { cx } from "@/components/ui";
-import { ADSENSE_CLIENT, ADSENSE_ENABLED } from "./AdsenseScript";
+import {
+  AD_SLOTS,
+  ADSENSE_CLIENT,
+  ADSENSE_ENABLED,
+  isAdSlotReady,
+} from "@/lib/adsConfig";
 
-export const AD_SLOTS = {
-  LEFT_RAIL: "3456789012",
-  RIGHT_RAIL: "4567890123",
-  IN_CONTENT: "2345678901",
-} as const;
+export { AD_SLOTS };
 
 export default function AdUnit({
   slot,
   className = "",
   style,
   density = "compact",
+  sticky = false,
 }: {
   slot: string;
   className?: string;
   style?: React.CSSProperties;
   density?: "compact" | "normal";
+  sticky?: boolean;
 }) {
   const pushedRef = useRef(false);
   const triesRef = useRef(0);
@@ -29,6 +32,7 @@ export default function AdUnit({
 
   const instanceIdRef = useRef<string>(Math.random().toString(36).slice(2));
   const instanceId = instanceIdRef.current;
+  const slotReady = isAdSlotReady(slot);
 
   useEffect(() => {
     pushedRef.current = false;
@@ -41,7 +45,7 @@ export default function AdUnit({
   }, [slot]);
 
   const canPush = () => {
-    if (!ADSENSE_ENABLED) return false;
+    if (!ADSENSE_ENABLED || !slotReady) return false;
     if (typeof window === "undefined") return false;
 
     const ins = insRef.current as any;
@@ -72,7 +76,7 @@ export default function AdUnit({
   };
 
   useEffect(() => {
-    if (!ADSENSE_ENABLED) return;
+    if (!ADSENSE_ENABLED || !slotReady) return;
 
     const schedule = (delayMs: number) => {
       if (tRef.current) window.clearTimeout(tRef.current);
@@ -100,17 +104,19 @@ export default function AdUnit({
       tRef.current = null;
       rafRef.current = null;
     };
-  }, [slot]);
+  }, [slot, slotReady]);
 
-  if (!ADSENSE_ENABLED) return null;
+  if (!ADSENSE_ENABLED || !slotReady) return null;
 
   const compact = density === "compact";
 
   return (
     <div
       key={`${slot}-${instanceId}`}
+      aria-label="Advertisement"
       className={cx(
         "relative overflow-hidden rounded-3xl bg-white/10 ring-1 ring-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.28)]",
+        sticky ? "sticky top-[92px]" : "",
         className
       )}
     >
@@ -120,19 +126,11 @@ export default function AdUnit({
         <div className={cx("flex items-center justify-between", compact ? "mb-2" : "mb-3")}>
           <span
             className={cx(
-              "font-semibold tracking-widest text-white/55",
+              "font-semibold uppercase tracking-widest text-white/55",
               compact ? "text-[10px]" : "text-[11px]"
             )}
           >
-            SPONSORED
-          </span>
-
-          <span
-            className={cx(
-              compact ? "text-[10px] text-white/40" : "text-[11px] text-white/45"
-            )}
-          >
-            Ads keep Converto free
+            Advertisement
           </span>
         </div>
 

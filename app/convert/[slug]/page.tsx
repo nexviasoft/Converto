@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ConverterPageContent from "@/components/converter/ConverterPageContent";
+import { getConverterContent } from "@/lib/converterContent";
+import {
+  INDEXABLE_CONVERTER_SLUGS,
+  isIndexableConverterSlug,
+} from "@/lib/indexingPolicy";
 
 type TargetFmt =
   | "MP3"
@@ -198,22 +203,22 @@ function isImageFmt(fmt: string) {
 
 function buildMetaTitle(input: string, output: string) {
   if (isVideoFmt(input) && isAudioFmt(output)) {
-    return `${input} to ${output} Converter for Audio Extraction | Converto`;
+    return `${input} to ${output} Converter for Audio Extraction`;
   }
 
   if (isVideoFmt(input) && isVideoFmt(output)) {
-    return `${input} to ${output} Video Converter Online | Converto`;
+    return `${input} to ${output} Video Converter Online`;
   }
 
   if (isImageFmt(input) && isImageFmt(output)) {
-    return `${input} to ${output} Image Converter Online | Converto`;
+    return `${input} to ${output} Image Converter Online`;
   }
 
   if (isAudioFmt(input) && isAudioFmt(output)) {
-    return `${input} to ${output} Audio Converter Online | Converto`;
+    return `${input} to ${output} Audio Converter Online`;
   }
 
-  return `${input} to ${output} Converter Online | Converto`;
+  return `${input} to ${output} Converter Online`;
 }
 
 function buildMetaDescription(input: string, output: string) {
@@ -277,15 +282,7 @@ function buildSeoDescription(input: string, output: string) {
 }
 
 export function generateStaticParams() {
-  const slugs = unique([
-    ...buildPairSlugs(AUDIO_FORMATS, AUDIO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
-  ]);
-
-  return slugs.map((slug) => ({ slug }));
+  return INDEXABLE_CONVERTER_SLUGS.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -305,15 +302,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { slug, inputUpper, outputUpper } = parsed;
   const canonicalUrl = `${SITE_URL}/convert/${slug}`;
-  const title = buildMetaTitle(inputUpper, outputUpper);
-  const description = buildMetaDescription(inputUpper, outputUpper);
+  const customContent = getConverterContent(slug);
+  const indexable = isIndexableConverterSlug(slug) && Boolean(customContent);
+  const title = customContent?.headline ?? buildMetaTitle(inputUpper, outputUpper);
+  const description =
+    customContent?.seoIntro ?? buildMetaDescription(inputUpper, outputUpper);
 
   return {
     title,
     description,
     robots: {
-      index: true,
+      index: indexable,
       follow: true,
+      googleBot: {
+        index: indexable,
+        follow: true,
+      },
     },
     alternates: {
       canonical: canonicalUrl,
@@ -359,6 +363,8 @@ export default async function ConvertSlugPage({ params }: PageProps) {
       suggestedOutput={suggestedOutput}
       rawInputLabel={input}
       rawOutputLabel={output}
+      customContent={getConverterContent(slug)}
+      adsEligible={isIndexableConverterSlug(slug)}
     />
   );
 }

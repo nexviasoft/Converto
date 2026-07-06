@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Converto
 
-## Getting Started
+Converto is a Next.js file conversion site for audio, video, image, and PDF workflows.
 
-First, run the development server:
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production domain
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set the public site URL in Vercel:
 
-## Learn More
+```bash
+NEXT_PUBLIC_SITE_URL=https://www.converto.tools
+```
 
-To learn more about Next.js, take a look at the following resources:
+## AdSense setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The project is prepared for AdSense, but ad slot IDs should be added only after real ad units are created in AdSense.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Recommended Vercel environment variables:
 
-## Deploy on Vercel
+```bash
+NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-4933934041035226
+NEXT_PUBLIC_ADSENSE_SLOT_LEFT_RAIL=your_left_rail_slot_id
+NEXT_PUBLIC_ADSENSE_SLOT_RIGHT_RAIL=your_right_rail_slot_id
+NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT=your_in_content_slot_id
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+If slot IDs are empty, the app will not render fake ad units in production. This prevents placeholder ad code from using invalid sample slot IDs.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Ads.txt
+
+`public/ads.txt` is already included. Update it if the AdSense publisher ID changes.
+
+## Legal pages
+
+The project includes:
+
+- `/privacy`
+- `/terms`
+- `/cookies`
+- `/contact`
+
+For regions that require consent management before personalized ads, connect a proper CMP/consent solution before serving ads.
+
+## SEO routes
+
+The sitemap includes the home page, converter pages, PDF tools, format guides, comparison pages, and legal/contact pages.

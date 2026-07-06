@@ -59,7 +59,7 @@ export default function TermsSection() {
             {[
               "Conversions are provided “as is” — results can vary by codec and device.",
               "We’re not responsible for lost data; keep backups of important files.",
-              "Beta features may change, pause, or be removed for stability.",
+              "Newly introduced features may be adjusted or paused when needed for reliability and security.",
             ].map((x) => (
               <li key={x} className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-white/40" />

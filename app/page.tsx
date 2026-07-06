@@ -3,7 +3,7 @@ import LandingPageClient from "@/components/landing/LandingPageClient";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://converto.tools";
+  "https://www.converto.tools";
 
 export const metadata: Metadata = {
   title: "Converto — Free Online File Converter",

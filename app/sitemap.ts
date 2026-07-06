@@ -1,66 +1,10 @@
 import type { MetadataRoute } from "next";
 import { allFormats } from "@/lib/formatData";
 import { allCompareItems } from "@/lib/compareData";
+import { INDEXABLE_CONVERTER_SLUGS } from "@/lib/indexingPolicy";
+import { PRO_PUBLIC } from "@/lib/siteReadiness";
 
-const AUDIO_FORMATS = [
-  "mp3",
-  "wav",
-  "aac",
-  "m4a",
-  "ogg",
-  "opus",
-  "flac",
-  "aiff",
-  "wma",
-  "amr",
-] as const;
-
-const VIDEO_FORMATS = [
-  "mp4",
-  "webm",
-  "mov",
-  "mkv",
-  "avi",
-  "wmv",
-  "flv",
-  "m4v",
-  "mpg",
-  "mpeg",
-  "3gp",
-] as const;
-
-const IMAGE_FORMATS = [
-  "gif",
-  "png",
-  "jpg",
-  "webp",
-  "bmp",
-  "tiff",
-  "ico",
-  "avif",
-] as const;
-
-function buildPairSlugs(
-  fromFormats: readonly string[],
-  toFormats: readonly string[]
-): string[] {
-  const slugs: string[] = [];
-
-  for (const from of fromFormats) {
-    for (const to of toFormats) {
-      if (from === to) continue;
-      slugs.push(`${from}-to-${to}`);
-    }
-  }
-
-  return slugs;
-}
-
-function unique(items: string[]) {
-  return [...new Set(items)];
-}
-
-const DEFAULT_LAST_MODIFIED = new Date("2026-03-11");
+const DEFAULT_LAST_MODIFIED = new Date("2026-07-06");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl =
@@ -123,6 +67,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
+      url: `${siteUrl}/about`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "monthly",
+      priority: 0.45,
+    },
+    {
+      url: `${siteUrl}/contact`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "yearly",
+      priority: 0.35,
+    },
+    ...(PRO_PUBLIC
+      ? [
+          {
+            url: `${siteUrl}/pro`,
+            lastModified: DEFAULT_LAST_MODIFIED,
+            changeFrequency: "weekly" as const,
+            priority: 0.55,
+          },
+        ]
+      : []),
+    {
       url: `${siteUrl}/privacy`,
       lastModified: DEFAULT_LAST_MODIFIED,
       changeFrequency: "yearly",
@@ -130,6 +96,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${siteUrl}/terms`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+    {
+      url: `${siteUrl}/cookies`,
       lastModified: DEFAULT_LAST_MODIFIED,
       changeFrequency: "yearly",
       priority: 0.2,
@@ -150,33 +122,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  const converterSlugs = unique([
-    ...buildPairSlugs(AUDIO_FORMATS, AUDIO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, AUDIO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, VIDEO_FORMATS),
-    ...buildPairSlugs(VIDEO_FORMATS, IMAGE_FORMATS),
-    ...buildPairSlugs(IMAGE_FORMATS, IMAGE_FORMATS),
-  ]);
-
-  const converterEntries: MetadataRoute.Sitemap = converterSlugs.map((slug) => ({
-    url: `${siteUrl}/convert/${slug}`,
-    lastModified: DEFAULT_LAST_MODIFIED,
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }));
-
-  const batchConverterEntries: MetadataRoute.Sitemap = converterSlugs.map((slug) => ({
-    url: `${siteUrl}/convert/batch/${slug}`,
-    lastModified: DEFAULT_LAST_MODIFIED,
-    changeFrequency: "weekly",
-    priority: 0.76,
-  }));
+  const converterEntries: MetadataRoute.Sitemap =
+    INDEXABLE_CONVERTER_SLUGS.map((slug) => ({
+      url: `${siteUrl}/convert/${slug}`,
+      lastModified: DEFAULT_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    }));
 
   return [
     ...staticEntries,
     ...formatGuideEntries,
     ...compareEntries,
     ...converterEntries,
-    ...batchConverterEntries,
   ];
 }

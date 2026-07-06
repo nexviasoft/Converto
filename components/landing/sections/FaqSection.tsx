@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FAQItem, SectionTitle } from "@/components/ui";
+import { ANDROID_APP_PUBLIC, PRO_PUBLIC } from "@/lib/siteReadiness";
 
 export default function FaqSection() {
   return (
@@ -9,57 +10,65 @@ export default function FaqSection() {
       <SectionTitle
         kicker="FAQ"
         title="Quick answers."
-        desc="Transparent limits and a clean experience — that’s the goal."
+        desc="Clear limits, simple format choices, and a conversion flow users can understand before uploading."
       />
 
       <div className="mt-10 grid gap-4 md:grid-cols-2">
-
         <FAQItem
           q="Is Converto free to use?"
-          a="Yes. Converto offers a free plan designed for quick conversions. You can convert common file formats without creating an account. The Pro version will unlock higher limits, batch conversion, and additional features."
+          a={
+            PRO_PUBLIC
+              ? "Yes. Converto includes a free converter for quick everyday file tasks. Free usage has practical limits, while Pro adds higher limits, batch workflows, and advanced export controls."
+              : "Yes. Converto includes a free converter for quick everyday file tasks, with clear format support and practical file-size limits."
+          }
         />
 
         <FAQItem
           q="Which file formats are supported?"
-          a="Converto supports a wide range of formats including audio, video, and images.
-
-Audio: MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, AIFF, WMA, AMR
-
-Video: MP4, WEBM, MOV, MKV, AVI, WMV, FLV, M4V, MPG, MPEG, 3GP
-
-Images: GIF, PNG, JPG, WEBP, BMP, TIFF, ICO, AVIF"
+          a="Converto supports common audio, video, image, and PDF workflows. Audio routes include MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, AIFF, WMA, and AMR. Video routes include MP4, WEBM, MOV, MKV, AVI, WMV, FLV, M4V, MPG, MPEG, and 3GP. Image routes include GIF, PNG, JPG, WEBP, BMP, TIFF, ICO, and AVIF."
         />
 
         <FAQItem
           q="Do you store my files?"
-          a="No. Most conversions run directly in your browser. If a server conversion is required, files are automatically deleted shortly after the process finishes."
+          a="Converto is built around temporary processing. Browser-based conversions stay in the browser where possible. Server-assisted conversions are intended to be short-lived and removed after processing."
         />
 
         <FAQItem
           q="Is Converto safe to use?"
-          a="Yes. Converto is designed with privacy in mind. Files are processed locally whenever possible and temporary server files are automatically deleted."
+          a="Converto is designed for everyday conversion tasks with clear limits, visible processing states, and privacy-focused copy. You should only upload files you have the right to process."
         />
 
         <FAQItem
           q="How large can uploaded files be?"
-          a="The free version currently supports files up to 50MB. Higher limits will be available with Converto Pro."
+          a={
+            PRO_PUBLIC
+              ? "The free converter currently presents a 50MB limit for quick online conversions. Pro can provide higher limits for heavier workflows."
+              : "The free converter currently presents a 50MB limit for quick online conversions."
+          }
         />
 
         <FAQItem
           q="Can I convert multiple files at once?"
-          a="Batch conversion is planned for the Pro version. The free version focuses on quick single-file conversions."
+          a={
+            PRO_PUBLIC
+              ? "The site includes a batch conversion flow for supported routes. Pro can expand limits and provide a more comfortable multi-file workflow."
+              : "The project includes a batch conversion flow for supported routes, while the main public experience focuses on reliable single-file conversions."
+          }
         />
 
         <FAQItem
           q="Does Converto work on mobile devices?"
-          a="Yes. Converto works in modern mobile browsers. A dedicated mobile app is also planned for the future."
+          a={
+            ANDROID_APP_PUBLIC
+              ? "Yes. The web converter works in modern mobile browsers, and a dedicated Android experience is also being prepared."
+              : "Yes. The web converter is designed to work in modern mobile browsers, and the layout avoids relying on desktop-only controls."
+          }
         />
 
         <FAQItem
-          q="When will Converto Pro be available?"
-          a="Pro features will launch after the beta phase is stable. The goal is to keep pricing simple, transparent, and student-friendly."
+          q="Why are there format guides and comparison pages?"
+          a="They make the site more useful than a bare upload box. Users can compare file types, understand output choices, and then jump into the right conversion route."
         />
-
       </div>
     </section>
   );
