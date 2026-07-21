@@ -773,7 +773,7 @@ export default async function FormatDetailPage({ params }: PageProps) {
                       number="02"
                     />
                     <InfoTile
-                      title="Popular route"
+                      title="Popular conversion"
                       desc={data.commonConversions[0]?.label || `${data.label} conversion`}
                       icon={<FeatureIcon kind="layers" className="h-5 w-5" />}
                       accent="sky"

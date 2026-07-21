@@ -292,7 +292,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!parsed) {
     return {
       title: "Page not found | Converto",
-      description: "This converter route does not exist.",
+      description: "This conversion page does not exist.",
       robots: {
         index: false,
         follow: false,

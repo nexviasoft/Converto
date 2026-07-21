@@ -83,6 +83,61 @@ type ToPdfMode = "images_to_pdf" | "merge_pdfs" | "merge_mixed";
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
 
+function toFriendlyErrorMessage(
+  message?: string | null,
+  targetFormat?: string | null,
+) {
+  const raw = (message ?? "").trim();
+  const lower = raw.toLowerCase();
+  const target = (targetFormat ?? "").toUpperCase();
+
+  if (!raw) {
+    return "We couldn't complete the conversion. Please try again.";
+  }
+
+  if (lower.includes("upgrade to pro") && (lower.includes("ico") || target === "ICO")) {
+    return "ICO conversion could not be completed with these settings. Please try again.";
+  }
+
+  if (lower.includes("upgrade to pro")) {
+    return "This option is not available with the current settings.";
+  }
+
+  if (lower.includes("server conversion is not configured")) {
+    return "This conversion is temporarily unavailable. Please try another format.";
+  }
+
+  if (lower.includes("timed out") || lower.includes("timeout")) {
+    return "The conversion took too long. Please try a smaller file or try again.";
+  }
+
+  if (
+    lower.includes("converted file is empty") ||
+    lower.includes("returned no file") ||
+    lower.includes("output is empty")
+  ) {
+    return "The conversion finished without producing a file. Please try again.";
+  }
+
+  if (
+    lower.includes("ffmpeg") ||
+    lower.includes("imagemagick") ||
+    lower.includes("sharp") ||
+    lower.includes("command failed") ||
+    lower.includes("spawn") ||
+    lower.includes("internal server error") ||
+    lower.includes("status code 5")
+  ) {
+    return "We couldn't process this file. Please try again or choose another format.";
+  }
+
+  if (lower === "server conversion failed." || lower === "conversion failed.") {
+    return "We couldn't convert this file. Please try again.";
+  }
+
+  return raw;
+}
+
 function bytesToBinaryString(bytes: Uint8Array) {
   let result = "";
   const chunkSize = 0x8000;
@@ -809,7 +864,7 @@ function buildRelatedConversions(
     .slice(0, 3)
     .map((item) => ({
       ...item,
-      reason: "Popular with visitors",
+      reason: "Popular choice",
       badge: "Popular",
     }));
 
@@ -858,7 +913,7 @@ function buildSeoContent(input?: string | null, output?: string | null) {
   const benefits = [
     `Keep ${from} files usable across more apps and devices by exporting to ${to}.`,
     `Reduce friction when sharing, uploading, or opening files in common tools.`,
-    `Switch format without forcing visitors to leave the current page or workflow.`,
+    `Switch formats without restarting the conversion.`,
   ];
 
   const bestFor = [
@@ -1221,8 +1276,8 @@ function SeoInfoSection({
             {mode === "pdf"
               ? "Focused tools hub"
               : mode === "batch"
-                ? "Shared batch route"
-                : "Flexible route"}
+                ? "Batch conversion"
+                : "Flexible conversion"}
           </span>
           <span className="inline-flex rounded-full border border-sky-400/20 bg-sky-500/10 px-3 py-1 text-[11px] font-semibold text-sky-200">
             {quickFit}
@@ -1452,29 +1507,29 @@ function PopularEntrySection({
 
   const heading =
     mode === "pdf"
-      ? "Keep exploring PDF tools"
+      ? "More PDF tools"
       : mode === "batch"
-        ? "Try these next batch routes"
+        ? "Try another batch conversion"
         : family === "video_to_audio"
-          ? "Continue with nearby audio conversions"
+          ? "Try another audio conversion"
           : family === "video_to_video"
-            ? "Try these next video routes"
+            ? "Try another video conversion"
             : family === "video_to_image"
-              ? "Keep going with visual export routes"
+              ? "Try another visual format"
               : family === "image_to_image"
-                ? "Try these next image conversions"
+                ? "Try another image conversion"
                 : family === "audio_to_audio"
-                  ? "Keep exploring nearby audio paths"
-                  : "Try these next conversions";
+                  ? "Try another audio format"
+                  : "Try another conversion";
 
   const copy =
     mode === "pdf"
-      ? "Switch between PDF creation, splitting, and page export routes without falling back to generic format-copy blocks."
+      ? "Switch between PDF creation, splitting, and page export tools from the same page."
       : mode === "batch"
-        ? "These suggestions keep batch intent intact so visitors can explore other multi-file targets instead of dropping back into single-file routes."
+        ? "Try another output while keeping the same multi-file workflow."
         : family === "general"
-          ? "Jump into the routes people use most, compare nearby outputs, and keep the conversion flow moving without starting over."
-          : "These suggestions follow the current route so visitors can test adjacent outputs, compare similar formats, and keep exploring without bouncing away.";
+          ? "Open a popular conversion, compare nearby outputs, or continue without starting over."
+          : "Try a nearby output or compare similar formats without starting over.";
 
   const formatBadge = (badge: string) => {
     if (badge === "Popular") return "Used often";
@@ -1484,7 +1539,7 @@ function PopularEntrySection({
     if (badge === "PDF tool") return "PDF tool";
     if (badge === "Page export") return "Page export";
     if (badge === "Batch") return "Batch";
-    if (badge === "Current route") return "Current route";
+    if (badge === "Current route") return "Current conversion";
     if (badge === "Overview") return "Overview";
     if (badge === "Active") return "Active";
     return badge;
@@ -1498,7 +1553,7 @@ function PopularEntrySection({
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-              Route discovery
+              More conversions
             </div>
             <h3 className="mt-3 text-lg font-semibold text-white">{heading}</h3>
             <p className="mt-2 max-w-[70ch] text-sm leading-6 text-white/60">
@@ -1507,7 +1562,7 @@ function PopularEntrySection({
           </div>
 
           <div className="inline-flex items-center rounded-full border border-violet-200/16 bg-violet-400/10 px-3 py-1.5 text-[11px] font-semibold text-violet-100/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            Explore before you leave
+            More options
           </div>
         </div>
 
@@ -1540,8 +1595,8 @@ function PopularEntrySection({
                 {mode === "pdf"
                   ? "Jump to another PDF-specific workflow without leaving the tools hub."
                   : mode === "batch"
-                    ? "Open another multi-file route without dropping back to single conversion."
-                    : "Test another nearby output without resetting the page flow."}
+                    ? "Open another batch conversion."
+                    : "Try another nearby output without starting over."}
               </p>
             </Link>
           ))}
@@ -1594,18 +1649,9 @@ function PostConvertSuggestionRail({
   downloadName?: string | null;
 }) {
   const items = buildSuccessSuggestions(input, output);
-  const family = getRouteFamily(input, output);
-
   if (!open || !items.length) return null;
 
-  const title =
-    family === "video_to_audio"
-      ? "Your file is ready — also try other audio outputs"
-      : family === "image_to_image"
-        ? "Your file is ready — try another image format"
-        : family === "video_to_video"
-          ? "Your file is ready — compare nearby playback formats"
-          : "Your file is ready — also try other formats";
+  const title = "Your converted file is ready";
 
   return (
     <div className="fixed inset-x-0 bottom-4 z-[90] px-4">
@@ -1616,15 +1662,11 @@ function PostConvertSuggestionRail({
               <span className="inline-flex rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
                 Success
               </span>
-              <span className="text-[11px] text-white/40">
-                Lower bounce · keep exploring
-              </span>
             </div>
 
             <h3 className="mt-3 text-base font-semibold text-white">{title}</h3>
             <p className="mt-2 max-w-[70ch] text-sm leading-6 text-white/60">
-              Keep the same source format and test another target before leaving
-              the page.
+              Download it again, start a new conversion, or try another format below.
             </p>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1635,7 +1677,11 @@ function PostConvertSuggestionRail({
                   className="rounded-[18px] bg-white/5 p-3 ring-1 ring-white/10 transition hover:bg-white/[0.08]"
                 >
                   <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
-                    {item.badge}
+                    {item.badge === "Same source"
+                      ? "Same input"
+                      : item.badge === "Same goal"
+                        ? "Similar output"
+                        : item.badge}
                   </div>
                   <div className="mt-2 text-sm font-semibold text-white">
                     {item.label}
@@ -1660,14 +1706,14 @@ function PostConvertSuggestionRail({
               onClick={onReset}
               className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
             >
-              Convert another file
+              New conversion
             </button>
             <button
               type="button"
               onClick={onClose}
               className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-transparent px-4 text-sm font-semibold text-white/55 transition hover:bg-white/10 hover:text-white"
             >
-              Dismiss
+              Close
             </button>
           </div>
         </div>
@@ -2169,7 +2215,7 @@ export default function ConverterPageContent({
   const [videoFps, setVideoFps] = useState("30");
   const [videoCodec, setVideoCodec] = useState("h264");
   const [muteAudio, setMuteAudio] = useState(false);
-  const [iconSize, setIconSize] = useState("64");
+  const [iconSize, setIconSize] = useState("32");
   const [iconBitDepth, setIconBitDepth] = useState("32");
   const [imageWidth, setImageWidth] = useState("");
   const [imageHeight, setImageHeight] = useState("");
@@ -2823,7 +2869,7 @@ export default function ConverterPageContent({
     setVideoQuality("balanced");
     setVideoFps("30");
     setMuteAudio(false);
-    setIconSize("64");
+    setIconSize("32");
     setIconBitDepth("32");
     setImageWidth("");
     setImageHeight("");
@@ -3053,8 +3099,8 @@ export default function ConverterPageContent({
       formData.append("muteAudio", String(Boolean(muteAudio)));
 
       if (targetFormat.toLowerCase() === "ico") {
-        formData.append("iconSize", iconSize || "");
-        formData.append("iconBitDepth", iconBitDepth || "");
+        formData.append("iconSize", isPro ? iconSize || "32" : "32");
+        formData.append("iconBitDepth", isPro ? iconBitDepth || "32" : "32");
       }
 
       formData.append("imageWidth", imageWidth || "");
@@ -3076,7 +3122,7 @@ export default function ConverterPageContent({
         try {
           const data = await res.json();
           if (data?.error) {
-            message = data.error;
+            message = toFriendlyErrorMessage(data.error, targetFormat);
           }
         } catch {}
 
@@ -3220,7 +3266,7 @@ export default function ConverterPageContent({
       setStatus("done");
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
-      setErrorMsg(err?.message ?? "Server conversion failed.");
+      setErrorMsg(toFriendlyErrorMessage(err?.message, target));
       setStatus("error");
       setActualProgress(0);
       setDisplayProgress(0);
@@ -3441,7 +3487,7 @@ export default function ConverterPageContent({
       if (fakeTimer) clearInterval(fakeTimer);
       setPdfProgress(0);
       setPdfStatus("error");
-      setPdfError(error?.message ?? "PDF creation failed.");
+      setPdfError(toFriendlyErrorMessage(error?.message));
     }
   };
 
@@ -3542,7 +3588,7 @@ export default function ConverterPageContent({
       setSplitPdfStatus("done");
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
-      setSplitPdfError(err?.message ?? "Split PDF failed.");
+      setSplitPdfError(toFriendlyErrorMessage(err?.message));
       setSplitPdfStatus("error");
       setSplitPdfProgress(0);
     }
@@ -3651,7 +3697,7 @@ export default function ConverterPageContent({
       setPdfToImageStatus("done");
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
-      setPdfToImageError(err?.message ?? "PDF to Image failed.");
+      setPdfToImageError(toFriendlyErrorMessage(err?.message));
       setPdfToImageStatus("error");
       setPdfToImageProgress(0);
     }
@@ -3769,6 +3815,10 @@ export default function ConverterPageContent({
       formData.append("muteAudio", String(Boolean(muteAudio)));
       formData.append("imageWidth", imageWidth || "");
       formData.append("imageHeight", imageHeight || "");
+      if (target.toLowerCase() === "ico") {
+        formData.append("iconSize", isPro ? iconSize || "32" : "32");
+        formData.append("iconBitDepth", isPro ? iconBitDepth || "32" : "32");
+      }
       if (["jpg", "webp", "avif"].includes(target.toLowerCase())) {
         formData.append("imageQuality", String(imageQuality ?? ""));
       }
@@ -3787,7 +3837,7 @@ export default function ConverterPageContent({
         let message = "Batch conversion failed.";
         try {
           const data = await res.json();
-          if (data?.error) message = data.error;
+          if (data?.error) message = toFriendlyErrorMessage(data.error, target);
         } catch {}
         throw new Error(message);
       }
@@ -3813,8 +3863,8 @@ export default function ConverterPageContent({
       clearInterval(fakeTimer);
       setBatchError(
         err?.name === "AbortError"
-          ? "Batch conversion timed out. Try fewer or smaller files."
-          : (err?.message ?? "Batch conversion failed."),
+          ? "Batch conversion took too long. Try fewer or smaller files."
+          : toFriendlyErrorMessage(err?.message, target),
       );
       setBatchStatus("error");
       setBatchProgress(0);

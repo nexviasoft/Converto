@@ -23,7 +23,7 @@ type HeroMeta = {
 function getSummaryMeta(family: RouteFamily): HeroMeta {
   if (family === "video_to_audio") {
     return {
-      eyebrow: "Audio extraction route",
+      eyebrow: "Audio extraction",
       headline: "Pull the sound out and leave the visual weight behind",
       detail:
         "Best when the real value is the voice, soundtrack, lecture, podcast, or interview inside the source video.",
@@ -40,7 +40,7 @@ function getSummaryMeta(family: RouteFamily): HeroMeta {
 
   if (family === "video_to_video") {
     return {
-      eyebrow: "Playback route",
+      eyebrow: "Playback compatibility",
       headline: "Reshape a heavy or awkward video into a more practical copy",
       detail:
         "Useful when sharing, uploading, browser playback, or everyday compatibility matters more than the original container.",
@@ -57,7 +57,7 @@ function getSummaryMeta(family: RouteFamily): HeroMeta {
 
   if (family === "video_to_image") {
     return {
-      eyebrow: "Visual export route",
+      eyebrow: "Visual export",
       headline: "Freeze motion into something lighter, simpler, and more reusable",
       detail:
         "Strong for thumbnails, poster frames, previews, and fast visual assets that do not need the full video anymore.",
@@ -74,7 +74,7 @@ function getSummaryMeta(family: RouteFamily): HeroMeta {
 
   if (family === "image_to_image") {
     return {
-      eyebrow: "Image optimization route",
+      eyebrow: "Image optimization",
       headline: "Switch image formats based on fit, not habit",
       detail:
         "Useful when size, transparency, upload rules, editing comfort, or web delivery matter more than the current extension.",
@@ -91,7 +91,7 @@ function getSummaryMeta(family: RouteFamily): HeroMeta {
 
   if (family === "audio_to_audio") {
     return {
-      eyebrow: "Audio format route",
+      eyebrow: "Audio conversion",
       headline: "Choose the audio format that matches the next job better",
       detail:
         "Great when you want a playback copy, a smaller shareable file, or a format better suited to your listening setup.",
@@ -107,7 +107,7 @@ function getSummaryMeta(family: RouteFamily): HeroMeta {
   }
 
   return {
-    eyebrow: "Flexible route",
+    eyebrow: "Flexible conversion",
     headline: "Move into a more useful format without leaving the workflow",
     detail:
       "Good for quick everyday conversions when the destination format matters more than the original file structure.",

@@ -72,12 +72,12 @@ function getCompareCards(
       },
       {
         title: `Playback is usually the win`,
-        body: `This kind of route is often less about “quality upgrades” and more about choosing what behaves better on real devices.`,
+        body: `This conversion is less about “quality upgrades” and more about choosing what works better on real devices.`,
         tone: "soft",
       },
       {
         title: `Alternative path`,
-        body: `If ${outputLabel} is not the right balance, test another nearby audio format before leaving the route.`,
+        body: `If ${outputLabel} is not the right balance, try another nearby audio format.`,
         tone: "outline",
       },
     ];
@@ -98,7 +98,7 @@ function getCompareCards(
       },
       {
         title: `When to test another target`,
-        body: `If ${outputLabel} still feels awkward, compare another playback-friendly video format rather than forcing one route.`,
+        body: `If ${outputLabel} still feels awkward, compare another playback-friendly video format.`,
         tone: "outline",
       },
     ];

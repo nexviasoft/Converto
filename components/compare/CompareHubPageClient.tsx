@@ -124,7 +124,7 @@ const whyCompareTiles = [
   },
   {
     title: "More useful content",
-    desc: "Each comparison adds clear SEO-friendly guidance around the tool.",
+    desc: "Each comparison includes clear, practical guidance around the tool.",
     iconSrc: "/images/vnext/compare-useful-content.png",
   },
   {

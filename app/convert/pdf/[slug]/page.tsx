@@ -96,7 +96,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!parsed) {
     return {
       title: "Page not found | Converto",
-      description: "This PDF tools route does not exist.",
+      description: "This PDF tool page does not exist.",
       robots: {
         index: false,
         follow: false,

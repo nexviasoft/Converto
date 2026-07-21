@@ -57,16 +57,16 @@ function RouteNarrativePanel({
 }) {
   const familyTone =
     family === "video_to_audio"
-      ? "This route is mostly about removing visual weight and keeping only the useful sound."
+      ? "This conversion removes the visual track and keeps the useful audio."
       : family === "video_to_video"
-      ? "This route is mostly about making playback, upload, and sharing smoother."
+      ? "This conversion is designed to make playback, uploading, and sharing smoother."
       : family === "video_to_image"
-      ? "This route is mostly about turning motion into a reusable visual asset."
+      ? "This conversion turns motion into a reusable visual asset."
       : family === "image_to_image"
-      ? "This route is mostly about picking the image format that fits the job better."
+      ? "This conversion helps you choose the image format that fits the job better."
       : family === "audio_to_audio"
-      ? "This route is mostly about choosing the listening or editing format that makes more sense next."
-      : "This route is mostly about practical format switching.";
+      ? "This conversion helps you choose a better format for listening or editing."
+      : "This conversion provides a practical way to switch file formats.";
 
   return (
     <section className="mx-auto mt-6 max-w-[1100px]">
