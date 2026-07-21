@@ -4247,7 +4247,7 @@ export default function ConverterPageContent({
 
           <section className="min-w-0">
             <div className={cx("mx-auto w-full", CENTER_MAX)}>
-              <section ref={converterSectionRef} className="scroll-mt-24 mx-auto max-w-[1100px]">
+              <section ref={converterSectionRef} className={cx("relative scroll-mt-24 mx-auto max-w-[1100px]", targetOpen ? "z-20" : "z-0")}>
                 <div className="relative rounded-[30px] bg-white/10 ring-1 ring-white/10 shadow-[0_35px_95px_rgba(0,0,0,0.42)]">
                   <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-violet-500/16 via-fuchsia-500/8 to-sky-500/16" />
 
@@ -6496,7 +6496,7 @@ export default function ConverterPageContent({
                                     Choose file
                                   </button>
 
-                                  <div ref={targetWrapRef} className="relative">
+                                  <div ref={targetWrapRef} className="relative z-[120]">
                                     <button
                                       type="button"
                                       onClick={() => setTargetOpen((v) => !v)}
@@ -6531,7 +6531,7 @@ export default function ConverterPageContent({
                                     {targetOpen ? (
                                       <div
                                         role="listbox"
-                                        className="absolute left-1/2 top-full z-50 mt-3 w-[min(17rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(43,35,91,0.98),rgba(20,16,50,0.99))] shadow-[0_28px_80px_rgba(7,5,24,0.68),inset_0_1px_0_rgba(255,255,255,0.10)] backdrop-blur-xl"
+                                        className="absolute left-1/2 top-full z-[160] mt-3 w-[min(17rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(43,35,91,0.98),rgba(20,16,50,0.99))] shadow-[0_28px_80px_rgba(7,5,24,0.68),inset_0_1px_0_rgba(255,255,255,0.10)] backdrop-blur-xl"
                                       >
                                         <div className="flex items-center justify-between border-b border-violet-200/10 bg-white/[0.035] px-4 py-3">
                                           <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-100/60">
@@ -6602,7 +6602,13 @@ export default function ConverterPageContent({
                                     ) : null}
                                   </div>
 
-                                  <div className="w-full max-w-3xl">
+                                  <div
+                                    className={
+                                      showIconControls
+                                        ? "basis-full mx-auto w-full max-w-[680px]"
+                                        : "w-full max-w-3xl"
+                                    }
+                                  >
                                     <div className="mt-6 space-y-3">
                                       {showTrimControls && (
                                         <ProFeatureLock
@@ -7250,52 +7256,62 @@ export default function ConverterPageContent({
                                       )}
 
                                       {showIconControls && (
-                                        <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4">
-                                          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                                            <div>
-                                              <div className="text-sm font-semibold text-white/85">
-                                                Icon export
-                                              </div>
-                                              <div className="mt-1 text-[11px] leading-5 text-white/45">
-                                                Choose a practical favicon size for everyday use.
+                                        <div className="relative overflow-hidden rounded-[22px] border border-violet-200/14 bg-[linear-gradient(135deg,rgba(82,61,151,0.24),rgba(57,78,145,0.20))] p-2.5 shadow-[0_18px_45px_rgba(12,8,42,0.22),inset_0_1px_0_rgba(255,255,255,0.07)]">
+                                          <div className="pointer-events-none absolute -right-16 -top-20 h-40 w-40 rounded-full bg-fuchsia-400/10 blur-3xl" />
+                                          <div className="pointer-events-none absolute -bottom-20 left-10 h-36 w-36 rounded-full bg-sky-400/8 blur-3xl" />
+
+                                          <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="min-w-0 px-2 py-1 text-left">
+                                              <div className="flex items-center gap-2">
+                                                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-violet-200/12 bg-white/[0.055] text-violet-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                    <rect x="5" y="5" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="1.8" />
+                                                    <path d="M9 15l2.2-2.4 1.7 1.7L15.6 11 19 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                                                  </svg>
+                                                </span>
+                                                <div>
+                                                  <div className="text-[12px] font-semibold tracking-[0.01em] text-white/86">
+                                                    Favicon size
+                                                  </div>
+                                                  <div className="mt-0.5 text-[10px] leading-4 text-white/42">
+                                                    Select the ICO size you need.
+                                                  </div>
+                                                </div>
                                               </div>
                                             </div>
-                                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
-                                              {iconSize}px
-                                            </span>
-                                          </div>
 
-                                          <div className="space-y-4">
-                                            <div>
-                                              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
-                                                Icon size
-                                              </span>
-                                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                                                {ICO_SIZE_OPTIONS.map((option) => {
-                                                  const active = iconSize === option;
+                                            <div className="grid w-full grid-cols-2 gap-1.5 rounded-[17px] border border-white/8 bg-black/10 p-1.5 sm:w-[320px]">
+                                              {ICO_SIZE_OPTIONS.map((option) => {
+                                                const active = iconSize === option;
 
-                                                  return (
-                                                    <button
-                                                      key={option}
-                                                      type="button"
-                                                      onClick={() => setIconSize(option)}
-                                                      className={[
-                                                        "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
-                                                        active
-                                                          ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
-                                                          : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
-                                                      ].join(" ")}
-                                                    >
-                                                      <div className="flex items-center justify-between gap-2">
-                                                        <span className="text-sm font-semibold">{option} px</span>
-                                                      </div>
-                                                      <div className="mt-1 text-[11px] leading-5 text-white/45">
-                                                        {option === "16" ? "Compact favicon for browser tabs" : "Recommended standard favicon size"}
-                                                      </div>
-                                                    </button>
-                                                  );
-                                                })}
-                                              </div>
+                                                return (
+                                                  <button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => setIconSize(option)}
+                                                    className={[
+                                                      "relative min-h-[58px] rounded-[13px] border px-3 py-2.5 text-left transition duration-200",
+                                                      active
+                                                        ? "border-fuchsia-300/28 bg-[linear-gradient(135deg,rgba(139,92,246,0.46),rgba(96,76,190,0.34))] text-white shadow-[0_10px_24px_rgba(76,42,150,0.20),inset_0_1px_0_rgba(255,255,255,0.12)]"
+                                                        : "border-transparent bg-white/[0.035] text-white/62 hover:border-white/8 hover:bg-white/[0.07] hover:text-white/85",
+                                                    ].join(" ")}
+                                                  >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                      <span className="text-sm font-semibold">{option} px</span>
+                                                      {active ? (
+                                                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/12 text-white/90 ring-1 ring-white/12">
+                                                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                                                          </svg>
+                                                        </span>
+                                                      ) : null}
+                                                    </div>
+                                                    <div className="mt-1 text-[10px] leading-4 text-white/44">
+                                                      {option === "16" ? "Browser tab" : "Recommended"}
+                                                    </div>
+                                                  </button>
+                                                );
+                                              })}
                                             </div>
                                           </div>
                                         </div>
