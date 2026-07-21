@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import { allEditorialGuides } from "@/lib/editorialGuides";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.converto.tools";
@@ -54,6 +55,8 @@ export default function GuidesPage() {
               </article>
             ))}
           </div>
+
+          <AdsterraNativeBanner className="mt-8" />
 
           <section className="mt-8 rounded-[30px] border border-white/10 bg-white/[0.06] p-6 sm:p-8">
             <h2 className="text-2xl font-semibold tracking-tight">Use the guides with the tools</h2>

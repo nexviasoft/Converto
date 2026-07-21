@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
 type BillingType = "monthly" | "yearly";
 
@@ -395,6 +396,10 @@ export default function ConvertoProPricingPage() {
             ))}
           </div>
         </section>
+
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+          <AdsterraNativeBanner />
+        </div>
 
         <section id="how" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="text-center">

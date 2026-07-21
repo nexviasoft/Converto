@@ -1,19 +1,33 @@
 // MASTER SWITCH: Set this single line to false to disable every Adsterra ad site-wide.
 export const ADSTERRA_ALL_ADS_ENABLED = true;
 
+// Standard 728x90 / 320x50 / 300x250 units are temporarily disabled because
+// the current Adsterra inventory does not fill them reliably. Native remains active.
+export const ADSTERRA_STANDARD_BANNERS_ENABLED = false;
+
+// GEO SWITCH: Turkey is blocked while "TR" remains in this list.
+export const ADSTERRA_BLOCKED_COUNTRIES: readonly string[] = ["TR"];
+
+// Fail closed for privacy/safety: no country result means no ad request.
+export const ADSTERRA_ALLOW_UNKNOWN_COUNTRY = false;
+
 export const ADSTERRA_BANNER_728_KEY =
   process.env.NEXT_PUBLIC_ADSTERRA_BANNER_728_KEY ||
   "2509fb3ccdb765e1e445a723925e0934";
 
 export const ADSTERRA_BANNER_728_ENABLED =
-  ADSTERRA_ALL_ADS_ENABLED && /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_728_KEY);
+  ADSTERRA_ALL_ADS_ENABLED &&
+  ADSTERRA_STANDARD_BANNERS_ENABLED &&
+  /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_728_KEY);
 
 export const ADSTERRA_BANNER_320_KEY =
   process.env.NEXT_PUBLIC_ADSTERRA_BANNER_320_KEY ||
   "5c70ca7ef822fbea8712b1c5fd406f5e";
 
 export const ADSTERRA_BANNER_320_ENABLED =
-  ADSTERRA_ALL_ADS_ENABLED && /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_320_KEY);
+  ADSTERRA_ALL_ADS_ENABLED &&
+  ADSTERRA_STANDARD_BANNERS_ENABLED &&
+  /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_320_KEY);
 
 
 export const ADSTERRA_BANNER_300_KEY =
@@ -21,7 +35,9 @@ export const ADSTERRA_BANNER_300_KEY =
   "7e80ecd08cb20bbae47352951b96dfc6";
 
 export const ADSTERRA_BANNER_300_ENABLED =
-  ADSTERRA_ALL_ADS_ENABLED && /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_300_KEY);
+  ADSTERRA_ALL_ADS_ENABLED &&
+  ADSTERRA_STANDARD_BANNERS_ENABLED &&
+  /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_300_KEY);
 
 
 export const ADSTERRA_NATIVE_SCRIPT_SRC =

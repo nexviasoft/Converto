@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useAdEligibility } from "@/components/ads/AdEligibilityProvider";
 import {
   ADSTERRA_NATIVE_CONTAINER_ID,
   ADSTERRA_NATIVE_ENABLED,
@@ -12,10 +13,11 @@ export default function AdsterraNativeBanner({
 }: {
   className?: string;
 }) {
+  const { adsAllowed } = useAdEligibility();
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ADSTERRA_NATIVE_ENABLED || !mountRef.current) return;
+    if (!adsAllowed || !ADSTERRA_NATIVE_ENABLED || !mountRef.current) return;
 
     const mount = mountRef.current;
     mount.replaceChildren();
@@ -33,9 +35,9 @@ export default function AdsterraNativeBanner({
     return () => {
       mount.replaceChildren();
     };
-  }, []);
+  }, [adsAllowed]);
 
-  if (!ADSTERRA_NATIVE_ENABLED) return null;
+  if (!adsAllowed || !ADSTERRA_NATIVE_ENABLED) return null;
 
   return (
     <aside

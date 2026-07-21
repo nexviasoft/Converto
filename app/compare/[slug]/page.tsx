@@ -5,6 +5,7 @@ import { allCompareItems, compareData } from "@/lib/compareData";
 import AdUnit from "@/components/ads/AdUnit";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import { AD_SLOTS, hasRailAdSlots } from "@/lib/adsConfig";
 
 type PageProps = {
@@ -255,6 +256,8 @@ export default async function CompareDetailPage({ params }: PageProps) {
                   </ul>
                 </div>
               </section>
+
+              <AdsterraNativeBanner className="mt-10" />
 
               <section className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
                 <div className="rounded-[30px] border border-violet-200/14 bg-[#282151]/68 p-6 shadow-[0_24px_70px_rgba(18,14,45,0.28)]">

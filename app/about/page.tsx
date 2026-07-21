@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -78,6 +79,8 @@ export default function AboutPage() {
                 and accessible for regular users.
               </p>
             </section>
+
+            <AdsterraNativeBanner />
 
             <section className="rounded-3xl bg-white/6 p-6 ring-1 ring-white/10">
               <h2 className="text-xl font-semibold text-white">Editorial approach</h2>

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import AdsterraResponsiveBanner from "@/components/ads/AdsterraResponsiveBanner";
 import { ADSTERRA_ALL_ADS_ENABLED } from "@/lib/adsterraConfig";
+import { useAdEligibility } from "@/components/ads/AdEligibilityProvider";
 
 const EXCLUDED_EXACT_PATHS = new Set([
   "/privacy",
@@ -19,8 +20,9 @@ function isEligiblePath(pathname: string) {
 
 export default function AdsterraFooterPlacement() {
   const pathname = usePathname();
+  const { adsAllowed } = useAdEligibility();
 
-  if (!ADSTERRA_ALL_ADS_ENABLED || !isEligiblePath(pathname)) return null;
+  if (!adsAllowed || !ADSTERRA_ALL_ADS_ENABLED || !isEligiblePath(pathname)) return null;
 
   return (
     <section

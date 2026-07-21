@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ADSTERRA_BANNER_300_ENABLED } from "@/lib/adsterraConfig";
+import { useAdEligibility } from "@/components/ads/AdEligibilityProvider";
 
 const SLOT_NAME = "300x250";
 const TIMEOUT_MS = 12000;
@@ -29,11 +30,14 @@ export default function AdsterraBanner300x250({
 }: {
   className?: string;
 }) {
+  const { adsAllowed } = useAdEligibility();
   const [hasCreative, setHasCreative] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
+    if (!adsAllowed) return;
+
     const onMessage = (event: MessageEvent) => {
       if (event.source !== frameRef.current?.contentWindow) return;
       if (event.data?.type !== "converto-adsterra-ready") return;
@@ -61,9 +65,9 @@ export default function AdsterraBanner300x250({
       window.removeEventListener("message", onMessage);
       window.clearInterval(timer);
     };
-  }, []);
+  }, [adsAllowed]);
 
-  if (!ADSTERRA_BANNER_300_ENABLED || timedOut) return null;
+  if (!adsAllowed || !ADSTERRA_BANNER_300_ENABLED || timedOut) return null;
 
   return (
     <aside

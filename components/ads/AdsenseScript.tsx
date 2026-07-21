@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { isAdsensePathEligible } from "@/lib/adsEligibility";
+import { useAdEligibility } from "@/components/ads/AdEligibilityProvider";
 import {
   AD_SLOTS,
   ADSENSE_CLIENT,
@@ -21,8 +22,9 @@ export {
 
 export default function AdsenseScript() {
   const pathname = usePathname();
+  const { adsAllowed } = useAdEligibility();
 
-  if (!ADSENSE_ENABLED || !isAdsensePathEligible(pathname)) return null;
+  if (!adsAllowed || !ADSENSE_ENABLED || !isAdsensePathEligible(pathname)) return null;
 
   return (
     <Script

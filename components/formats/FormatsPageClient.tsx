@@ -2,6 +2,7 @@
 
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -1747,6 +1748,8 @@ export default function FormatsPageClient() {
                   </div>
                 </GlassCard>
               </section>
+
+              <AdsterraNativeBanner className="mt-10" />
 
               <section className="mt-10 grid gap-6 xl:grid-cols-3">
                 <FormatGroup

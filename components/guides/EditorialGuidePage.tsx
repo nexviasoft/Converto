@@ -1,7 +1,5 @@
 import Link from "next/link";
 import type { EditorialGuide } from "@/lib/editorialGuides";
-import AdsterraBanner728x90 from "@/components/ads/AdsterraBanner728x90";
-import AdsterraBanner320x50 from "@/components/ads/AdsterraBanner320x50";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
 function GuideIcon({ index }: { index: number }) {
@@ -69,9 +67,6 @@ export default function EditorialGuidePage({ guide }: { guide: EditorialGuide })
                 ))}
               </div>
             </section>
-
-            <AdsterraBanner728x90 />
-            <AdsterraBanner320x50 />
 
             {guide.sections.map((section, index) => (
               <div key={section.id}>

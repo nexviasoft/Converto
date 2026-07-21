@@ -2,6 +2,7 @@
 
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { allCompareItems } from "@/lib/compareData";
@@ -654,6 +655,8 @@ export default function CompareHubPageClient() {
                     </div>
                   </GlassCard>
                 </section>
+
+                <AdsterraNativeBanner className="mt-10" />
 
                 <section className="mt-10 grid gap-6 lg:grid-cols-3">
                   {[

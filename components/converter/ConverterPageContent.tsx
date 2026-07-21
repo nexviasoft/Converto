@@ -20,6 +20,7 @@ import { PDFDocument } from "pdf-lib";
 import RouteAwareContentSections from "@/components/converter/sections/RouteAwareContentSections";
 import type { ConverterPageContentEntry } from "@/lib/converterContent";
 import { PRO_PUBLIC } from "@/lib/siteReadiness";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
 type TargetFmt =
   | "MP3"
@@ -7701,6 +7702,10 @@ export default function ConverterPageContent({
                   </div>
                 </div>
               </section>
+
+              <div className="mx-auto mt-8 max-w-[1100px]">
+                <AdsterraNativeBanner />
+              </div>
 
               {showRouteDetails ? (
                 <>

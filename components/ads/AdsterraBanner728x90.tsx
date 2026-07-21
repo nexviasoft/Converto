@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAdEligibility } from "@/components/ads/AdEligibilityProvider";
 import { ADSTERRA_BANNER_728_ENABLED } from "@/lib/adsterraConfig";
 
 const DESKTOP_QUERY = "(min-width: 820px)";
@@ -30,6 +31,7 @@ export default function AdsterraBanner728x90({
 }: {
   className?: string;
 }) {
+  const { adsAllowed } = useAdEligibility();
   const [isDesktop, setIsDesktop] = useState(false);
   const [hasCreative, setHasCreative] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
@@ -45,7 +47,7 @@ export default function AdsterraBanner728x90({
   }, []);
 
   useEffect(() => {
-    if (!isDesktop) return;
+    if (!adsAllowed || !isDesktop) return;
 
     setHasCreative(false);
     setTimedOut(false);
@@ -77,9 +79,9 @@ export default function AdsterraBanner728x90({
       window.removeEventListener("message", onMessage);
       window.clearInterval(timer);
     };
-  }, [isDesktop]);
+  }, [isDesktop, adsAllowed]);
 
-  if (!ADSTERRA_BANNER_728_ENABLED || !isDesktop || timedOut) return null;
+  if (!adsAllowed || !ADSTERRA_BANNER_728_ENABLED || !isDesktop || timedOut) return null;
 
   return (
     <aside

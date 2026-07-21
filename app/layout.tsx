@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import AdSenseScript from "@/components/ads/AdsenseScript";
+import { AdEligibilityProvider } from "@/components/ads/AdEligibilityProvider";
 import "./globals.css";
 
 const siteUrl =
@@ -108,8 +109,10 @@ export default function RootLayout({
           <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
         </head>
       <body>
-        <AdSenseScript />
-        {children}
+        <AdEligibilityProvider>
+          <AdSenseScript />
+          {children}
+        </AdEligibilityProvider>
 
         <Script id="microsoft-clarity" strategy="afterInteractive">
             {`

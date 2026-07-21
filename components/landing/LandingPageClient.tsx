@@ -14,6 +14,7 @@ import TrustWaitlistSection from "@/components/landing/sections/TrustWaitlistSec
 import FaqSection from "@/components/landing/sections/FaqSection";
 import HomeResourceSections from "@/components/landing/sections/HomeResourceSections";
 import { PRO_PUBLIC, WAITLIST_PUBLIC } from "@/lib/siteReadiness";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
 export default function LandingPageClient() {
   const googlePlayUrl: string | null = null;
@@ -256,6 +257,11 @@ export default function LandingPageClient() {
         />
 
         <FeaturesSection />
+
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <AdsterraNativeBanner />
+        </div>
+
         <HowSection />
 
         {PRO_PUBLIC ? (
