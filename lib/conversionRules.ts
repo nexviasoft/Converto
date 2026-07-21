@@ -56,14 +56,16 @@ export const VIDEO_TARGETS: TargetFmt[] = [
   "3GP",
 ];
 
-// TIFF and ICO remain recognized as legacy names by the parser, but they are
-// not public input or output options until those conversion paths are reliable.
+// Public image formats. TIFF and ICO are enabled again now that the backend
+// has stable presets for both directions.
 export const IMAGE_INPUT_FORMATS: TargetFmt[] = [
   "GIF",
   "PNG",
   "JPG",
   "WEBP",
   "BMP",
+  "TIFF",
+  "ICO",
   "AVIF",
 ];
 
@@ -73,11 +75,33 @@ export const IMAGE_TARGETS: TargetFmt[] = [
   "JPG",
   "WEBP",
   "BMP",
+  "TIFF",
+  "ICO",
   "AVIF",
 ];
 
-// Video can produce an animation or a practical still/thumbnail format.
-// Formats such as ICO, TIFF, BMP, and AVIF are deliberately excluded here.
+// ICO is a purpose-built icon output, so animated GIF input is not offered as
+// an ICO source. ICO input is converted only to practical raster formats.
+const ICO_INPUT_TARGETS: TargetFmt[] = [
+  "PNG",
+  "JPG",
+  "WEBP",
+  "BMP",
+  "TIFF",
+  "AVIF",
+];
+
+const GIF_INPUT_TARGETS: TargetFmt[] = [
+  "PNG",
+  "JPG",
+  "WEBP",
+  "BMP",
+  "TIFF",
+  "AVIF",
+];
+
+// Video can produce an animation or practical still/thumbnail formats. ICO and
+// TIFF stay image-to-image only because they are not sensible video exports.
 export const VIDEO_VISUAL_TARGETS: TargetFmt[] = [
   "GIF",
   "PNG",
@@ -126,6 +150,10 @@ export function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
       ...VIDEO_TARGETS,
       ...VIDEO_VISUAL_TARGETS,
     ];
+  } else if (fmt === "ICO") {
+    targets = ICO_INPUT_TARGETS;
+  } else if (fmt === "GIF") {
+    targets = GIF_INPUT_TARGETS;
   } else if (isImageFmt(fmt)) {
     targets = IMAGE_TARGETS;
   } else {

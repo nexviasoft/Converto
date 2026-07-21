@@ -62,3 +62,32 @@ textarea {
     --spacing: 0.225rem;
   }
 }
+
+
+/* Converto format selector: branded, compact scrollbar that matches the app palette. */
+.converto-format-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(167, 139, 250, 0.68) rgba(255, 255, 255, 0.05);
+}
+
+.converto-format-scrollbar::-webkit-scrollbar {
+  width: 9px;
+}
+
+.converto-format-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 999px;
+}
+
+.converto-format-scrollbar::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(167, 139, 250, 0.82), rgba(96, 116, 224, 0.72));
+  background-clip: padding-box;
+}
+
+.converto-format-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(196, 181, 253, 0.92), rgba(129, 140, 248, 0.86));
+  background-clip: padding-box;
+}

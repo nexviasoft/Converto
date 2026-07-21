@@ -330,6 +330,7 @@ const VIDEO_RESOLUTION_OPTIONS = [
 ] as const;
 const VIDEO_QUALITY_OPTIONS = ["small", "balanced", "high"] as const;
 const AUDIO_CHANNEL_OPTIONS = ["1", "2"] as const;
+const ICO_SIZE_OPTIONS = ["16", "32"] as const;
 
 const homepagePopularConversions: Array<{ href: string; label: string }> = [
   { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
@@ -2127,6 +2128,8 @@ export default function ConverterPageContent({
   const [videoFps, setVideoFps] = useState("30");
   const [videoCodec, setVideoCodec] = useState("h264");
   const [muteAudio, setMuteAudio] = useState(false);
+  const [iconSize, setIconSize] = useState("32");
+  const [iconBitDepth, setIconBitDepth] = useState("24");
   const [imageWidth, setImageWidth] = useState("");
   const [imageHeight, setImageHeight] = useState("");
   const [imageQuality, setImageQuality] = useState(92);
@@ -2334,6 +2337,7 @@ export default function ConverterPageContent({
   const outputIsAudio = isAudioFmt(resolvedOutputLabel);
   const outputIsVideo = isVideoFmt(resolvedOutputLabel);
   const outputIsGif = resolvedOutputLabel === "GIF";
+  const outputIsIcon = resolvedOutputLabel === "ICO";
   const showTrimControls = currentInputIsAudio || currentInputIsVideo;
   const showBitrateControls =
     currentInputIsAudio || (currentInputIsVideo && outputIsAudio);
@@ -2346,8 +2350,9 @@ export default function ConverterPageContent({
     currentInputIsVideo && (outputIsVideo || outputIsGif);
   const showVideoFpsControls = currentInputIsVideo && outputIsVideo;
   const showMuteAudioControls = currentInputIsVideo && outputIsVideo;
+  const showIconControls = currentInputIsImage && outputIsIcon;
   const showImageResizeControls =
-    currentInputIsImage && isImageFmt(resolvedOutputLabel);
+    currentInputIsImage && isImageFmt(resolvedOutputLabel) && !outputIsIcon;
   const showImageQualityControls =
     currentInputIsImage &&
     ["JPG", "WEBP", "AVIF"].includes(resolvedOutputLabel ?? "");
@@ -2773,6 +2778,8 @@ export default function ConverterPageContent({
     setVideoQuality("balanced");
     setVideoFps("30");
     setMuteAudio(false);
+    setIconSize("32");
+    setIconBitDepth("24");
     setImageWidth("");
     setImageHeight("");
     setTrimEnabled(false);
@@ -2999,6 +3006,11 @@ export default function ConverterPageContent({
       formData.append("videoCodec", videoCodec || "");
 
       formData.append("muteAudio", String(Boolean(muteAudio)));
+
+      if (normalizedTarget === "ico") {
+        formData.append("iconSize", iconSize || "32");
+        formData.append("iconBitDepth", iconBitDepth || "24");
+      }
 
       formData.append("imageWidth", imageWidth || "");
       formData.append("imageHeight", imageHeight || "");
@@ -3718,6 +3730,10 @@ export default function ConverterPageContent({
       formData.append("videoFps", videoFps || "");
       formData.append("videoCodec", videoCodec || "");
       formData.append("muteAudio", String(Boolean(muteAudio)));
+      if (target.toLowerCase() === "ico") {
+        formData.append("iconSize", iconSize || "32");
+        formData.append("iconBitDepth", iconBitDepth || "24");
+      }
       formData.append("imageWidth", imageWidth || "");
       formData.append("imageHeight", imageHeight || "");
       if (["jpg", "webp", "avif"].includes(target.toLowerCase())) {
@@ -6402,7 +6418,7 @@ export default function ConverterPageContent({
                                 <p className="mt-2 text-sm text-white/60">
                                   {file
                                     ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
-                                    : "Supported: MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • AIFF • WMA • AMR • MP4 • WEBM • MOV • MKV • AVI • WMV • FLV • M4V • MPG • MPEG • 3GP • GIF • PNG • JPG • WEBP • BMP • AVIF"}
+                                    : "Supported: MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • AIFF • WMA • AMR • MP4 • WEBM • MOV • MKV • AVI • WMV • FLV • M4V • MPG • MPEG • 3GP • GIF • PNG • JPG • WEBP • BMP • TIFF • ICO • AVIF"}
                                 </p>
 
                                 {file && previewUrl ? (
@@ -6484,11 +6500,11 @@ export default function ConverterPageContent({
                                     <button
                                       type="button"
                                       onClick={() => setTargetOpen((v) => !v)}
-                                      className="inline-flex h-12 items-center gap-2 rounded-[18px] bg-white/12 px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/10 transition hover:bg-white/18"
+                                      className="inline-flex h-12 items-center gap-2 rounded-[18px] border border-violet-300/20 bg-[linear-gradient(135deg,rgba(109,78,232,0.28),rgba(81,105,216,0.18))] px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(34,24,88,0.28),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:border-violet-200/30 hover:brightness-110"
                                       aria-haspopup="listbox"
                                       aria-expanded={targetOpen}
                                     >
-                                      <span className="text-xs font-medium text-white/60">
+                                      <span className="text-xs font-medium text-violet-100/65">
                                         Convert to
                                       </span>
                                       <span>{target}</span>
@@ -6498,7 +6514,7 @@ export default function ConverterPageContent({
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         className={cx(
-                                          "transition",
+                                          "text-violet-100/80 transition",
                                           targetOpen ? "rotate-180" : "",
                                         )}
                                       >
@@ -6515,11 +6531,20 @@ export default function ConverterPageContent({
                                     {targetOpen ? (
                                       <div
                                         role="listbox"
-                                        className="absolute left-1/2 top-full z-50 mt-2 w-52 -translate-x-1/2 overflow-hidden rounded-2xl bg-[#0D0B18]/95 backdrop-blur ring-1 ring-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                                        className="absolute left-1/2 top-full z-50 mt-3 w-[min(17rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(43,35,91,0.98),rgba(20,16,50,0.99))] shadow-[0_28px_80px_rgba(7,5,24,0.68),inset_0_1px_0_rgba(255,255,255,0.10)] backdrop-blur-xl"
                                       >
+                                        <div className="flex items-center justify-between border-b border-violet-200/10 bg-white/[0.035] px-4 py-3">
+                                          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-100/60">
+                                            Output format
+                                          </span>
+                                          <span className="rounded-full border border-violet-200/10 bg-violet-300/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100/65">
+                                            {availableTargets.length} options
+                                          </span>
+                                        </div>
+
                                         <div
                                           ref={targetListRef}
-                                          className="max-h-44 overflow-auto"
+                                          className="converto-format-scrollbar max-h-[min(420px,62vh)] overflow-y-auto overscroll-contain py-2"
                                         >
                                           {availableTargets.map((fmt) => (
                                             <button
@@ -6541,64 +6566,38 @@ export default function ConverterPageContent({
                                                 }
                                               }}
                                               className={cx(
-                                                "flex w-full items-center justify-between px-4 py-3 text-sm transition",
+                                                "mx-2 flex w-[calc(100%-1rem)] items-center justify-between rounded-xl border px-4 py-3 text-sm transition",
                                                 fmt === target
-                                                  ? "bg-white/10 text-white"
-                                                  : "text-white/80 hover:bg-white/10",
+                                                  ? "border-violet-300/25 bg-[linear-gradient(135deg,rgba(124,92,246,0.26),rgba(82,112,220,0.16))] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                                                  : "border-transparent text-white/78 hover:border-violet-200/10 hover:bg-white/[0.07] hover:text-white",
                                               )}
                                             >
-                                              <span className="font-semibold">
+                                              <span className="font-semibold tracking-[0.01em]">
                                                 {fmt}
                                               </span>
                                               {fmt === target ? (
-                                                <svg
-                                                  width="16"
-                                                  height="16"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M20 6L9 17l-5-5"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                  />
-                                                </svg>
+                                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-300/15 text-violet-100 ring-1 ring-violet-200/20">
+                                                  <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                  >
+                                                    <path
+                                                      d="M20 6L9 17l-5-5"
+                                                      stroke="currentColor"
+                                                      strokeWidth="2"
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                    />
+                                                  </svg>
+                                                </span>
                                               ) : (
-                                                <span className="w-4" />
+                                                <span className="h-6 w-6" />
                                               )}
                                             </button>
                                           ))}
                                         </div>
-
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            targetListRef.current?.scrollBy({
-                                              top: 140,
-                                              behavior: "smooth",
-                                            })
-                                          }
-                                          className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-white/5 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
-                                          aria-label="Scroll options"
-                                        >
-                                          <span>Scroll</span>
-                                          <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                          >
-                                            <path
-                                              d="M6 9l6 6 6-6"
-                                              stroke="currentColor"
-                                              strokeWidth="2"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            />
-                                          </svg>
-                                        </button>
                                       </div>
                                     ) : null}
                                   </div>
@@ -7248,6 +7247,58 @@ export default function ConverterPageContent({
                                             )}
                                           </button>
                                         </ProFeatureLock>
+                                      )}
+
+                                      {showIconControls && (
+                                        <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4">
+                                          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                              <div className="text-sm font-semibold text-white/85">
+                                                Icon export
+                                              </div>
+                                              <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                                Choose a practical favicon size for everyday use.
+                                              </div>
+                                            </div>
+                                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/50">
+                                              {iconSize}px
+                                            </span>
+                                          </div>
+
+                                          <div className="space-y-4">
+                                            <div>
+                                              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
+                                                Icon size
+                                              </span>
+                                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                                                {ICO_SIZE_OPTIONS.map((option) => {
+                                                  const active = iconSize === option;
+
+                                                  return (
+                                                    <button
+                                                      key={option}
+                                                      type="button"
+                                                      onClick={() => setIconSize(option)}
+                                                      className={[
+                                                        "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
+                                                        active
+                                                          ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
+                                                          : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                                                      ].join(" ")}
+                                                    >
+                                                      <div className="flex items-center justify-between gap-2">
+                                                        <span className="text-sm font-semibold">{option} px</span>
+                                                      </div>
+                                                      <div className="mt-1 text-[11px] leading-5 text-white/45">
+                                                        {option === "16" ? "Compact favicon for browser tabs" : "Recommended standard favicon size"}
+                                                      </div>
+                                                    </button>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
                                       )}
 
                                       {showImageResizeControls && (
