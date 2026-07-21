@@ -6,6 +6,36 @@
   <style>
     html,body{width:320px;height:50px;margin:0;padding:0;overflow:hidden;background:transparent}
   </style>
+  <script>
+    (function () {
+      function hasCreative() {
+        return Array.from(document.body.children).some(function (element) {
+          var tag = element.tagName.toLowerCase();
+          if (["script", "style", "link"].includes(tag)) return false;
+          if (element.querySelector("iframe, img, a, object, embed, video")) return true;
+          var rect = element.getBoundingClientRect();
+          return rect.width > 2 && rect.height > 2;
+        });
+      }
+
+      function notifyParent() {
+        if (!hasCreative()) return;
+        window.parent.postMessage({
+          type: "converto-adsterra-ready",
+          slot: "320x50"
+        }, "*");
+      }
+
+      window.addEventListener("DOMContentLoaded", function () {
+        new MutationObserver(notifyParent).observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true
+        });
+        window.setInterval(notifyParent, 500);
+      });
+    })();
+  </script>
 </head>
 <body>
 <script>

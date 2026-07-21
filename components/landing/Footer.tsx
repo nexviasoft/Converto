@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ANDROID_APP_PUBLIC, PRO_PUBLIC } from "@/lib/siteReadiness";
+import AdsterraFooterPlacement from "@/components/ads/AdsterraFooterPlacement";
 
 const groups = [
   {
@@ -46,7 +47,9 @@ export default function Footer({
   onAndroidAppClick,
 }: FooterProps = {}) {
   return (
-    <footer className="relative z-10 border-t border-white/10 bg-[#0d0a20]/88 backdrop-blur-xl">
+    <>
+      <AdsterraFooterPlacement />
+      <footer className="relative z-10 border-t border-white/10 bg-[#0d0a20]/88 backdrop-blur-xl">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-[1.1fr_2fr]">
           <div>
@@ -122,6 +125,7 @@ export default function Footer({
           </span>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 }
