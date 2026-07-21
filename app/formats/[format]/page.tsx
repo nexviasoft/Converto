@@ -4,6 +4,9 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
+import AdsterraBanner728x90 from "@/components/ads/AdsterraBanner728x90";
+import AdsterraBanner320x50 from "@/components/ads/AdsterraBanner320x50";
+import AdsterraBanner300x250 from "@/components/ads/AdsterraBanner300x250";
 import { formatData, allFormats } from "@/lib/formatData";
 
 type PageProps = {
@@ -733,6 +736,9 @@ export default async function FormatDetailPage({ params }: PageProps) {
               </div>
             </section>
 
+            <AdsterraBanner728x90 className="mt-6" />
+            <AdsterraBanner320x50 className="mt-6" />
+
             <section id="format-guide" className="mt-10 scroll-mt-24">
               <GlassCard className="relative overflow-hidden p-5 sm:p-7">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.13),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.10),transparent_32%)]" />
@@ -929,6 +935,8 @@ export default async function FormatDetailPage({ params }: PageProps) {
                 </GlassCard>
               </section>
             ) : null}
+
+            <AdsterraBanner300x250 className="mt-10" />
 
             <section className="mt-10">
               <GlassCard className="p-6 sm:p-7">

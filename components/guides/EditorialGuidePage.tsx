@@ -1,5 +1,8 @@
 import Link from "next/link";
 import type { EditorialGuide } from "@/lib/editorialGuides";
+import AdsterraBanner728x90 from "@/components/ads/AdsterraBanner728x90";
+import AdsterraBanner320x50 from "@/components/ads/AdsterraBanner320x50";
+import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
 function GuideIcon({ index }: { index: number }) {
   const paths = [
@@ -67,8 +70,12 @@ export default function EditorialGuidePage({ guide }: { guide: EditorialGuide })
               </div>
             </section>
 
+            <AdsterraBanner728x90 />
+            <AdsterraBanner320x50 />
+
             {guide.sections.map((section, index) => (
-              <section id={section.id} key={section.id} className="scroll-mt-24 rounded-[28px] border border-white/10 bg-[#201b46]/62 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.20)] sm:p-8">
+              <div key={section.id}>
+                <section id={section.id} className="scroll-mt-24 rounded-[28px] border border-white/10 bg-[#201b46]/62 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.20)] sm:p-8">
                 <div className="flex items-start gap-4">
                   <GuideIcon index={index} />
                   <div className="min-w-0 flex-1">
@@ -120,7 +127,10 @@ export default function EditorialGuidePage({ guide }: { guide: EditorialGuide })
                     ) : null}
                   </div>
                 </div>
-              </section>
+                </section>
+
+                {index === 1 ? <AdsterraNativeBanner className="mt-6" /> : null}
+              </div>
             ))}
 
             <section className="rounded-[28px] border border-white/10 bg-[#201b46]/62 p-6 sm:p-8">
