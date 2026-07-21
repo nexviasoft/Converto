@@ -5,8 +5,12 @@ export const ADSTERRA_ALL_ADS_ENABLED = true;
 // the current Adsterra inventory does not fill them reliably. Native remains active.
 export const ADSTERRA_STANDARD_BANNERS_ENABLED = false;
 
-// GEO SWITCH: Turkey is blocked while "TR" remains in this list.
-export const ADSTERRA_BLOCKED_COUNTRIES: readonly string[] = ["TR"];
+// TEMPORARY TEST SWITCH: Keep this true only while testing ads from Turkey.
+// Set it back to false after the test so Turkey is blocked again.
+export const ADSTERRA_TURKEY_TEST_MODE = true;
+
+export const ADSTERRA_BLOCKED_COUNTRIES: readonly string[] =
+  ADSTERRA_TURKEY_TEST_MODE ? [] : ["TR"];
 
 // Fail closed for privacy/safety: no country result means no ad request.
 export const ADSTERRA_ALLOW_UNKNOWN_COUNTRY = false;
