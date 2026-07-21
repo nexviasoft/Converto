@@ -6,6 +6,7 @@ import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import { formatData, allFormats } from "@/lib/formatData";
+import { isSupportedConversionHref } from "@/lib/conversionRules";
 
 type PageProps = {
   params: Promise<{
@@ -572,6 +573,10 @@ export default async function FormatDetailPage({ params }: PageProps) {
 
   if (!data) notFound();
 
+  const supportedConversions = data.commonConversions.filter((item) =>
+    isSupportedConversionHref(item.href),
+  );
+
   const PAGE_MAX = "max-w-[1320px]";
   const CENTER_MAX = "max-w-[1240px]";
 
@@ -718,9 +723,9 @@ export default async function FormatDetailPage({ params }: PageProps) {
 
                     <LinkPill href="/converter">Open Converter</LinkPill>
 
-                    {data.commonConversions[0] ? (
-                      <LinkPill href={data.commonConversions[0].href}>
-                        Try {data.commonConversions[0].label}
+                    {supportedConversions[0] ? (
+                      <LinkPill href={supportedConversions[0].href}>
+                        Try {supportedConversions[0].label}
                       </LinkPill>
                     ) : null}
                   </div>
@@ -729,7 +734,7 @@ export default async function FormatDetailPage({ params }: PageProps) {
                 <FormatMark
                   category={data.category}
                   label={data.label}
-                  convertHref={data.commonConversions[0]?.href || "/converter"}
+                  convertHref={supportedConversions[0]?.href || "/converter"}
                 />
               </div>
             </section>
@@ -769,7 +774,7 @@ export default async function FormatDetailPage({ params }: PageProps) {
                     />
                     <InfoTile
                       title="Popular conversion"
-                      desc={data.commonConversions[0]?.label || `${data.label} conversion`}
+                      desc={supportedConversions[0]?.label || `${data.label} conversion`}
                       icon={<FeatureIcon kind="layers" className="h-5 w-5" />}
                       accent="sky"
                       number="03"
@@ -948,7 +953,7 @@ export default async function FormatDetailPage({ params }: PageProps) {
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {data.commonConversions.map((item) => (
+                  {supportedConversions.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
@@ -1048,9 +1053,9 @@ export default async function FormatDetailPage({ params }: PageProps) {
                     Open Converter
                   </LinkPill>
 
-                  {data.commonConversions[0] ? (
-                    <LinkPill href={data.commonConversions[0].href}>
-                      {data.commonConversions[0].label}
+                  {supportedConversions[0] ? (
+                    <LinkPill href={supportedConversions[0].href}>
+                      {supportedConversions[0].label}
                     </LinkPill>
                   ) : null}
                 </div>

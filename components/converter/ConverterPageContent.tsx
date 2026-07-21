@@ -21,37 +21,16 @@ import RouteAwareContentSections from "@/components/converter/sections/RouteAwar
 import type { ConverterPageContentEntry } from "@/lib/converterContent";
 import { PRO_PUBLIC } from "@/lib/siteReadiness";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
-
-type TargetFmt =
-  | "MP3"
-  | "WAV"
-  | "M4A"
-  | "AAC"
-  | "OGG"
-  | "OPUS"
-  | "FLAC"
-  | "AIFF"
-  | "WMA"
-  | "AMR"
-  | "MP4"
-  | "WEBM"
-  | "MOV"
-  | "MKV"
-  | "AVI"
-  | "WMV"
-  | "FLV"
-  | "M4V"
-  | "MPG"
-  | "MPEG"
-  | "3GP"
-  | "GIF"
-  | "PNG"
-  | "JPG"
-  | "WEBP"
-  | "BMP"
-  | "TIFF"
-  | "ICO"
-  | "AVIF";
+import {
+  ALL_FILE_FORMATS,
+  ALL_TARGET_OPTIONS,
+  getAvailableTargets,
+  isAudioFmt,
+  isImageFmt,
+  isSupportedConversion,
+  isVideoFmt,
+  type TargetFmt,
+} from "@/lib/conversionRules";
 
 type SeoPageMode = "convert" | "batch" | "pdf";
 type PdfSeoTool = "to_pdf" | "split_pdf" | "pdf_to_image";
@@ -90,14 +69,9 @@ function toFriendlyErrorMessage(
 ) {
   const raw = (message ?? "").trim();
   const lower = raw.toLowerCase();
-  const target = (targetFormat ?? "").toUpperCase();
 
   if (!raw) {
     return "We couldn't complete the conversion. Please try again.";
-  }
-
-  if (lower.includes("upgrade to pro") && (lower.includes("ico") || target === "ICO")) {
-    return "ICO conversion could not be completed with these settings. Please try again.";
   }
 
   if (lower.includes("upgrade to pro")) {
@@ -340,52 +314,8 @@ function AdUnit({
   );
 }
 
-const AUDIO_TARGETS: TargetFmt[] = [
-  "MP3",
-  "WAV",
-  "M4A",
-  "AAC",
-  "OGG",
-  "OPUS",
-  "FLAC",
-  "AIFF",
-  "WMA",
-  "AMR",
-];
-
-const VIDEO_TARGETS: TargetFmt[] = [
-  "MP4",
-  "WEBM",
-  "MOV",
-  "MKV",
-  "AVI",
-  "WMV",
-  "FLV",
-  "M4V",
-  "MPG",
-  "MPEG",
-  "3GP",
-];
-
-const IMAGE_TARGETS: TargetFmt[] = [
-  "GIF",
-  "PNG",
-  "JPG",
-  "WEBP",
-  "BMP",
-  "TIFF",
-  "ICO",
-  "AVIF",
-];
-
 const PDF_TO_IMAGE_TARGETS = ["PNG", "JPG", "WEBP"] as const;
 type PdfToImageTarget = (typeof PDF_TO_IMAGE_TARGETS)[number];
-
-const ALL_TARGET_OPTIONS: TargetFmt[] = [
-  ...AUDIO_TARGETS,
-  ...VIDEO_TARGETS,
-  ...IMAGE_TARGETS,
-];
 
 const VIDEO_RESOLUTION_OPTIONS = [
   "Source",
@@ -400,8 +330,6 @@ const VIDEO_RESOLUTION_OPTIONS = [
 ] as const;
 const VIDEO_QUALITY_OPTIONS = ["small", "balanced", "high"] as const;
 const AUDIO_CHANNEL_OPTIONS = ["1", "2"] as const;
-const ICO_SIZE_OPTIONS = ["16", "32", "48", "64", "128", "256"] as const;
-const ICO_BIT_DEPTH_OPTIONS = ["8", "24", "32"] as const;
 
 const homepagePopularConversions: Array<{ href: string; label: string }> = [
   { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
@@ -515,7 +443,7 @@ function buildPopularRouteDiscovery(
     badge = "Suggested",
   ): DiscoveryCard | null => {
     const slug = buildRouteSlug(a, b);
-    if (!slug || !a || !b) return null;
+    if (!slug || !a || !b || !isSupportedConversion(a, b)) return null;
     return {
       href: `/convert/${slug}`,
       label: `${normalizeFmtLabel(a)} to ${normalizeFmtLabel(b)}`,
@@ -600,7 +528,7 @@ function buildSuccessSuggestions(
   const to = normalizeFmtLabel(output);
   if (!from || !to) return [];
 
-  return buildPopularRouteDiscovery(from, to).slice(0, 4);
+  return buildPopularRouteDiscovery(from, to).slice(0, 3);
 }
 
 function normalizeFmtLabel(value?: string | null): string | null {
@@ -611,51 +539,7 @@ function normalizeFmtLabel(value?: string | null): string | null {
 function toTargetFmt(value?: string | null): TargetFmt | null {
   const v = normalizeFmtLabel(value);
   if (!v) return null;
-  return ALL_TARGET_OPTIONS.includes(v as TargetFmt) ? (v as TargetFmt) : null;
-}
-
-function isAudioFmt(fmt: string | null | undefined) {
-  return (
-    fmt === "MP3" ||
-    fmt === "WAV" ||
-    fmt === "M4A" ||
-    fmt === "AAC" ||
-    fmt === "OGG" ||
-    fmt === "OPUS" ||
-    fmt === "FLAC" ||
-    fmt === "AIFF" ||
-    fmt === "WMA" ||
-    fmt === "AMR"
-  );
-}
-
-function isVideoFmt(fmt: string | null | undefined) {
-  return (
-    fmt === "MP4" ||
-    fmt === "WEBM" ||
-    fmt === "MOV" ||
-    fmt === "MKV" ||
-    fmt === "AVI" ||
-    fmt === "WMV" ||
-    fmt === "FLV" ||
-    fmt === "M4V" ||
-    fmt === "MPG" ||
-    fmt === "MPEG" ||
-    fmt === "3GP"
-  );
-}
-
-function isImageFmt(fmt: string | null | undefined) {
-  return (
-    fmt === "GIF" ||
-    fmt === "PNG" ||
-    fmt === "JPG" ||
-    fmt === "WEBP" ||
-    fmt === "BMP" ||
-    fmt === "TIFF" ||
-    fmt === "ICO" ||
-    fmt === "AVIF"
-  );
+  return ALL_FILE_FORMATS.includes(v as TargetFmt) ? (v as TargetFmt) : null;
 }
 
 function isPdfImageInputFmt(fmt: string | null | undefined) {
@@ -670,17 +554,6 @@ function isPdfImageInputFmt(fmt: string | null | undefined) {
 
 function isPdfBuildImageInputFmt(fmt: string | null | undefined) {
   return fmt === "PNG" || fmt === "JPG";
-}
-
-function getAvailableTargets(inputFmt?: string | null): TargetFmt[] {
-  const fmt = normalizeFmtLabel(inputFmt);
-
-  if (isAudioFmt(fmt)) return AUDIO_TARGETS;
-  if (isVideoFmt(fmt))
-    return [...AUDIO_TARGETS, ...VIDEO_TARGETS, ...IMAGE_TARGETS];
-  if (isImageFmt(fmt)) return IMAGE_TARGETS;
-
-  return ALL_TARGET_OPTIONS;
 }
 
 function formatToSlug(value?: string | null) {
@@ -823,17 +696,7 @@ function buildRelatedConversions(
 
   if (!from || !to) return [];
 
-  let pool: TargetFmt[] = [];
-
-  if (isAudioFmt(from)) {
-    pool = [...AUDIO_TARGETS];
-  } else if (isVideoFmt(from)) {
-    pool = [...AUDIO_TARGETS, ...VIDEO_TARGETS, ...IMAGE_TARGETS];
-  } else if (isImageFmt(from)) {
-    pool = [...IMAGE_TARGETS];
-  } else {
-    pool = [...ALL_TARGET_OPTIONS];
-  }
+  const pool = getAvailableTargets(from);
 
   const prioritizedPool = pool.sort((a, b) => {
     const aScore =
@@ -1410,7 +1273,7 @@ function buildBatchRouteDiscovery(
     badge = "Batch",
   ): DiscoveryCard | null => {
     const slug = buildRouteSlug(a, b);
-    if (!slug || !a || !b) return null;
+    if (!slug || !a || !b || !isSupportedConversion(a, b)) return null;
     return {
       href: `/convert/batch/${slug}`,
       label: `${normalizeFmtLabel(a)} to ${normalizeFmtLabel(b)}`,
@@ -1650,73 +1513,121 @@ function PostConvertSuggestionRail({
   downloadName?: string | null;
 }) {
   const items = buildSuccessSuggestions(input, output);
-  if (!open || !items.length) return null;
+  if (!open) return null;
 
-  const title = "Your converted file is ready";
+  const normalizedInput = normalizeFmtLabel(input) ?? "FILE";
+  const normalizedOutput = normalizeFmtLabel(output) ?? "FILE";
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-[90] px-4">
-      <div className="mx-auto max-w-[1100px] rounded-[24px] border border-white/10 bg-[#0f1830]/95 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl ring-1 ring-white/10">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
-                Success
-              </span>
+    <div className="fixed inset-x-0 bottom-3 z-[90] px-3 sm:bottom-4 sm:px-4">
+      <div className="mx-auto max-w-[1100px] overflow-hidden rounded-[26px] border border-emerald-300/16 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(124,58,237,0.16),transparent_34%),linear-gradient(135deg,rgba(13,24,48,0.98),rgba(24,25,58,0.98))] shadow-[0_30px_95px_rgba(0,0,0,0.52)] backdrop-blur-xl ring-1 ring-white/10">
+        <div className="p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-emerald-300/22 bg-emerald-400/12 text-emerald-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-200">
+                      Conversion complete
+                    </span>
+                    <span className="text-[11px] font-semibold text-white/38">
+                      {normalizedInput} → {normalizedOutput}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 text-base font-semibold text-white sm:text-lg">
+                    Your converted file is ready to download
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-white/55">
+                    Save the result now, or start a fresh conversion when you are done.
+                  </p>
+                </div>
+              </div>
+
+              {downloadName ? (
+                <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-xl border border-white/9 bg-white/[0.045] px-3 py-2 text-xs text-white/55">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
+                    <path d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                    <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                  </svg>
+                  <span className="truncate">{downloadName}</span>
+                </div>
+              ) : null}
             </div>
 
-            <h3 className="mt-3 text-base font-semibold text-white">{title}</h3>
-            <p className="mt-2 max-w-[70ch] text-sm leading-6 text-white/60">
-              Download it again, start a new conversion, or try another format below.
-            </p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-[18px] bg-white/5 p-3 ring-1 ring-white/10 transition hover:bg-white/[0.08]"
+            <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+              {downloadHref ? (
+                <a
+                  href={downloadHref}
+                  download={downloadName ?? undefined}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-black shadow-[0_12px_30px_rgba(255,255,255,0.12)] transition hover:-translate-y-0.5 hover:bg-white/92"
                 >
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
-                    {item.badge === "Same source"
-                      ? "Same input"
-                      : item.badge === "Same goal"
-                        ? "Similar output"
-                        : item.badge}
-                  </div>
-                  <div className="mt-2 text-sm font-semibold text-white">
-                    {item.label}
-                  </div>
-                </Link>
-              ))}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 20h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Download file
+                </a>
+              ) : null}
+              <button
+                type="button"
+                onClick={onReset}
+                className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.055] px-4 text-sm font-semibold text-white/78 transition hover:bg-white/10 hover:text-white"
+              >
+                New conversion
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-11 items-center justify-center rounded-2xl border border-transparent px-3 text-sm font-semibold text-white/42 transition hover:bg-white/[0.055] hover:text-white/80"
+              >
+                Dismiss
+              </button>
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2 lg:w-[220px] lg:justify-end">
-            {downloadHref ? (
-              <a
-                href={downloadHref}
-                download={downloadName ?? undefined}
-                className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
-              >
-                Download again
-              </a>
-            ) : null}
-            <button
-              type="button"
-              onClick={onReset}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
-            >
-              New conversion
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-transparent px-4 text-sm font-semibold text-white/55 transition hover:bg-white/10 hover:text-white"
-            >
-              Close
-            </button>
-          </div>
+          {items.length ? (
+            <div className="mt-4 border-t border-white/8 pt-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/38">
+                  Sensible next conversions
+                </div>
+                <div className="text-[11px] text-white/30">
+                  Based on your current file
+                </div>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-3">
+                {items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex items-center justify-between gap-3 rounded-[17px] border border-white/8 bg-white/[0.045] px-3.5 py-3 transition hover:-translate-y-0.5 hover:border-violet-300/20 hover:bg-white/[0.075]"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                        {item.badge === "Same source"
+                          ? "Same input"
+                          : item.badge === "Same goal"
+                            ? "Similar output"
+                            : item.badge}
+                      </div>
+                      <div className="mt-1 truncate text-sm font-semibold text-white/88">
+                        {item.label}
+                      </div>
+                    </div>
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/8 bg-white/[0.04] text-white/35 transition group-hover:border-violet-300/20 group-hover:text-white/80">
+                      ↗
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
@@ -1968,7 +1879,7 @@ function UpgradePrompt({
             <ul className="mt-5 space-y-3 text-sm text-white/75">
               <li>• Up to 1000MB higher upload limits</li>
               <li>• 25 files per PDF build flow</li>
-              <li>• Trim, bitrate, sample-rate, image and icon controls</li>
+              <li>• Trim, bitrate, sample-rate, and image controls</li>
               <li>• Better fit for repeated production-style use</li>
             </ul>
           </div>
@@ -2216,8 +2127,6 @@ export default function ConverterPageContent({
   const [videoFps, setVideoFps] = useState("30");
   const [videoCodec, setVideoCodec] = useState("h264");
   const [muteAudio, setMuteAudio] = useState(false);
-  const [iconSize, setIconSize] = useState("32");
-  const [iconBitDepth, setIconBitDepth] = useState("32");
   const [imageWidth, setImageWidth] = useState("");
   const [imageHeight, setImageHeight] = useState("");
   const [imageQuality, setImageQuality] = useState(92);
@@ -2417,7 +2326,6 @@ export default function ConverterPageContent({
   const canUseVideoQuality = isPro;
   const canUseVideoFps = isPro;
   const canUseMuteAudio = isPro;
-  const canUseIconControls = isPro;
   const canUseImageResize = isPro;
   const canUseImageQuality = isPro;
   const currentInputIsImage = isImageFmt(resolvedInputLabel);
@@ -2426,7 +2334,6 @@ export default function ConverterPageContent({
   const outputIsAudio = isAudioFmt(resolvedOutputLabel);
   const outputIsVideo = isVideoFmt(resolvedOutputLabel);
   const outputIsGif = resolvedOutputLabel === "GIF";
-  const outputIsIcon = resolvedOutputLabel === "ICO";
   const showTrimControls = currentInputIsAudio || currentInputIsVideo;
   const showBitrateControls =
     currentInputIsAudio || (currentInputIsVideo && outputIsAudio);
@@ -2439,7 +2346,6 @@ export default function ConverterPageContent({
     currentInputIsVideo && (outputIsVideo || outputIsGif);
   const showVideoFpsControls = currentInputIsVideo && outputIsVideo;
   const showMuteAudioControls = currentInputIsVideo && outputIsVideo;
-  const showIconControls = outputIsIcon;
   const showImageResizeControls =
     currentInputIsImage && isImageFmt(resolvedOutputLabel);
   const showImageQualityControls =
@@ -2784,7 +2690,7 @@ export default function ConverterPageContent({
   };
 
   const getAcceptForInput = () => {
-    return ".mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.aiff,.aif,.wma,.amr,.mp4,.webm,.mov,.mkv,.avi,.wmv,.flv,.m4v,.mpg,.mpeg,.3gp,.gif,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif,.ico,.avif,video/*,audio/*,image/gif,image/png,image/jpeg,image/webp,image/bmp,image/avif";
+    return ".mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.aiff,.aif,.wma,.amr,.mp4,.webm,.mov,.mkv,.avi,.wmv,.flv,.m4v,.mpg,.mpeg,.3gp,.gif,.png,.jpg,.jpeg,.webp,.bmp,.avif,video/*,audio/*,image/gif,image/png,image/jpeg,image/webp,image/bmp,image/avif";
   };
 
   const validateFile = (f: File) => {
@@ -2820,9 +2726,6 @@ export default function ConverterPageContent({
       ".jpeg",
       ".webp",
       ".bmp",
-      ".tiff",
-      ".tif",
-      ".ico",
       ".avif",
     ].some((x) => name.endsWith(x));
 
@@ -2870,8 +2773,6 @@ export default function ConverterPageContent({
     setVideoQuality("balanced");
     setVideoFps("30");
     setMuteAudio(false);
-    setIconSize("32");
-    setIconBitDepth("32");
     setImageWidth("");
     setImageHeight("");
     setTrimEnabled(false);
@@ -3098,11 +2999,6 @@ export default function ConverterPageContent({
       formData.append("videoCodec", videoCodec || "");
 
       formData.append("muteAudio", String(Boolean(muteAudio)));
-
-      if (targetFormat.toLowerCase() === "ico") {
-        formData.append("iconSize", isPro ? iconSize || "32" : "32");
-        formData.append("iconBitDepth", isPro ? iconBitDepth || "32" : "32");
-      }
 
       formData.append("imageWidth", imageWidth || "");
       formData.append("imageHeight", imageHeight || "");
@@ -3734,6 +3630,14 @@ export default function ConverterPageContent({
   const startBatchConvert = async () => {
     if (!batchFiles.length) return;
 
+    if (!batchAvailableTargets.length || !batchAvailableTargets.includes(target)) {
+      setBatchError(
+        "These files do not share a sensible output format. Use files from the same media family or split them into separate batches.",
+      );
+      setBatchStatus("error");
+      return;
+    }
+
     // ── Free quota check ──────────────────────────────────────────────────
     if (!isPro) {
       const currentQuota = getBatchQuota();
@@ -3816,10 +3720,6 @@ export default function ConverterPageContent({
       formData.append("muteAudio", String(Boolean(muteAudio)));
       formData.append("imageWidth", imageWidth || "");
       formData.append("imageHeight", imageHeight || "");
-      if (target.toLowerCase() === "ico") {
-        formData.append("iconSize", isPro ? iconSize || "32" : "32");
-        formData.append("iconBitDepth", isPro ? iconBitDepth || "32" : "32");
-      }
       if (["jpg", "webp", "avif"].includes(target.toLowerCase())) {
         formData.append("imageQuality", String(imageQuality ?? ""));
       }
@@ -3923,7 +3823,6 @@ export default function ConverterPageContent({
     }
   }, [showTrimControls]);
 
-  const sameFormatSelected = !!fromFmt && fromFmt === target;
   const formatFlowText = fromFmt
     ? `${fromFmt} → ${target}`
     : `${routeInput ?? "INPUT"} → ${target}`;
@@ -3960,6 +3859,31 @@ export default function ConverterPageContent({
     const uniqueFormats = Array.from(new Set(detectedFormats));
     return uniqueFormats.length === 1 ? uniqueFormats[0] : "MIXED";
   }, [batchFiles]);
+
+  const batchAvailableTargets = useMemo(() => {
+    if (!batchFiles.length) return ALL_TARGET_OPTIONS;
+
+    const detectedFormats = batchFiles
+      .map((item) => detectFmt(item.name))
+      .filter((item): item is TargetFmt => Boolean(item));
+
+    if (!detectedFormats.length) return ALL_TARGET_OPTIONS;
+
+    return ALL_TARGET_OPTIONS.filter((candidate) =>
+      detectedFormats.every((inputFormat) =>
+        isSupportedConversion(inputFormat, candidate),
+      ),
+    );
+  }, [batchFiles]);
+
+  useEffect(() => {
+    if (!batchMode || !batchFiles.length || !batchAvailableTargets.length) return;
+    if (batchAvailableTargets.includes(target)) return;
+
+    const fallback = batchAvailableTargets[0];
+    setTarget(fallback);
+    setBatchError(null);
+  }, [batchMode, batchFiles.length, batchAvailableTargets, target]);
 
   const navigateIfNeeded = (nextPath: string) => {
     if (!nextPath) return;
@@ -4528,7 +4452,7 @@ export default function ConverterPageContent({
                                       ref={targetListRef}
                                       className="max-h-64 overflow-auto"
                                     >
-                                      {ALL_TARGET_OPTIONS.map((fmt) => (
+                                      {batchAvailableTargets.map((fmt) => (
                                         <button
                                           key={fmt}
                                           type="button"
@@ -6478,7 +6402,7 @@ export default function ConverterPageContent({
                                 <p className="mt-2 text-sm text-white/60">
                                   {file
                                     ? `${(file.size / (1024 * 1024)).toFixed(1)}MB selected`
-                                    : "Supported: MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • AIFF • WMA • AMR • MP4 • WEBM • MOV • MKV • AVI • WMV • FLV • M4V • MPG • MPEG • 3GP • GIF • PNG • JPG • WEBP • BMP • TIFF • ICO • AVIF"}
+                                    : "Supported: MP3 • WAV • M4A • AAC • OGG • OPUS • FLAC • AIFF • WMA • AMR • MP4 • WEBM • MOV • MKV • AVI • WMV • FLV • M4V • MPG • MPEG • 3GP • GIF • PNG • JPG • WEBP • BMP • AVIF"}
                                 </p>
 
                                 {file && previewUrl ? (
@@ -7323,142 +7247,6 @@ export default function ConverterPageContent({
                                               </span>
                                             )}
                                           </button>
-                                        </ProFeatureLock>
-                                      )}
-
-                                      {showIconControls && (
-                                        <ProFeatureLock
-                                          title="Icon export"
-                                          enabled={canUseIconControls}
-                                          onUpgrade={() =>
-                                            setShowUpgradePanel(true)
-                                          }
-                                        >
-                                          <div className="space-y-3">
-                                            <div>
-                                              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
-                                                Icon size
-                                              </span>
-                                              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                                                {ICO_SIZE_OPTIONS.map(
-                                                  (option) => {
-                                                    const active =
-                                                      iconSize === option;
-
-                                                    return (
-                                                      <button
-                                                        key={option}
-                                                        type="button"
-                                                        disabled={
-                                                          !canUseIconControls
-                                                        }
-                                                        onClick={() => {
-                                                          if (
-                                                            !canUseIconControls
-                                                          ) {
-                                                            setShowUpgradePanel(
-                                                              true,
-                                                            );
-                                                            return;
-                                                          }
-                                                          setIconSize(option);
-                                                        }}
-                                                        className={[
-                                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
-                                                          active
-                                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
-                                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
-                                                          !canUseIconControls
-                                                            ? "cursor-not-allowed"
-                                                            : "",
-                                                        ].join(" ")}
-                                                      >
-                                                        <div className="flex items-center justify-between gap-2">
-                                                          <span className="text-sm font-semibold">
-                                                            {option} px
-                                                          </span>
-                                                          {!canUseIconControls && (
-                                                            <span className="text-xs text-white/40">
-                                                              🔒
-                                                            </span>
-                                                          )}
-                                                        </div>
-                                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
-                                                          Single embedded icon
-                                                          size
-                                                        </div>
-                                                      </button>
-                                                    );
-                                                  },
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            <div>
-                                              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
-                                                Bit depth
-                                              </span>
-                                              <div className="grid grid-cols-3 gap-3">
-                                                {ICO_BIT_DEPTH_OPTIONS.map(
-                                                  (option) => {
-                                                    const active =
-                                                      iconBitDepth === option;
-
-                                                    return (
-                                                      <button
-                                                        key={option}
-                                                        type="button"
-                                                        disabled={
-                                                          !canUseIconControls
-                                                        }
-                                                        onClick={() => {
-                                                          if (
-                                                            !canUseIconControls
-                                                          ) {
-                                                            setShowUpgradePanel(
-                                                              true,
-                                                            );
-                                                            return;
-                                                          }
-                                                          setIconBitDepth(
-                                                            option,
-                                                          );
-                                                        }}
-                                                        className={[
-                                                          "min-h-[72px] rounded-2xl border px-4 py-3 text-left transition",
-                                                          active
-                                                            ? "border-fuchsia-400/40 bg-fuchsia-500/15 text-white"
-                                                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
-                                                          !canUseIconControls
-                                                            ? "cursor-not-allowed"
-                                                            : "",
-                                                        ].join(" ")}
-                                                      >
-                                                        <div className="flex items-center justify-between gap-2">
-                                                          <span className="text-sm font-semibold">
-                                                            {option}-bit
-                                                          </span>
-                                                          {!canUseIconControls && (
-                                                            <span className="text-xs text-white/40">
-                                                              🔒
-                                                            </span>
-                                                          )}
-                                                        </div>
-                                                        <div className="mt-1 text-[11px] leading-5 text-white/45">
-                                                          {option === "8" &&
-                                                            "Palette based"}
-                                                          {option === "24" &&
-                                                            "Full color"}
-                                                          {option === "32" &&
-                                                            "Alpha transparency"}
-                                                        </div>
-                                                      </button>
-                                                    );
-                                                  },
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
                                         </ProFeatureLock>
                                       )}
 

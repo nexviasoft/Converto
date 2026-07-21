@@ -7,6 +7,7 @@ import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import { AD_SLOTS, hasRailAdSlots } from "@/lib/adsConfig";
+import { isSupportedConversionHref } from "@/lib/conversionRules";
 
 type PageProps = {
   params: Promise<{
@@ -103,6 +104,10 @@ export default async function CompareDetailPage({ params }: PageProps) {
 
   if (!data) notFound();
 
+  const supportedConversionLinks = data.conversionLinks.filter((item) =>
+    isSupportedConversionHref(item.href),
+  );
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -195,7 +200,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                   </div>
 
                   <div className="mt-8 flex flex-wrap gap-3">
-                    {data.conversionLinks.map((item) => (
+                    {supportedConversionLinks.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
@@ -308,7 +313,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                     </h2>
 
                     <div className="mt-5 flex flex-wrap gap-3">
-                      {data.conversionLinks.map((item) => (
+                      {supportedConversionLinks.map((item) => (
                         <Link
                           key={item.href}
                           href={item.href}
@@ -396,7 +401,7 @@ export default async function CompareDetailPage({ params }: PageProps) {
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {data.conversionLinks.map((item) => (
+                  {supportedConversionLinks.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}

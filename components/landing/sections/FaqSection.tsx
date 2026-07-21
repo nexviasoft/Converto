@@ -25,7 +25,7 @@ export default function FaqSection() {
 
         <FAQItem
           q="Which file formats are supported?"
-          a="Converto supports common audio, video, image, and PDF workflows. Audio routes include MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, AIFF, WMA, and AMR. Video routes include MP4, WEBM, MOV, MKV, AVI, WMV, FLV, M4V, MPG, MPEG, and 3GP. Image routes include GIF, PNG, JPG, WEBP, BMP, TIFF, ICO, and AVIF."
+          a="Converto supports common audio, video, image, and PDF workflows. Audio routes include MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, AIFF, WMA, and AMR. Video routes include MP4, WEBM, MOV, MKV, AVI, WMV, FLV, M4V, MPG, MPEG, and 3GP. Image routes include GIF, PNG, JPG, WEBP, BMP, and AVIF."
         />
 
         <FAQItem

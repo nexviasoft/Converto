@@ -6,37 +6,13 @@ import {
   INDEXABLE_CONVERTER_SLUGS,
   isIndexableConverterSlug,
 } from "@/lib/indexingPolicy";
-
-type TargetFmt =
-  | "MP3"
-  | "WAV"
-  | "M4A"
-  | "AAC"
-  | "OGG"
-  | "OPUS"
-  | "FLAC"
-  | "AIFF"
-  | "WMA"
-  | "AMR"
-  | "MP4"
-  | "WEBM"
-  | "MOV"
-  | "MKV"
-  | "AVI"
-  | "WMV"
-  | "FLV"
-  | "M4V"
-  | "MPG"
-  | "MPEG"
-  | "3GP"
-  | "GIF"
-  | "PNG"
-  | "JPG"
-  | "WEBP"
-  | "BMP"
-  | "TIFF"
-  | "ICO"
-  | "AVIF";
+import {
+  isAudioFmt,
+  isImageFmt,
+  isSupportedConversion,
+  isVideoFmt,
+  mapSlugPartToFmt,
+} from "@/lib/conversionRules";
 
 type PageProps = {
   params: Promise<{
@@ -48,102 +24,6 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://www.converto.tools";
 
-const AUDIO_FORMATS = [
-  "mp3",
-  "wav",
-  "m4a",
-  "aac",
-  "ogg",
-  "opus",
-  "flac",
-  "aiff",
-  "wma",
-  "amr",
-] as const;
-
-const VIDEO_FORMATS = [
-  "mp4",
-  "webm",
-  "mov",
-  "mkv",
-  "avi",
-  "wmv",
-  "flv",
-  "m4v",
-  "mpg",
-  "mpeg",
-  "3gp",
-] as const;
-
-const IMAGE_FORMATS = [
-  "gif",
-  "png",
-  "jpg",
-  "webp",
-  "bmp",
-  "tiff",
-  "ico",
-  "avif",
-] as const;
-
-function buildPairSlugs(
-  fromFormats: readonly string[],
-  toFormats: readonly string[]
-): string[] {
-  const slugs: string[] = [];
-
-  for (const from of fromFormats) {
-    for (const to of toFormats) {
-      if (from === to) continue;
-      slugs.push(`${from}-to-${to}`);
-    }
-  }
-
-  return slugs;
-}
-
-function unique(items: string[]) {
-  return [...new Set(items)];
-}
-
-function mapSlugPartToFmt(value: string): TargetFmt | null {
-  const v = value.toLowerCase();
-
-  if (v === "mp3") return "MP3";
-  if (v === "wav") return "WAV";
-  if (v === "m4a") return "M4A";
-  if (v === "aac") return "AAC";
-  if (v === "ogg") return "OGG";
-  if (v === "opus") return "OPUS";
-  if (v === "flac") return "FLAC";
-  if (v === "aiff" || v === "aif") return "AIFF";
-  if (v === "wma") return "WMA";
-  if (v === "amr") return "AMR";
-
-  if (v === "mp4") return "MP4";
-  if (v === "webm") return "WEBM";
-  if (v === "mov") return "MOV";
-  if (v === "mkv") return "MKV";
-  if (v === "avi") return "AVI";
-  if (v === "wmv") return "WMV";
-  if (v === "flv") return "FLV";
-  if (v === "m4v") return "M4V";
-  if (v === "mpg") return "MPG";
-  if (v === "mpeg") return "MPEG";
-  if (v === "3gp") return "3GP";
-
-  if (v === "gif") return "GIF";
-  if (v === "png") return "PNG";
-  if (v === "jpg" || v === "jpeg") return "JPG";
-  if (v === "webp") return "WEBP";
-  if (v === "bmp") return "BMP";
-  if (v === "tiff" || v === "tif") return "TIFF";
-  if (v === "ico") return "ICO";
-  if (v === "avif") return "AVIF";
-
-  return null;
-}
-
 function parseSlug(slug?: string | null) {
   if (!slug || typeof slug !== "string") return null;
 
@@ -153,7 +33,13 @@ function parseSlug(slug?: string | null) {
   const suggestedInput = mapSlugPartToFmt(input);
   const suggestedOutput = mapSlugPartToFmt(output);
 
-  if (!suggestedInput || !suggestedOutput) return null;
+  if (
+    !suggestedInput ||
+    !suggestedOutput ||
+    !isSupportedConversion(suggestedInput, suggestedOutput)
+  ) {
+    return null;
+  }
 
   return {
     slug,
@@ -164,41 +50,6 @@ function parseSlug(slug?: string | null) {
     inputUpper: suggestedInput,
     outputUpper: suggestedOutput,
   };
-}
-
-function isAudioFmt(fmt: string) {
-  return [
-    "MP3",
-    "WAV",
-    "M4A",
-    "AAC",
-    "OGG",
-    "OPUS",
-    "FLAC",
-    "AIFF",
-    "WMA",
-    "AMR",
-  ].includes(fmt);
-}
-
-function isVideoFmt(fmt: string) {
-  return [
-    "MP4",
-    "WEBM",
-    "MOV",
-    "MKV",
-    "AVI",
-    "WMV",
-    "FLV",
-    "M4V",
-    "MPG",
-    "MPEG",
-    "3GP",
-  ].includes(fmt);
-}
-
-function isImageFmt(fmt: string) {
-  return ["GIF", "PNG", "JPG", "WEBP", "BMP", "TIFF", "ICO", "AVIF"].includes(fmt);
 }
 
 function buildMetaTitle(input: string, output: string) {
