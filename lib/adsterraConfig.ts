@@ -7,7 +7,7 @@ export const ADSTERRA_STANDARD_BANNERS_ENABLED = false;
 
 // TEMPORARY TEST SWITCH: Keep this true only while testing ads from Turkey.
 // Set it back to false after the test so Turkey is blocked again.
-export const ADSTERRA_TURKEY_TEST_MODE = true;
+export const ADSTERRA_TURKEY_TEST_MODE = false;
 
 export const ADSTERRA_BLOCKED_COUNTRIES: readonly string[] =
   ADSTERRA_TURKEY_TEST_MODE ? [] : ["TR"];
