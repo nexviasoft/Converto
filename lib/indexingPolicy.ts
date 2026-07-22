@@ -20,6 +20,8 @@ export const INDEXABLE_CONVERTER_SLUGS = [
   "mov-to-mp3",
   "png-to-webp",
   "jpg-to-webp",
+  "png-to-ico",
+  "tiff-to-jpg",
 ] as const;
 
 const INDEXABLE_CONVERTER_SLUG_SET = new Set<string>(

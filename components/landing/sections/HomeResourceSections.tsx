@@ -11,6 +11,8 @@ const popularConversions = [
   { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
   { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
   { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
+  { href: "/convert/png-to-ico", label: "PNG to ICO" },
+  { href: "/convert/tiff-to-jpg", label: "TIFF to JPG" },
 ];
 
 const formatChips = [

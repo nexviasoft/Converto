@@ -13,11 +13,7 @@ Open `http://localhost:3000`.
 
 ## Production domain
 
-Set the public site URL in Vercel:
-
-```bash
-NEXT_PUBLIC_SITE_URL=https://www.converto.tools
-```
+The canonical production origin is fixed in `lib/siteUrl.ts` as `https://www.converto.tools`. This prevents sitemap and metadata URLs from switching to the apex domain because of an environment-variable mismatch.
 
 ## AdSense setup
 

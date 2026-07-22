@@ -1,25 +1,23 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
-  title: "Contact Converto",
+  title: "Contact",
   description:
     "Get in touch with Converto for support, feedback, or general questions.",
   alternates: {
-    canonical: `${siteUrl}/contact`,
+    canonical: `${SITE_URL}/contact`,
   },
   openGraph: {
     title: "Contact Converto",
     description:
       "Get in touch with Converto for support, feedback, or general questions.",
-    url: `${siteUrl}/contact`,
+    url: `${SITE_URL}/contact`,
     siteName: "Converto",
     type: "website",
   },

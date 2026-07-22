@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ConverterPageContent from "@/components/converter/ConverterPageContent";
@@ -10,9 +11,6 @@ type PageProps = {
   }>;
 };
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 function parsePdfSlug(slug?: string | null) {
   const normalized = String(slug || "").toLowerCase();
@@ -21,7 +19,7 @@ function parsePdfSlug(slug?: string | null) {
     return {
       slug: "split" as PdfSlug,
       pdfTool: "split_pdf" as const,
-      title: "Split PDF Online | Extract Selected Pages | Converto",
+      title: "Split PDF Online | Extract Selected Pages",
       description:
         "Split PDF files online with Converto. Extract selected pages by page range and download a smaller PDF in a focused workflow.",
       seoTitle: "Split PDF online",
@@ -36,7 +34,7 @@ function parsePdfSlug(slug?: string | null) {
     return {
       slug: "to-png" as PdfSlug,
       pdfTool: "pdf_to_image" as const,
-      title: "PDF to PNG Converter Online | Converto",
+      title: "PDF to PNG Converter Online",
       description:
         "Convert PDF pages to PNG online with Converto. Export page previews, visuals, and document pages as PNG images.",
       seoTitle: "Convert PDF to PNG online",
@@ -51,7 +49,7 @@ function parsePdfSlug(slug?: string | null) {
     return {
       slug: "to-jpg" as PdfSlug,
       pdfTool: "pdf_to_image" as const,
-      title: "PDF to JPG Converter Online | Converto",
+      title: "PDF to JPG Converter Online",
       description:
         "Convert PDF pages to JPG online with Converto. Export page previews, shared visuals, and document pages as JPG images.",
       seoTitle: "Convert PDF to JPG online",
@@ -66,7 +64,7 @@ function parsePdfSlug(slug?: string | null) {
     return {
       slug: "to-webp" as PdfSlug,
       pdfTool: "pdf_to_image" as const,
-      title: "PDF to WEBP Converter Online | Converto",
+      title: "PDF to WEBP Converter Online",
       description:
         "Convert PDF pages to WEBP online with Converto. Export lighter page previews and document visuals as WEBP images.",
       seoTitle: "Convert PDF to WEBP online",
@@ -95,7 +93,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!parsed) {
     return {
-      title: "Page not found | Converto",
+      title: "Page not found",
       description: "This PDF tool page does not exist.",
       robots: {
         index: false,

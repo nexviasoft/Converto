@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,9 +15,6 @@ type PageProps = {
   }>;
 };
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 const cx = (...c: Array<string | false | null | undefined>) =>
   c.filter(Boolean).join(" ");
@@ -33,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: "Format not found | Converto",
+      title: "Format not found",
       description: "The requested format page does not exist.",
       robots: {
         index: false,
@@ -43,21 +41,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${data.metaTitle} | Converto`,
+    title: data.metaTitle,
     description: data.metaDescription,
     alternates: {
-      canonical: `${siteUrl}/formats/${data.slug}`,
+      canonical: `${SITE_URL}/formats/${data.slug}`,
     },
     openGraph: {
-      title: `${data.metaTitle} | Converto`,
+      title: data.metaTitle,
       description: data.metaDescription,
-      url: `${siteUrl}/formats/${data.slug}`,
+      url: `${SITE_URL}/formats/${data.slug}`,
       siteName: "Converto",
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${data.metaTitle} | Converto`,
+      title: data.metaTitle,
       description: data.metaDescription,
     },
   };
@@ -602,7 +600,7 @@ export default async function FormatDetailPage({ params }: PageProps) {
         "@type": "Article",
         headline: `${data.label} format guide`,
         description: data.metaDescription,
-        mainEntityOfPage: `${siteUrl}/formats/${data.slug}`,
+        mainEntityOfPage: `${SITE_URL}/formats/${data.slug}`,
         author: {
           "@type": "Organization",
           name: "NexviaSoft",
@@ -610,7 +608,7 @@ export default async function FormatDetailPage({ params }: PageProps) {
         publisher: {
           "@type": "Organization",
           name: "NexviaSoft",
-          url: siteUrl,
+          url: SITE_URL,
         },
       }
     : null;
@@ -623,19 +621,19 @@ export default async function FormatDetailPage({ params }: PageProps) {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: siteUrl,
+        item: SITE_URL,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Formats",
-        item: `${siteUrl}/formats`,
+        item: `${SITE_URL}/formats`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: data.label,
-        item: `${siteUrl}/formats/${data.slug}`,
+        item: `${SITE_URL}/formats/${data.slug}`,
       },
     ],
   };

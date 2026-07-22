@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_URL } from "@/lib/siteUrl";
+import { trackClarityEvent } from "@/lib/analytics";
 const MAINTENANCE_MODE = false;
 
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
@@ -343,6 +345,8 @@ const homepagePopularConversions: Array<{ href: string; label: string }> = [
   { href: "/convert/webp-to-png", label: "WEBP to PNG" },
   { href: "/convert/mkv-to-mp4", label: "MKV to MP4" },
   { href: "/convert/avi-to-mp4", label: "AVI to MP4" },
+  { href: "/convert/png-to-ico", label: "PNG to ICO" },
+  { href: "/convert/tiff-to-jpg", label: "TIFF to JPG" },
 ];
 
 type RouteFamily =
@@ -1504,6 +1508,7 @@ function PostConvertSuggestionRail({
   onReset,
   downloadHref,
   downloadName,
+  onDownload,
 }: {
   open: boolean;
   input?: string | null;
@@ -1512,6 +1517,7 @@ function PostConvertSuggestionRail({
   onReset: () => void;
   downloadHref?: string | null;
   downloadName?: string | null;
+  onDownload?: () => void;
 }) {
   const items = buildSuccessSuggestions(input, output);
   if (!open) return null;
@@ -1566,6 +1572,7 @@ function PostConvertSuggestionRail({
                 <a
                   href={downloadHref}
                   download={downloadName ?? undefined}
+                  onClick={onDownload}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-black shadow-[0_12px_30px_rgba(255,255,255,0.12)] transition hover:-translate-y-0.5 hover:bg-white/92"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -2157,6 +2164,11 @@ export default function ConverterPageContent({
     useState<string>("converto_batch.zip");
   const [batchError, setBatchError] = useState<string | null>(null);
 
+  const formatSelectionLocked =
+    status === "loading" ||
+    status === "processing" ||
+    batchStatus === "processing";
+
   // ── To PDF state ─────────────────────────────────────────────────────────
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [toPdfMode, setToPdfMode] = useState<ToPdfMode>(() => getToPdfModeFromUrl());
@@ -2168,6 +2180,10 @@ export default function ConverterPageContent({
     setBatchMode(seoMode === "batch");
     setPdfMode(seoMode === "pdf");
   }, [seoMode]);
+
+  useEffect(() => {
+    if (formatSelectionLocked) setTargetOpen(false);
+  }, [formatSelectionLocked]);
 
   useEffect(() => {
     if (seoMode === "pdf") {
@@ -3081,6 +3097,10 @@ export default function ConverterPageContent({
     const err = validateFile(f);
 
     if (err) {
+      trackClarityEvent("conversion_file_rejected", {
+        route: pathname,
+        reason: err,
+      });
       setErrorMsg(err);
       setStatus("error");
       setFile(null);
@@ -3096,6 +3116,13 @@ export default function ConverterPageContent({
     const nextTarget = availableForDetected.includes(desiredTarget)
       ? desiredTarget
       : availableForDetected[0];
+
+    trackClarityEvent("file_selected", {
+      route: pathname,
+      input: detected ?? "unknown",
+      output: nextTarget,
+      size_mb: Math.max(0.01, Number((f.size / (1024 * 1024)).toFixed(2))),
+    });
 
     setFromFmt(detected);
     setFile(f);
@@ -3159,6 +3186,12 @@ export default function ConverterPageContent({
       }
     }
 
+    trackClarityEvent("conversion_started", {
+      route: pathname,
+      input: conversionInput ?? "unknown",
+      output: conversionTarget,
+    });
+
     let fakeTimer: ReturnType<typeof setInterval> | null = null;
 
     try {
@@ -3213,9 +3246,21 @@ export default function ConverterPageContent({
       setDisplayProgress(100);
       setProgressLabel("Done...");
       setStatus("done");
+      trackClarityEvent("conversion_success", {
+        route: pathname,
+        input: conversionInput ?? "unknown",
+        output: conversionTarget,
+      });
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
-      setErrorMsg(toFriendlyErrorMessage(err?.message, conversionTarget));
+      const friendlyError = toFriendlyErrorMessage(err?.message, conversionTarget);
+      trackClarityEvent("conversion_failed", {
+        route: pathname,
+        input: conversionInput ?? "unknown",
+        output: conversionTarget,
+        reason: friendlyError,
+      });
+      setErrorMsg(friendlyError);
       setStatus("error");
       setActualProgress(0);
       setDisplayProgress(0);
@@ -4089,10 +4134,6 @@ export default function ConverterPageContent({
     [resultUrl, completedConversion],
   );
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "https://www.converto.tools";
-
   const schemaTitle =
     seoTitle ||
     (effectiveSeoMode === "batch"
@@ -4188,7 +4229,7 @@ export default function ConverterPageContent({
   const webPageSchema = useMemo(
     () =>
       buildWebPageSchema({
-        siteUrl,
+        siteUrl: SITE_URL,
         title: schemaTitle,
         description: schemaDescription,
         input: activeInputLabel,
@@ -4197,7 +4238,6 @@ export default function ConverterPageContent({
         pdfTool: effectivePdfToolTab,
       }),
     [
-      siteUrl,
       schemaTitle,
       schemaDescription,
       activeInputLabel,
@@ -4467,33 +4507,69 @@ export default function ConverterPageContent({
                               >
                                 <button
                                   type="button"
-                                  onClick={() => setTargetOpen((v) => !v)}
-                                  className="inline-flex h-12 items-center gap-2 rounded-[18px] bg-white/12 px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/10 transition hover:bg-white/18"
+                                  disabled={formatSelectionLocked}
+                                  onClick={() => {
+                                    if (formatSelectionLocked) return;
+                                    setTargetOpen((v) => !v);
+                                  }}
+                                  title={
+                                    formatSelectionLocked
+                                      ? "Output format is locked while conversion is running."
+                                      : "Choose output format"
+                                  }
+                                  className="inline-flex h-12 items-center gap-2 rounded-[18px] bg-white/12 px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/10 transition hover:bg-white/18 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-white/12"
                                   aria-haspopup="listbox"
                                   aria-expanded={targetOpen}
+                                  aria-disabled={formatSelectionLocked}
                                 >
                                   <span className="text-xs font-medium text-white/60">
                                     Convert to
                                   </span>
                                   <span>{target}</span>
-                                  <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    className={cx(
-                                      "transition",
-                                      targetOpen ? "rotate-180" : "",
-                                    )}
-                                  >
-                                    <path
-                                      d="M6 9l6 6 6-6"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
+                                  {formatSelectionLocked ? (
+                                    <svg
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      aria-hidden="true"
+                                    >
+                                      <rect
+                                        x="5"
+                                        y="10"
+                                        width="14"
+                                        height="10"
+                                        rx="2"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                      />
+                                      <path
+                                        d="M8 10V7a4 4 0 118 0v3"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      className={cx(
+                                        "transition",
+                                        targetOpen ? "rotate-180" : "",
+                                      )}
+                                    >
+                                      <path
+                                        d="M6 9l6 6 6-6"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )}
                                 </button>
 
                                 {targetOpen ? (
@@ -4509,7 +4585,9 @@ export default function ConverterPageContent({
                                         <button
                                           key={fmt}
                                           type="button"
+                                          disabled={formatSelectionLocked}
                                           onClick={() => {
+                                            if (formatSelectionLocked) return;
                                             setTarget(fmt);
                                             setTargetOpen(false);
                                           }}
@@ -6536,33 +6614,70 @@ export default function ConverterPageContent({
                                   <div ref={targetWrapRef} className="relative z-[120]">
                                     <button
                                       type="button"
-                                      onClick={() => setTargetOpen((v) => !v)}
-                                      className="inline-flex h-12 items-center gap-2 rounded-[18px] border border-violet-300/20 bg-[linear-gradient(135deg,rgba(109,78,232,0.28),rgba(81,105,216,0.18))] px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(34,24,88,0.28),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:border-violet-200/30 hover:brightness-110"
+                                      disabled={formatSelectionLocked}
+                                      onClick={() => {
+                                        if (formatSelectionLocked) return;
+                                        setTargetOpen((v) => !v);
+                                      }}
+                                      title={
+                                        formatSelectionLocked
+                                          ? "Output format is locked while conversion is running."
+                                          : "Choose output format"
+                                      }
+                                      className="inline-flex h-12 items-center gap-2 rounded-[18px] border border-violet-300/20 bg-[linear-gradient(135deg,rgba(109,78,232,0.28),rgba(81,105,216,0.18))] px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(34,24,88,0.28),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:border-violet-200/30 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
                                       aria-haspopup="listbox"
                                       aria-expanded={targetOpen}
+                                      aria-disabled={formatSelectionLocked}
                                     >
                                       <span className="text-xs font-medium text-violet-100/65">
                                         Convert to
                                       </span>
                                       <span>{target}</span>
-                                      <svg
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        className={cx(
-                                          "text-violet-100/80 transition",
-                                          targetOpen ? "rotate-180" : "",
-                                        )}
-                                      >
-                                        <path
-                                          d="M6 9l6 6 6-6"
-                                          stroke="currentColor"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
+                                      {formatSelectionLocked ? (
+                                        <svg
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          aria-hidden="true"
+                                          className="text-violet-100/80"
+                                        >
+                                          <rect
+                                            x="5"
+                                            y="10"
+                                            width="14"
+                                            height="10"
+                                            rx="2"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                          />
+                                          <path
+                                            d="M8 10V7a4 4 0 118 0v3"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
+                                      ) : (
+                                        <svg
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          className={cx(
+                                            "text-violet-100/80 transition",
+                                            targetOpen ? "rotate-180" : "",
+                                          )}
+                                        >
+                                          <path
+                                            d="M6 9l6 6 6-6"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                        </svg>
+                                      )}
                                     </button>
 
                                     {targetOpen ? (
@@ -6587,7 +6702,9 @@ export default function ConverterPageContent({
                                             <button
                                               key={fmt}
                                               type="button"
+                                              disabled={formatSelectionLocked}
                                               onClick={() => {
+                                                if (formatSelectionLocked) return;
                                                 setTarget(fmt);
                                                 setTargetOpen(false);
 
@@ -7523,6 +7640,13 @@ export default function ConverterPageContent({
                                       completedConversion?.downloadName ??
                                       undefined
                                     }
+                                    onClick={() =>
+                                      trackClarityEvent("download_clicked", {
+                                        route: pathname,
+                                        input: completedConversion?.input ?? "unknown",
+                                        output: completedConversion?.output ?? target,
+                                      })
+                                    }
                                     className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90"
                                   >
                                     Download result
@@ -7652,6 +7776,13 @@ export default function ConverterPageContent({
         onReset={resetConverter}
         downloadHref={resultUrl}
         downloadName={successDownloadName}
+        onDownload={() =>
+          trackClarityEvent("download_clicked", {
+            route: pathname,
+            input: completedConversion?.input ?? "unknown",
+            output: completedConversion?.output ?? target,
+          })
+        }
       />
 
       <Footer />

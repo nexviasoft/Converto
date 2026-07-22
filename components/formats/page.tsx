@@ -159,6 +159,16 @@ const popularConversions = [
     label: "WEBP to PNG",
     desc: "Turn lightweight web images into a more editing-friendly format.",
   },
+  {
+    href: "/convert/png-to-ico",
+    label: "PNG to ICO",
+    desc: "Create practical 16px or 32px favicons and Windows icons.",
+  },
+  {
+    href: "/convert/tiff-to-jpg",
+    label: "TIFF to JPG",
+    desc: "Make large scans and archive images easier to share.",
+  },
 ];
 
 export default function FormatsPageClient() {

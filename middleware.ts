@@ -5,13 +5,18 @@ const CANONICAL_HOST = "www.converto.tools";
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
-  const host = request.headers.get("host") ?? "";
+  const hostname = url.hostname.toLowerCase();
+  const forwardedProto =
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    url.protocol.replace(":", "");
 
   const isLocalhost =
-    host.includes("localhost") || host.startsWith("127.0.0.1");
-
-  const isVercel = host.includes(".vercel.app");
-  const country = request.headers.get("x-vercel-ip-country")?.trim().toUpperCase();
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  const isVercelPreview = hostname.endsWith(".vercel.app");
+  const country = request.headers
+    .get("x-vercel-ip-country")
+    ?.trim()
+    .toUpperCase();
 
   // Defense in depth: never serve local Adsterra iframe pages to blocked countries.
   if (
@@ -25,16 +30,22 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  // SADECE production domain dışındaysa ve vercel değilse redirect et
-  if (!isLocalhost && !isVercel && host !== CANONICAL_HOST) {
-    return NextResponse.redirect(`https://${CANONICAL_HOST}${url.pathname}${url.search}`, 301);
+  // Keep previews/local development usable, but force every production request
+  // onto one HTTPS + www origin in a single permanent redirect.
+  if (
+    !isLocalhost &&
+    !isVercelPreview &&
+    (hostname !== CANONICAL_HOST || forwardedProto !== "https")
+  ) {
+    url.protocol = "https:";
+    url.hostname = CANONICAL_HOST;
+    url.port = "";
+    return NextResponse.redirect(url, 308);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image).*)"],
 };

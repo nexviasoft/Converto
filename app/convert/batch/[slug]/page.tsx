@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ConverterPageContent from "@/components/converter/ConverterPageContent";
@@ -15,9 +16,6 @@ type PageProps = {
   }>;
 };
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 function parseSlug(slug?: string | null) {
   if (!slug || typeof slug !== "string") return null;
@@ -91,7 +89,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!parsed) {
     return {
-      title: "Page not found | Converto",
+      title: "Page not found",
       description: "This batch conversion page does not exist.",
       robots: {
         index: false,

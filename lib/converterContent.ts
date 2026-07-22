@@ -1227,6 +1227,167 @@ export const converterContentMap: Record<string, ConverterPageContentEntry> = {
       },
     ],
   },
+
+  "png-to-ico": {
+    headline: "Free PNG to ICO Converter – Create 16px or 32px Favicons",
+    seoIntro:
+      "Convert PNG to ICO online and create a compact favicon or Windows icon in practical 16px and 32px sizes without installing software.",
+    quickAnswer:
+      "PNG to ICO is the right conversion when a website, shortcut, or Windows workflow specifically requires an .ico file instead of a normal image.",
+
+    intro:
+      "A PNG can look perfect in a design tool and still be the wrong file for a browser favicon or a Windows icon. ICO is a purpose-built icon format that can be used by websites, desktop shortcuts, and older Windows workflows. Converting PNG to ICO gives you a file that those systems recognize directly, while the size option helps you avoid an icon that looks soft or oversized in a tiny interface slot.",
+    whatIsInput:
+      "PNG is a lossless raster image format that supports transparency and sharp edges. It is widely used for logos, interface graphics, screenshots, and artwork where clean detail matters.",
+    whatIsOutput:
+      "ICO is an icon container used mainly for website favicons and Windows icons. Icon files are displayed at small sizes, so the source artwork and chosen dimensions matter more than they do for a normal image export.",
+    whyConvert:
+      "People convert PNG to ICO when they need a favicon for a website, an icon for a desktop shortcut, or a file that older Windows software expects. A direct ICO output avoids renaming tricks that produce broken files and makes the result usable by systems that require the actual icon format.",
+    bestFor: [
+      "Website favicons",
+      "Browser tabs and bookmarks",
+      "Windows shortcut icons",
+      "Small application icons",
+      "Transparent logo marks",
+    ],
+    avoidIf: [
+      "You only need a normal website image",
+      "The source design contains tiny text that will not survive at icon size",
+      "You need a scalable vector icon rather than a raster icon",
+    ],
+    howToSteps: [
+      "Upload your PNG image",
+      "Choose ICO as the output format",
+      "Select a practical icon size such as 16px or 32px",
+      "Convert and download the real .ico file",
+    ],
+    useCases: [
+      "Create a 16px favicon for compact browser and bookmark displays.",
+      "Create a 32px icon for higher-density browser or Windows interface use.",
+      "Turn a transparent PNG logo into an icon file without changing the original artwork.",
+      "Prepare a Windows shortcut icon from an existing square image.",
+      "Replace a renamed or invalid .ico file with a correctly encoded icon output.",
+    ],
+    qualityNotes:
+      "The source PNG should ideally be square and remain readable at very small sizes. Converting to ICO does not add detail, so a complex logo can still look blurry when reduced. A 16px icon is useful for the smallest favicon contexts, while 32px usually gives a cleaner result on modern displays. Keep the original PNG as the master file.",
+    tips: [
+      "Start with a square PNG for the most predictable icon shape.",
+      "Remove tiny text and fine details before converting.",
+      "Use transparency when the icon should not have a visible background box.",
+      "Test both 16px and 32px versions in the real browser or Windows context.",
+      "Do not rename a PNG file to .ico; the file must be encoded as ICO.",
+    ],
+    trustNote:
+      "Converto creates an actual ICO output rather than only changing the filename extension, and the icon size is selected before processing.",
+    relatedConversions: ["png-to-jpg", "png-to-webp", "jpg-to-png"],
+    faq: [
+      {
+        q: "How do I convert PNG to ICO?",
+        a: "Upload the PNG, choose ICO, select an icon size, start the conversion, and download the resulting .ico file.",
+      },
+      {
+        q: "Should a favicon be 16px or 32px?",
+        a: "16px fits the smallest classic favicon slots, while 32px often looks cleaner on modern displays. Testing both is the safest approach.",
+      },
+      {
+        q: "Why does my ICO favicon look blurry?",
+        a: "The source may contain too much detail, may not be square, or may have been reduced to a size that is too small for the design.",
+      },
+      {
+        q: "Can an ICO file keep PNG transparency?",
+        a: "Yes, transparent source artwork can be preserved when the conversion pipeline and icon settings support it.",
+      },
+      {
+        q: "Can I rename a PNG file to .ico?",
+        a: "No. Renaming changes only the extension and usually creates an invalid or unusable icon file. A real format conversion is required.",
+      },
+      {
+        q: "What kind of PNG works best for a favicon?",
+        a: "A simple square design with strong contrast, clear edges, and little or no small text usually works best.",
+      },
+    ],
+  },
+
+  "tiff-to-jpg": {
+    headline: "Free TIFF to JPG Converter Online",
+    seoIntro:
+      "Convert TIFF to JPG online for easier sharing, smaller file sizes, browser support, and everyday use across phones, websites, and common apps.",
+    quickAnswer:
+      "TIFF to JPG is useful when a large scan or image archive needs a smaller, more widely supported copy for viewing, sharing, or uploading.",
+
+    intro:
+      "TIFF files are common in scanning, print, publishing, and archival workflows, but they can be unnecessarily large and awkward for everyday sharing. JPG is easier to open in browsers, messaging apps, phones, and common document workflows. Converting TIFF to JPG creates a practical viewing copy while letting you keep the original TIFF as the higher-quality master.",
+    whatIsInput:
+      "TIFF is a flexible image format often used for scans, print assets, photography archives, and professional workflows. It can preserve high detail and may use little or no lossy compression, which is one reason TIFF files can become very large.",
+    whatIsOutput:
+      "JPG is a widely supported image format designed to reduce file size through lossy compression. It works especially well for photographs, scanned pages, and images that need to be shared or uploaded easily.",
+    whyConvert:
+      "People convert TIFF to JPG when compatibility and file size matter more than keeping the full archival source. JPG is easier to email, upload, preview, and use on the web, while the original TIFF can remain untouched for print or long-term preservation.",
+    bestFor: [
+      "Sharing scanned images",
+      "Website and CMS uploads",
+      "Email attachments",
+      "Photo previews and contact sheets",
+      "Smaller everyday copies of archived images",
+    ],
+    avoidIf: [
+      "The image must remain lossless for archiving",
+      "You need transparent layers or specialized TIFF data",
+      "The file is intended for high-end print production",
+    ],
+    howToSteps: [
+      "Upload the TIFF image",
+      "Choose JPG as the output format",
+      "Set the image quality when available",
+      "Convert and download the smaller JPG copy",
+    ],
+    useCases: [
+      "Create a smaller copy of a scanned document for email or messaging.",
+      "Prepare a TIFF photograph for a website, blog, or content management system.",
+      "Make an image easier to preview on phones and common desktop apps.",
+      "Reduce storage and transfer size for non-archival copies.",
+      "Share a print-oriented source image with someone who only needs to view it.",
+    ],
+    qualityNotes:
+      "JPG uses lossy compression, so the output may lose some fine detail compared with the TIFF source. Higher JPG quality usually preserves more detail but creates a larger file. For scans and photographs intended for normal viewing, the tradeoff is often worthwhile. Keep the TIFF when it is your archive, editing master, or print source.",
+    tips: [
+      "Keep the original TIFF before creating a smaller sharing copy.",
+      "Use a higher JPG quality setting for text-heavy scans and fine detail.",
+      "Check small text and sharp lines after conversion.",
+      "Use JPG for photos and normal scans, not when transparency is required.",
+      "Do not repeatedly re-save the JPG because each lossy export can reduce quality further.",
+    ],
+    trustNote:
+      "The conversion creates a new JPG file and leaves the uploaded TIFF as the source; users should keep their original master when quality or archival value matters.",
+    relatedConversions: ["png-to-jpg", "webp-to-png", "jpg-to-png"],
+    faq: [
+      {
+        q: "Why convert TIFF to JPG?",
+        a: "JPG files are usually smaller and easier to open, upload, email, and share across common devices and apps.",
+      },
+      {
+        q: "Does TIFF to JPG reduce quality?",
+        a: "It can. JPG uses lossy compression, so some fine detail may be removed depending on the quality setting and the source image.",
+      },
+      {
+        q: "Will the JPG file be smaller than the TIFF?",
+        a: "In most cases yes, often substantially smaller, especially when the TIFF is uncompressed or losslessly compressed.",
+      },
+      {
+        q: "Is JPG suitable for scanned documents?",
+        a: "Yes for normal viewing and sharing, although high-quality settings are better when the scan contains small text or fine lines.",
+      },
+      {
+        q: "Should I delete the original TIFF after converting?",
+        a: "Not when the TIFF is an archive, editing master, or print source. Keep it and use the JPG as the convenient copy.",
+      },
+      {
+        q: "Can JPG preserve TIFF transparency?",
+        a: "No. JPG does not support transparency, so transparent areas normally need a solid background in the output.",
+      },
+    ],
+  },
+
 };
 
 export function getConverterContent(slug: string): ConverterPageContentEntry | null {

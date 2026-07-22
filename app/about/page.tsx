@@ -1,25 +1,23 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
-  title: "About Converto",
+  title: "About",
   description:
     "Learn more about Converto, a simple online file converter for audio, video, and image formats.",
   alternates: {
-    canonical: `${siteUrl}/about`,
+    canonical: `${SITE_URL}/about`,
   },
   openGraph: {
     title: "About Converto",
     description:
       "Learn more about Converto, a simple online file converter for audio, video, and image formats.",
-    url: `${siteUrl}/about`,
+    url: `${SITE_URL}/about`,
     siteName: "Converto",
     type: "website",
   },

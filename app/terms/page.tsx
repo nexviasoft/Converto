@@ -1,17 +1,15 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
     "Read the Converto terms covering acceptable use, user responsibility, file rights, service limits, and disclaimers.",
-  alternates: { canonical: `${siteUrl}/terms` },
+  alternates: { canonical: `${SITE_URL}/terms` },
 };
 
 const sections = [

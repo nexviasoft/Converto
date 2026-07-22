@@ -1,12 +1,10 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import ConverterPageContent from "@/components/converter/ConverterPageContent";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
-  title: "PDF Tools Online | Create PDF, Split PDF, PDF to Image | Converto",
+  title: "PDF Tools Online | Create PDF, Split PDF, PDF to Image",
   description:
     "Use Converto PDF tools to create PDFs from images, split PDFs by page range, and export PDF pages as PNG, JPG, or WEBP from one focused workflow.",
   robots: {
@@ -17,7 +15,7 @@ export const metadata: Metadata = {
     canonical: `${SITE_URL}/convert/pdf`,
   },
   openGraph: {
-    title: "PDF Tools Online | Create PDF, Split PDF, PDF to Image | Converto",
+    title: "PDF Tools Online | Create PDF, Split PDF, PDF to Image",
     description:
       "Create PDFs from images, split PDFs by page range, and export PDF pages as PNG, JPG, or WEBP with Converto.",
     url: `${SITE_URL}/convert/pdf`,
@@ -26,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PDF Tools Online | Converto",
+    title: "PDF Tools Online",
     description:
       "Create PDFs from images, split PDFs, and export PDF pages as images with Converto.",
   },

@@ -1,17 +1,15 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
 import Footer from "@/components/landing/Footer";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
   title: "Cookie Notice",
   description:
     "Learn how Converto may use cookies, analytics, advertising identifiers, and local browser storage.",
-  alternates: { canonical: `${siteUrl}/cookies` },
+  alternates: { canonical: `${SITE_URL}/cookies` },
 };
 
 export default function CookiesPage() {

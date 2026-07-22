@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -15,9 +16,6 @@ type PageProps = {
   }>;
 };
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export function generateStaticParams() {
   return allCompareItems.map((item) => ({
@@ -31,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: "Comparison not found | Converto",
+      title: "Comparison not found",
       description: "The requested comparison page does not exist.",
       robots: {
         index: false,
@@ -41,21 +39,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${data.metaTitle} | Converto`,
+    title: data.metaTitle,
     description: data.metaDescription,
     alternates: {
-      canonical: `${siteUrl}/compare/${data.slug}`,
+      canonical: `${SITE_URL}/compare/${data.slug}`,
     },
     openGraph: {
-      title: `${data.metaTitle} | Converto`,
+      title: data.metaTitle,
       description: data.metaDescription,
-      url: `${siteUrl}/compare/${data.slug}`,
+      url: `${SITE_URL}/compare/${data.slug}`,
       siteName: "Converto",
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${data.metaTitle} | Converto`,
+      title: data.metaTitle,
       description: data.metaDescription,
     },
   };

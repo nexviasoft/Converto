@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
@@ -6,9 +7,6 @@ import AdSenseScript from "@/components/ads/AdsenseScript";
 import { AdEligibilityProvider } from "@/components/ads/AdEligibilityProvider";
 import "./globals.css";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 const ADSENSE_CLIENT =
   process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-4933934041035226";
@@ -17,7 +15,7 @@ const webAppSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: "Converto",
-  url: siteUrl,
+  url: SITE_URL,
   applicationCategory: "MultimediaApplication",
   operatingSystem: "Web",
   browserRequirements: "Requires JavaScript and a modern browser.",
@@ -26,17 +24,17 @@ const webAppSchema = {
   creator: {
     "@type": "Organization",
     name: "NexviaSoft",
-    url: siteUrl,
+    url: SITE_URL,
   },
   publisher: {
     "@type": "Organization",
     name: "NexviaSoft",
-    url: siteUrl,
+    url: SITE_URL,
   },
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Converto — Free Online File Converter",
     template: "%s | Converto",
@@ -57,14 +55,10 @@ export const metadata: Metadata = {
   authors: [{ name: "NexviaSoft" }],
   creator: "NexviaSoft",
   publisher: "NexviaSoft",
-  alternates: {
-    canonical: siteUrl,
-  },
   openGraph: {
     title: "Converto — Free Online File Converter",
     description:
       "Convert audio, video, image, and PDF files online with Converto. Fast browser-based file converter for MP3, WAV, MP4, WEBM, PNG, WEBP, PDF tools, and more.",
-    url: siteUrl,
     siteName: "Converto",
     type: "website",
   },

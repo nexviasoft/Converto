@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
@@ -5,16 +6,13 @@ import Footer from "@/components/landing/Footer";
 import { redirect } from "next/navigation";
 import { SIGN_IN_PUBLIC } from "@/lib/siteReadiness";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
   title: "Sign in",
   description:
     "Sign in to Converto. Account access is being prepared and free conversions do not require an account.",
   alternates: {
-    canonical: `${siteUrl}/sign-in`,
+    canonical: `${SITE_URL}/sign-in`,
   },
   robots: {
     index: false,

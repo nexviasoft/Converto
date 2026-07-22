@@ -1,29 +1,27 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import FormatsPageClient from "@/components/formats/FormatsPageClient";
 import { allFormats } from "@/lib/formatData";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.converto.tools";
 
 export const metadata: Metadata = {
-  title: "Supported File Formats | Converto",
+  title: "Supported File Formats",
   description:
     "Explore Converto’s supported audio, video, and image formats. Learn what each format is best for, compare similar formats, and jump into common conversion paths.",
   alternates: {
-    canonical: `${siteUrl}/formats`,
+    canonical: `${SITE_URL}/formats`,
   },
   openGraph: {
-    title: "Supported File Formats | Converto",
+    title: "Supported File Formats",
     description:
       "Explore Converto’s supported audio, video, and image formats.",
-    url: `${siteUrl}/formats`,
+    url: `${SITE_URL}/formats`,
     siteName: "Converto",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Supported File Formats | Converto",
+    title: "Supported File Formats",
     description:
       "Explore Converto’s supported audio, video, and image formats.",
   },
@@ -36,11 +34,11 @@ export default function FormatsPage() {
     name: "Supported File Formats | Converto",
     description:
       "Explore Converto’s supported audio, video, and image formats.",
-    url: `${siteUrl}/formats`,
+    url: `${SITE_URL}/formats`,
     mainEntity: allFormats.map((item) => ({
       "@type": "Thing",
       name: item.label,
-      url: `${siteUrl}/formats/${item.slug}`,
+      url: `${SITE_URL}/formats/${item.slug}`,
     })),
   };
 

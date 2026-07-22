@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import SimpleTopBar from "@/components/layout/SimpleTopBar";
@@ -5,16 +6,15 @@ import Footer from "@/components/landing/Footer";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
 import { allEditorialGuides } from "@/lib/editorialGuides";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.converto.tools";
 
 export const metadata: Metadata = {
   title: "File Conversion Guides",
   description: "Practical guides to file privacy, audio settings, image compression, and choosing better conversion outputs.",
-  alternates: { canonical: `${siteUrl}/guides` },
+  alternates: { canonical: `${SITE_URL}/guides` },
   openGraph: {
-    title: "File Conversion Guides | Converto",
+    title: "File Conversion Guides",
     description: "Practical guides to file privacy, audio settings, image compression, and choosing better conversion outputs.",
-    url: `${siteUrl}/guides`,
+    url: `${SITE_URL}/guides`,
     siteName: "Converto",
     type: "website",
   },
