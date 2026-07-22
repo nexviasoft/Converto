@@ -2095,6 +2095,11 @@ export default function ConverterPageContent({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [completedConversion, setCompletedConversion] = useState<{
+    input: TargetFmt | null;
+    output: TargetFmt;
+    downloadName: string;
+  } | null>(null);
   const [fromFmt, setFromFmt] = useState<TargetFmt | null>(null);
 
   const [actualProgress, setActualProgress] = useState(0);
@@ -2755,7 +2760,23 @@ export default function ConverterPageContent({
       revokeUrl(prev);
       return null;
     });
+    setCompletedConversion(null);
   };
+
+  // A finished download belongs to the exact target used for that conversion.
+  // When the user selects another output format, discard the old result instead
+  // of relabelling the same blob with a different extension.
+  useEffect(() => {
+    if (!resultUrl || !completedConversion) return;
+    if (target === completedConversion.output) return;
+
+    URL.revokeObjectURL(resultUrl);
+    setResultUrl(null);
+    setCompletedConversion(null);
+    setStatus(file ? "ready" : "idle");
+    setErrorMsg(null);
+    setShowPostConvertRail(false);
+  }, [target, resultUrl, completedConversion, file]);
 
   const resetConverter = () => {
     revokeResult();
@@ -3112,6 +3133,10 @@ export default function ConverterPageContent({
   const startConvert = async () => {
     if (!file) return;
 
+    const conversionFile = file;
+    const conversionInput = fromFmt;
+    const conversionTarget = target;
+
     if (trimEnabled) {
       if (!mediaDuration || mediaDuration <= 0) {
         setErrorMsg(
@@ -3157,9 +3182,16 @@ export default function ConverterPageContent({
 
       let convertedUrl: string;
 
-      if (canConvertViaCanvas(fromFmt, target))
-        convertedUrl = await convertImageViaCanvas(file, target);
-      else convertedUrl = await convertViaServer(file, target);
+      if (canConvertViaCanvas(conversionInput, conversionTarget))
+        convertedUrl = await convertImageViaCanvas(
+          conversionFile,
+          conversionTarget,
+        );
+      else
+        convertedUrl = await convertViaServer(
+          conversionFile,
+          conversionTarget,
+        );
 
       if (fakeTimer) clearInterval(fakeTimer);
 
@@ -3168,6 +3200,14 @@ export default function ConverterPageContent({
 
       revokeResult();
       setResultUrl(convertedUrl);
+      setCompletedConversion({
+        input: conversionInput,
+        output: conversionTarget,
+        downloadName: buildOutputName(
+          conversionFile.name,
+          outputExtMap[conversionTarget],
+        ),
+      });
 
       setActualProgress(100);
       setDisplayProgress(100);
@@ -3175,7 +3215,7 @@ export default function ConverterPageContent({
       setStatus("done");
     } catch (err: any) {
       if (fakeTimer) clearInterval(fakeTimer);
-      setErrorMsg(toFriendlyErrorMessage(err?.message, target));
+      setErrorMsg(toFriendlyErrorMessage(err?.message, conversionTarget));
       setStatus("error");
       setActualProgress(0);
       setDisplayProgress(0);
@@ -4045,11 +4085,8 @@ export default function ConverterPageContent({
         : Boolean(file);
 
   const successDownloadName = useMemo(
-    () =>
-      file && resultUrl
-        ? buildOutputName(file.name, outputExtMap[target])
-        : null,
-    [file, resultUrl, target],
+    () => (resultUrl ? completedConversion?.downloadName ?? null : null),
+    [resultUrl, completedConversion],
   );
 
   const siteUrl =
@@ -7482,20 +7519,17 @@ export default function ConverterPageContent({
                                 <div className="mt-6 flex flex-col items-center gap-3">
                                   <a
                                     href={resultUrl}
-                                    download={buildOutputName(
-                                      file.name,
-                                      outputExtMap[target],
-                                    )}
+                                    download={
+                                      completedConversion?.downloadName ??
+                                      undefined
+                                    }
                                     className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90"
                                   >
                                     Download result
                                   </a>
 
                                   <div className="text-xs text-white/50">
-                                    {buildOutputName(
-                                      file.name,
-                                      outputExtMap[target],
-                                    )}
+                                    {completedConversion?.downloadName}
                                   </div>
                                 </div>
                               ) : null}
@@ -7612,8 +7646,8 @@ export default function ConverterPageContent({
 
       <PostConvertSuggestionRail
         open={showPostConvertRail}
-        input={activeInputLabel}
-        output={activeOutputLabel}
+        input={completedConversion?.input ?? activeInputLabel}
+        output={completedConversion?.output ?? activeOutputLabel}
         onClose={() => setShowPostConvertRail(false)}
         onReset={resetConverter}
         downloadHref={resultUrl}
