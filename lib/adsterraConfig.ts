@@ -44,9 +44,23 @@ export const ADSTERRA_BANNER_300_ENABLED =
   /^[a-f0-9]{32}$/i.test(ADSTERRA_BANNER_300_KEY);
 
 
-export const ADSTERRA_NATIVE_SCRIPT_SRC =
-  process.env.NEXT_PUBLIC_ADSTERRA_NATIVE_SCRIPT_SRC ||
+const ADSTERRA_NATIVE_SCRIPT_FALLBACK =
+  "https://thorpejoy.com/fd6601ae4f261958321eb11878687973/invoke.js";
+
+const ADSTERRA_NATIVE_SCRIPT_LEGACY =
   "https://pl30462932.effectivecpmnetwork.com/fd6601ae4f261958321eb11878687973/invoke.js";
+
+const adsterraNativeScriptOverride =
+  process.env.NEXT_PUBLIC_ADSTERRA_NATIVE_SCRIPT_SRC?.trim();
+
+// Use the current Anti-Adblock script from the Adsterra dashboard. If Vercel
+// still contains the old host as an environment override, ignore it so the
+// legacy script cannot silently replace the updated integration.
+export const ADSTERRA_NATIVE_SCRIPT_SRC =
+  adsterraNativeScriptOverride &&
+  adsterraNativeScriptOverride !== ADSTERRA_NATIVE_SCRIPT_LEGACY
+    ? adsterraNativeScriptOverride
+    : ADSTERRA_NATIVE_SCRIPT_FALLBACK;
 
 export const ADSTERRA_NATIVE_CONTAINER_ID =
   process.env.NEXT_PUBLIC_ADSTERRA_NATIVE_CONTAINER_ID ||
