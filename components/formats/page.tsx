@@ -145,6 +145,11 @@ const popularConversions = [
     desc: "Improve compatibility for sharing and playback.",
   },
   {
+    href: "/convert/webm-to-mp4",
+    label: "WEBM to MP4",
+    desc: "Make browser recordings and web videos easier to use across devices.",
+  },
+  {
     href: "/convert/mp4-to-gif",
     label: "MP4 to GIF",
     desc: "Create lightweight animated clips from video.",
@@ -158,6 +163,11 @@ const popularConversions = [
     href: "/convert/webp-to-png",
     label: "WEBP to PNG",
     desc: "Turn lightweight web images into a more editing-friendly format.",
+  },
+  {
+    href: "/convert/jpg-to-png",
+    label: "JPG to PNG",
+    desc: "Create a reusable PNG copy for documents, slides, and editing workflows.",
   },
   {
     href: "/convert/png-to-ico",

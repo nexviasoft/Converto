@@ -6,7 +6,7 @@ import { INDEXABLE_CONVERTER_SLUGS } from "@/lib/indexingPolicy";
 import { PRO_PUBLIC } from "@/lib/siteReadiness";
 import { allEditorialGuides } from "@/lib/editorialGuides";
 
-const DEFAULT_LAST_MODIFIED = new Date("2026-07-22");
+const DEFAULT_LAST_MODIFIED = new Date("2026-07-24");
 
 export default function sitemap(): MetadataRoute.Sitemap {
 
@@ -134,12 +134,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.78,
   }));
 
+  const priorityConverterSlugs = new Set([
+    "mp4-to-mp3",
+    "png-to-jpg",
+    "webp-to-png",
+    "png-to-ico",
+    "jpg-to-png",
+    "mov-to-mp4",
+    "mp4-to-gif",
+    "flac-to-mp3",
+    "tiff-to-jpg",
+    "webm-to-mp4",
+  ]);
+
   const converterEntries: MetadataRoute.Sitemap =
     INDEXABLE_CONVERTER_SLUGS.map((slug) => ({
       url: `${SITE_URL}/convert/${slug}`,
       lastModified: DEFAULT_LAST_MODIFIED,
       changeFrequency: "weekly",
-      priority: 0.82,
+      priority: priorityConverterSlugs.has(slug) ? 0.9 : 0.82,
     }));
 
   return [

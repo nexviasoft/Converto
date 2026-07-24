@@ -358,7 +358,15 @@ function QuickDecisionTile({
       <div className="flex items-start gap-5">
         {iconSrc ? (
           <div className="grid h-[86px] w-[86px] shrink-0 place-items-center">
-            <img src={iconSrc} alt="" className="h-[56px] w-[56px] object-contain" />
+            <img
+              src={iconSrc}
+              alt={`${title} illustration`}
+              width={56}
+              height={56}
+              loading="lazy"
+              decoding="async"
+              className="h-[56px] w-[56px] object-contain"
+            />
           </div>
         ) : null}
         <div className="min-w-0 flex-1">

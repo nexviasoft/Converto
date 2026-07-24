@@ -6,12 +6,12 @@ import React from "react";
 
 const popularConversions = [
   { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
-  { href: "/convert/wav-to-mp3", label: "WAV to MP3" },
-  { href: "/convert/webm-to-mp3", label: "WEBM to MP3" },
-  { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
+  { href: "/convert/png-to-jpg", label: "PNG to JPG" },
+  { href: "/convert/webp-to-png", label: "WEBP to PNG" },
+  { href: "/convert/png-to-ico", label: "PNG to ICO" },
+  { href: "/convert/jpg-to-png", label: "JPG to PNG" },
   { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
   { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
-  { href: "/convert/png-to-ico", label: "PNG to ICO" },
   { href: "/convert/tiff-to-jpg", label: "TIFF to JPG" },
 ];
 

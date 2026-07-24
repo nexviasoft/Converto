@@ -19,7 +19,6 @@ import {
   isAdSlotReady,
 } from "@/components/ads/AdsenseScript";
 import { PDFDocument } from "pdf-lib";
-import RouteAwareContentSections from "@/components/converter/sections/RouteAwareContentSections";
 import type { ConverterPageContentEntry } from "@/lib/converterContent";
 import { PRO_PUBLIC } from "@/lib/siteReadiness";
 import AdsterraNativeBanner from "@/components/ads/AdsterraNativeBanner";
@@ -336,16 +335,17 @@ const ICO_SIZE_OPTIONS = ["16", "32"] as const;
 
 const homepagePopularConversions: Array<{ href: string; label: string }> = [
   { href: "/convert/mp4-to-mp3", label: "MP4 to MP3" },
-  { href: "/convert/webm-to-mp3", label: "WEBM to MP3" },
-  { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
-  { href: "/convert/mp4-to-wav", label: "MP4 to WAV" },
-  { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
-  { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
   { href: "/convert/png-to-jpg", label: "PNG to JPG" },
   { href: "/convert/webp-to-png", label: "WEBP to PNG" },
-  { href: "/convert/mkv-to-mp4", label: "MKV to MP4" },
-  { href: "/convert/avi-to-mp4", label: "AVI to MP4" },
   { href: "/convert/png-to-ico", label: "PNG to ICO" },
+  { href: "/convert/jpg-to-png", label: "JPG to PNG" },
+  { href: "/convert/mov-to-mp4", label: "MOV to MP4" },
+  { href: "/convert/webm-to-mp4", label: "WEBM to MP4" },
+  { href: "/convert/mp4-to-gif", label: "MP4 to GIF" },
+  { href: "/convert/flac-to-mp3", label: "FLAC to MP3" },
+  { href: "/convert/webm-to-mp3", label: "WEBM to MP3" },
+  { href: "/convert/mp4-to-wav", label: "MP4 to WAV" },
+  { href: "/convert/mkv-to-mp4", label: "MKV to MP4" },
   { href: "/convert/tiff-to-jpg", label: "TIFF to JPG" },
 ];
 
@@ -1033,14 +1033,16 @@ function SeoInfoSection({
   mode = "convert",
   pdfTool = "to_pdf",
   pdfImageTarget = "PNG",
+  customContent = null,
 }: {
   input?: string | null;
   output?: string | null;
   mode?: SeoPageMode;
   pdfTool?: PdfSeoTool;
   pdfImageTarget?: PdfToImageTarget;
+  customContent?: ConverterPageContentEntry | null;
 }) {
-  const seo =
+  const baseSeo =
     mode === "batch"
       ? buildBatchSeoContent(input, output)
       : mode === "pdf"
@@ -1049,7 +1051,39 @@ function SeoInfoSection({
   const normalizedInput = normalizeFmtLabel(input) ?? "FILE";
   const normalizedOutput = normalizeFmtLabel(output) ?? "FILE";
   const family = getRouteFamily(input, output);
-  const [isExpanded, setIsExpanded] = useState(false);
+
+  const customBestFor = customContent?.bestFor?.length
+    ? customContent.bestFor
+    : customContent?.useCases ?? [];
+  const customWatchouts = customContent?.avoidIf?.length
+    ? customContent.avoidIf
+    : customContent?.tips ?? [];
+  const customSteps = customContent?.howToSteps?.length
+    ? customContent.howToSteps
+    : baseSeo.steps;
+
+  const seo = customContent && mode === "convert"
+    ? {
+        ...baseSeo,
+        heading:
+          customContent.headline ??
+          customContent.h1 ??
+          `${normalizedInput} to ${normalizedOutput} converter`,
+        intro:
+          customContent.quickAnswer ??
+          customContent.seoIntro ??
+          customContent.intro,
+        whyText: customContent.whyConvert,
+        useText: customContent.useCases.slice(0, 3).join(" "),
+        benefits: customBestFor.slice(0, 3),
+        bestFor: customContent.useCases.slice(0, 3),
+        watchouts: customWatchouts.slice(0, 3),
+        steps: customSteps.slice(0, 4),
+        browserText:
+          customContent.trustNote ??
+          "Converto keeps the conversion workflow focused and returns a new output file without replacing your original source.",
+      }
+    : baseSeo;
 
   const quickFit =
     mode === "pdf"
@@ -1072,64 +1106,28 @@ function SeoInfoSection({
                   ? "Best for playback flexibility, smaller files, and format compatibility."
                   : "Best for quick everyday conversions with flexible format switching.";
 
-  const hook =
-    mode === "pdf"
-      ? pdfTool === "split_pdf"
-        ? "Split documents by page range without turning PDF work into a generic converter flow."
-        : pdfTool === "pdf_to_image"
-          ? "Export document pages as visual assets without leaving the PDF tools workflow."
-          : "Handle creation, splitting, and page export from one dedicated PDF tools page."
-      : mode === "batch"
-        ? `Convert multiple ${normalizedInput} files to ${normalizedOutput} in one shared workflow.`
-        : family === "video_to_audio"
-          ? `Pull audio out of ${normalizedInput} fast and keep the workflow lightweight.`
-          : family === "video_to_video"
-            ? `Make ${normalizedInput} easier to play, share, and move across devices.`
-            : family === "video_to_image"
-              ? `Turn ${normalizedInput} into visual assets without slowing the workflow down.`
-              : family === "image_to_image"
-                ? `Switch ${normalizedInput} into a more practical image format in seconds.`
-                : family === "audio_to_audio"
-                  ? `Change ${normalizedInput} into a format that fits playback or editing better.`
-                  : `Convert ${normalizedInput} to ${normalizedOutput} in seconds with less friction.`;
-
   return (
     <section className="mx-auto mt-6 max-w-[1100px]">
       <div className="relative overflow-hidden rounded-[30px] border border-violet-300/18 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.14),transparent_30%),linear-gradient(135deg,rgba(45,38,91,0.94),rgba(35,29,73,0.92))] p-5 shadow-[0_24px_80px_rgba(18,14,45,0.32),inset_0_1px_0_rgba(255,255,255,0.05)]">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-              {mode === "pdf"
-                ? "About PDF tools"
-                : mode === "batch"
-                  ? "About batch conversion"
-                  : "About this converter"}
-            </div>
-            <h2 className="mt-3 text-lg font-semibold tracking-tight text-white">
-              {seo.heading}
-            </h2>
-            <p className="mt-2 max-w-[72ch] text-sm font-medium leading-6 text-white/82">
-              {hook}
-            </p>
-            <p className="mt-2 max-w-[72ch] text-sm leading-6 text-white/60">
-              {seo.intro}
-            </p>
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            {mode === "pdf"
+              ? "About PDF tools"
+              : mode === "batch"
+                ? "About batch conversion"
+                : "About this converter"}
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsExpanded((prev) => !prev)}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-violet-200/16 bg-violet-400/10 px-4 text-sm font-semibold text-violet-100/78 transition hover:border-violet-200/28 hover:bg-violet-400/16 hover:text-white"
-          >
-            {isExpanded ? "Hide details" : "Read more"}
-          </button>
+          <h2 className="mt-3 text-lg font-semibold tracking-tight text-white">
+            {seo.heading}
+          </h2>
+          <p className="mt-2 max-w-[78ch] text-sm leading-6 text-white/66">
+            {seo.intro}
+          </p>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="inline-flex rounded-full border border-violet-200/14 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold text-violet-100/68">
-            {mode === "pdf"
-              ? "PDF tool"
-              : getFormatIntentLabel(normalizedInput)}{" "}
+            {mode === "pdf" ? "PDF tool" : getFormatIntentLabel(normalizedInput)}{" "}
             {mode === "pdf" ? "mode" : "input"}
           </span>
           <span className="inline-flex rounded-full border border-violet-200/14 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold text-violet-100/68">
@@ -1153,9 +1151,14 @@ function SeoInfoSection({
           </span>
         </div>
 
-        {isExpanded ? (
-          <>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <details className="group mt-5">
+          <summary className="inline-flex cursor-pointer list-none items-center justify-center rounded-full border border-violet-200/16 bg-violet-400/10 px-4 py-2.5 text-sm font-semibold text-violet-100/78 transition hover:border-violet-200/28 hover:bg-violet-400/16 hover:text-white [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">Read more</span>
+            <span className="hidden group-open:inline">Hide details</span>
+          </summary>
+
+          <div className="mt-6">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <h3 className="text-sm font-semibold text-white">
                   {mode === "pdf"
@@ -1164,51 +1167,7 @@ function SeoInfoSection({
                       ? `Why batch ${normalizedInput} to ${normalizedOutput}?`
                       : `Why convert ${normalizedInput} to ${normalizedOutput}?`}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-white/60">
-                  {seo.whyText}
-                </p>
-              </div>
-
-              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                <h3 className="text-sm font-semibold text-white">
-                  {mode === "pdf"
-                    ? "When to use this tool"
-                    : mode === "batch"
-                      ? "When to use batch conversion"
-                      : "When to use this converter"}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-white/60">
-                  {seo.useText}
-                </p>
-              </div>
-
-              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                <h3 className="text-sm font-semibold text-white">
-                  {mode === "pdf"
-                    ? "Current PDF workflow"
-                    : mode === "batch"
-                      ? "Current batch workflow"
-                      : "Current workflow"}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-white/60">
-                  {seo.browserText}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                <h3 className="text-sm font-semibold text-white">
-                  Why this route works well
-                </h3>
-                <ul className="mt-3 space-y-2 text-sm leading-6 text-white/60">
-                  {seo.benefits.map((item) => (
-                    <li key={item} className="flex gap-2">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-white/35" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-2 text-sm leading-6 text-white/60">{seo.whyText}</p>
               </div>
 
               <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
@@ -1224,9 +1183,7 @@ function SeoInfoSection({
               </div>
 
               <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                <h3 className="text-sm font-semibold text-white">
-                  Things to keep in mind
-                </h3>
+                <h3 className="text-sm font-semibold text-white">Things to keep in mind</h3>
                 <ul className="mt-3 space-y-2 text-sm leading-6 text-white/60">
                   {seo.watchouts.map((item) => (
                     <li key={item} className="flex gap-2">
@@ -1238,11 +1195,23 @@ function SeoInfoSection({
               </div>
             </div>
 
+            {customContent && mode === "convert" ? (
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                  <h3 className="text-sm font-semibold text-white">About {normalizedInput}</h3>
+                  <p className="mt-2 text-sm leading-6 text-white/60">{customContent.whatIsInput}</p>
+                </div>
+                <div className="rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                  <h3 className="text-sm font-semibold text-white">About {normalizedOutput}</h3>
+                  <p className="mt-2 text-sm leading-6 text-white/60">{customContent.whatIsOutput}</p>
+                </div>
+              </div>
+            ) : null}
+
             <div className="mt-6">
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/45">
                 How it works
               </h3>
-
               <ol className="mt-4 space-y-3">
                 {seo.steps.map((step, index) => (
                   <li
@@ -1252,15 +1221,42 @@ function SeoInfoSection({
                     <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white ring-1 ring-white/10">
                       {index + 1}
                     </span>
-                    <span className="text-sm leading-6 text-white/65">
-                      {step}
-                    </span>
+                    <span className="text-sm leading-6 text-white/65">{step}</span>
                   </li>
                 ))}
               </ol>
             </div>
-          </>
-        ) : null}
+
+            <div className="mt-4 rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <h3 className="text-sm font-semibold text-white">Quality and workflow note</h3>
+              <p className="mt-2 text-sm leading-6 text-white/60">
+                {customContent?.qualityNotes ?? seo.browserText}
+              </p>
+            </div>
+
+            {customContent?.faq?.length ? (
+              <details className="group/faq mt-4 rounded-[20px] border border-violet-200/14 bg-[#2b2558]/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <summary className="cursor-pointer list-none text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
+                  <span className="group-open/faq:hidden">Common questions</span>
+                  <span className="hidden group-open/faq:inline">Hide common questions</span>
+                </summary>
+                <div className="mt-4 space-y-3">
+                  {customContent.faq.slice(0, 6).map((item) => (
+                    <details
+                      key={item.q}
+                      className="rounded-2xl border border-white/8 bg-black/10 px-4 py-3"
+                    >
+                      <summary className="cursor-pointer list-none text-sm font-semibold text-white/82 [&::-webkit-details-marker]:hidden">
+                        {item.q}
+                      </summary>
+                      <p className="mt-3 text-sm leading-6 text-white/58">{item.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </details>
+            ) : null}
+          </div>
+        </details>
       </div>
     </section>
   );
@@ -1430,9 +1426,12 @@ function PopularEntrySection({
             </p>
           </div>
 
-          <div className="inline-flex items-center rounded-full border border-violet-200/16 bg-violet-400/10 px-3 py-1.5 text-[11px] font-semibold text-violet-100/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <Link
+            href={mode === "pdf" ? "/convert/pdf" : "/formats"}
+            className="inline-flex items-center rounded-full border border-violet-200/16 bg-violet-400/10 px-3 py-1.5 text-[11px] font-semibold text-violet-100/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition hover:border-violet-200/28 hover:bg-violet-400/16 hover:text-white"
+          >
             More options
-          </div>
+          </Link>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -1470,30 +1469,6 @@ function PopularEntrySection({
             </Link>
           ))}
 
-          {mode !== "pdf" ? (
-            <Link
-              href="/formats"
-              className="group rounded-[22px] border border-violet-200/14 bg-[#2b2558]/72 p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-violet-300/30 hover:bg-[#332b68]/78 hover:shadow-[0_0_28px_rgba(139,92,246,0.16)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
-                  DIRECTORY
-                </div>
-                <span className="text-white/30 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white/70">
-                  ↗
-                </span>
-              </div>
-
-              <div className="mt-4 text-base font-semibold">
-                Browse format directory
-              </div>
-
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                Explore format guides, format families, and nearby conversion
-                paths.
-              </p>
-            </Link>
-          ) : null}
         </div>
       </div>
     </section>
@@ -4127,7 +4102,7 @@ export default function ConverterPageContent({
       ? true
       : effectiveSeoMode === "batch"
         ? batchFiles.length > 0
-        : Boolean(file);
+        : Boolean(customContent) || Boolean(file);
 
   const successDownloadName = useMemo(
     () => (resultUrl ? completedConversion?.downloadName ?? null : null),
@@ -4160,8 +4135,10 @@ export default function ConverterPageContent({
 
   const effectiveFaqItems = useMemo(
     () =>
-      effectiveSeoMode === "pdf"
-        ? [
+      effectiveSeoMode === "convert" && customContent?.faq?.length
+        ? customContent.faq
+        : effectiveSeoMode === "pdf"
+          ? [
             {
               q:
                 effectivePdfToolTab === "split_pdf"
@@ -4207,6 +4184,7 @@ export default function ConverterPageContent({
       activeOutputLabel,
       effectiveSeoMode,
       effectivePdfToolTab,
+      customContent,
     ],
   );
 
@@ -7736,25 +7714,14 @@ export default function ConverterPageContent({
                     route easier to judge before you convert again.
                   </div>
 
-                  {customContent && effectiveSeoMode === "convert" ? (
-                    <RouteAwareContentSections
-                      family={getRouteFamily(
-                        activeInputLabel,
-                        activeOutputLabel,
-                      )}
-                      customContent={customContent}
-                      activeInputLabel={activeInputLabel}
-                      activeOutputLabel={activeOutputLabel}
-                    />
-                  ) : (
-                    <SeoInfoSection
-                      input={activeInputLabel}
-                      output={activeOutputLabel}
-                      mode={effectiveSeoMode}
-                      pdfTool={effectivePdfToolTab}
-                      pdfImageTarget={pdfToImageTarget}
-                    />
-                  )}
+                  <SeoInfoSection
+                    input={activeInputLabel}
+                    output={activeOutputLabel}
+                    mode={effectiveSeoMode}
+                    pdfTool={effectivePdfToolTab}
+                    pdfImageTarget={pdfToImageTarget}
+                    customContent={customContent}
+                  />
                 </>
               ) : null}
             </div>

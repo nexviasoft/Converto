@@ -8,6 +8,7 @@ export const INDEXABLE_CONVERTER_SLUGS = [
   "mp4-to-mp3",
   "webm-to-mp3",
   "mov-to-mp4",
+  "webm-to-mp4",
   "mkv-to-mp4",
   "png-to-jpg",
   "webp-to-png",

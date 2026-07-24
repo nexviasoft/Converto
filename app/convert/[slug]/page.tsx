@@ -153,7 +153,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `${SITE_URL}/convert/${slug}`;
   const customContent = getConverterContent(slug);
   const indexable = isIndexableConverterSlug(slug) && Boolean(customContent);
-  const title = customContent?.headline ?? buildMetaTitle(inputUpper, outputUpper);
+  const title =
+    customContent?.metaTitle ??
+    customContent?.headline ??
+    buildMetaTitle(inputUpper, outputUpper);
   const description =
     customContent?.seoIntro ?? buildMetaDescription(inputUpper, outputUpper);
 
@@ -201,18 +204,21 @@ export default async function ConvertSlugPage({ params }: PageProps) {
     inputUpper,
     outputUpper,
   } = parsed;
+  const customContent = getConverterContent(slug);
 
   return (
     <ConverterPageContent
       slug={slug}
       seoMode="convert"
-      seoTitle={buildSeoTitle(inputUpper, outputUpper)}
-      seoDescription={buildSeoDescription(inputUpper, outputUpper)}
+      seoTitle={customContent?.h1 ?? buildSeoTitle(inputUpper, outputUpper)}
+      seoDescription={
+        customContent?.seoIntro ?? buildSeoDescription(inputUpper, outputUpper)
+      }
       suggestedInput={suggestedInput}
       suggestedOutput={suggestedOutput}
       rawInputLabel={input}
       rawOutputLabel={output}
-      customContent={getConverterContent(slug)}
+      customContent={customContent}
       adsEligible={isIndexableConverterSlug(slug)}
     />
   );

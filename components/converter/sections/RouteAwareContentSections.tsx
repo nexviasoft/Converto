@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 import FormatOverviewSection from "@/components/converter/sections/FormatOverviewSection";
 import RouteSpecificFaqSection from "@/components/converter/sections/RouteSpecificFaqSection";
@@ -17,6 +18,8 @@ type RouteFamily =
   | "general";
 
 type ConverterPageContentEntry = {
+  metaTitle?: string;
+  h1?: string;
   headline?: string;
   seoIntro?: string;
   quickAnswer?: string;
@@ -188,26 +191,30 @@ function RelatedRouteChips({
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/42">
-              Nearby conversion thinking
+              Related converters
             </div>
             <h3 className="mt-2 text-lg font-semibold text-white">
-              Related routes people often test next
+              Keep converting with a nearby format route
             </h3>
           </div>
 
           <div className="text-xs text-white/45">
-            Great for internal linking and route continuation
+            Choose another useful output without starting over
           </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
           {items.map((item) => (
-            <span
+            <Link
               key={item}
-              className="inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-white/70"
+              href={`/convert/${item}`}
+              className="inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-violet-300/35 hover:bg-violet-400/15 hover:text-white"
             >
-              {item.replaceAll("-", " ").toUpperCase()}
-            </span>
+              {item
+                .split("-to-")
+                .map((part) => part.toUpperCase())
+                .join(" to ")} converter
+            </Link>
           ))}
         </div>
       </div>
